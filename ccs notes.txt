@@ -1,0 +1,30 @@
+!!sinfo command displays full list of nodes/partitions
+
+!!Command to load from google drive
+rclone copy gdrive:npp_data/testing/dataset .
+
+!!TEMPLATE JOB SUBMISSION::
+
+#!/bin/bash
+
+#SBATCH --account=gol_jfr267_uksr
+#SBATCH --partition=P4V12_SKY32M192_L
+
+#SBATCH --job-name=npp_finetune
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=4G
+#SBATCH --gres=gpu:1
+#SBATCH --time=05:00:00
+
+$HOME/.conda/envs/finetuning/bin/python "name of script".py
+
+::EXAMPLE END!!
+
+!!submission command:
+sbatch "jobname shell script".sh
+
+!!slurm file in directory is output of job
+
+!!odd.ccs.uky.edu will list what jobs are running

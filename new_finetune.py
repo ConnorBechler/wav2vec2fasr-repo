@@ -15,7 +15,15 @@ import os
 def main_program(project_dir = "npp_asr", 
         output_dir="", 
         data_dir=None, 
-        vocab_dir=None):
+        vocab_dir=None,
+        lrng_rate=3e-4,
+        epochs=30,
+        mixed_precision=True,
+        atn_dout=0.1,
+        hid_dout=0.1,
+        ft_proj_dout=0.0,
+        msk_tm_prob=0.05,
+        ldrop=0.1):
             
     project_dir = project_dir#"npp_asr"
     full_project = os.path.join(os.environ["HOME"], project_dir)
@@ -177,11 +185,11 @@ def main_program(project_dir = "npp_asr",
     logging.debug("Downloading model")
     model = Wav2Vec2ForCTC.from_pretrained(
         "facebook/wav2vec2-large-xlsr-53", 
-        attention_dropout=0.1,#0.1,
-        hidden_dropout=0.1,#0.1,
-        feat_proj_dropout=0.0,#0.0,
-        mask_time_prob=0.05,#0.05,
-        layerdrop=0.1,#0.1,
+        attention_dropout=atn_dout,#0.1,
+        hidden_dropout=hid_dout,#0.1,
+        feat_proj_dropout=ft_proj_dout,#0.0,
+        mask_time_prob=msk_tm_prob,#0.05,
+        layerdrop=ldrop,#0.1,
         ctc_loss_reduction="mean", 
         pad_token_id=processor.tokenizer.pad_token_id,
         vocab_size=len(processor.tokenizer)
@@ -210,12 +218,12 @@ def main_program(project_dir = "npp_asr",
     per_device_train_batch_size=1,
     gradient_accumulation_steps=2,
     evaluation_strategy="steps",
-    num_train_epochs=30,
-    fp16=True,
+    num_train_epochs=epochs,#30,
+    fp16=mixed_precision,#True,
     save_steps=100,
     eval_steps=100,
     logging_steps=10,
-    learning_rate=3e-4,
+    learning_rate=learn_rate,#3e-4,
     warmup_steps=500,
     #save_total_limit=10,
     )
@@ -247,4 +255,5 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         main_program()
     else:
-        print("no cuda")
+        print("no cuda, attempting without")
+        main_program(mixed_precision=False)

@@ -56,7 +56,7 @@ setup_vocab(output_dir = output_dir)
 
 logging.debug("***Finetuning model***")
 main_program(output_dir = output_dir,
-    lrng_rate=args['learning_rate'],
+    learn_rate=args['learning_rate'],
     epochs=args['epochs'],
     mixed_precision=not(args['cpu']),
     atn_dout=args['atn_dout'],

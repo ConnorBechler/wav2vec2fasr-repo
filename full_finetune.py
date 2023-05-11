@@ -28,7 +28,7 @@ parser.add_argument("--ft_proj_dout", default=0.0, type=float,  help="Feature pr
 parser.add_argument("--msk_tm_prob", default=0.05, type=float,  help="Mask time probability")
 parser.add_argument("--ldrop", default=0.1, type=float, help="Layer drop")
 
-args = parser.parse_args()
+args = vars(parser.parse_args())
 logging.debug("***Configuration: " + str(args)+"***")
 
 run_name = args['run_name']#"test_nochanges_2-9-23"
@@ -61,7 +61,7 @@ main_program(output_dir = output_dir,
     mixed_precision=not(args['cpu']),
     atn_dout=args['atn_dout'],
     hid_dout=args['hid_dout'],
-    ft_proj_dout=['ft_proj_dout'],
+    ft_proj_dout=args['ft_proj_dout'],
     msk_tm_prob=args['msk_tm_prob'],
     ldrop=args['ldrop'])
     

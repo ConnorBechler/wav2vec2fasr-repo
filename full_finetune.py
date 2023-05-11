@@ -16,7 +16,7 @@ import datetime
 cur_time = str(datetime.datetime.now()).replace(" ", "_")
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument("--run_name", default="model_"+cur_time, help="Run name")
+parser.add_argument("-n", "--run_name", default="model_"+cur_time, help="Run name")
 parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
 parser.add_argument("--comb_tones", action="store_true", help="Combine tone pairs")
 parser.add_argument("--comb_diac", action="store_true", help="Combine diacritic character clusters")

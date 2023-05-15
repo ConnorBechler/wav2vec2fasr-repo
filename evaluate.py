@@ -54,7 +54,7 @@ def tone_revert(text):
 
 import os
 
-def main_program(eval_dir="output", data_dir=None, checkpoint=None):
+def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     project_dir = "npp_asr"
     output_dir = "output"
     full_project = os.path.join(os.environ["HOME"], project_dir)
@@ -69,6 +69,10 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None):
         model_dir = os.path.join(eval_dir, "model/")
     else:
         model_dir = os.path.join(eval_dir, f"checkpoint-{str(checkpoint)}")
+    if cpu: 
+        device = 'cpu'
+    else: 
+        device = 'cuda'
 
 
     logging.debug(f"Loading training data from {data_train}")
@@ -118,7 +122,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None):
     
     #Load fine-tuned model
     logging.debug("Loading finetuned model")
-    model = AutoModelForCTC.from_pretrained(model_dir).to("cuda")
+    model = AutoModelForCTC.from_pretrained(model_dir).to(device)
     
     
     #logging.debug("Loading wer metric")
@@ -147,7 +151,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None):
     
     def get_predictions(ind):
         input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-        logits = model(input_dict.input_values.to("cuda")).logits
+        logits = model(input_dict.input_values.to(device)).logits
         pred_ids = torch.argmax(logits, dim=-1)[0]
         label = phone_revert(tone_revert(np_test_ds[ind]["transcript"]))
         pred = phone_revert(tone_revert(processor.decode(pred_ids)))
@@ -281,7 +285,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None):
     sum_wer, num = 0, 0
     for ind in ex_inds:
         input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-        logits = model(input_dict.input_values.to("cuda")).logits
+        logits = model(input_dict.input_values.to(device)).logits
         pred_ids = torch.argmax(logits, dim=-1)[0]
         pred_str = phone_revert(tone_revert(processor.decode(pred_ids)))
         label_str = phone_revert(tone_revert(np_test_ds[ind]["transcript"]))
@@ -301,7 +305,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None):
     #ex_inds = list(range(0, 279, 4))
     for ind in ex_inds:
         input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-        logits = model(input_dict.input_values.to("cuda")).logits
+        logits = model(input_dict.input_values.to(device)).logits
         pred_ids = torch.argmax(logits, dim=-1)[0]
         
         print(f"Index: {ind}")
@@ -312,16 +316,15 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None):
     
 
 if __name__ == "__main__":
-    if torch.cuda.is_available():
+    pass
+    """if torch.cuda.is_available():
         #main_program(eval_dir="test_nochanges_2-9-23")
-        
-        main_program(eval_dir="test_nochanges_12-21-22")
-        main_program(eval_dir="test_combdiac_12-21-22")
-        main_program(eval_dir="test_combtones_12-21-22")
-        main_program(eval_dir="test_combboth_12-21-22")
-        
+        #main_program(eval_dir="test_nochanges_12-21-22")
+        #main_program(eval_dir="test_combdiac_12-21-22")
+        #main_program(eval_dir="test_combtones_12-21-22")
+        #main_program(eval_dir="test_combboth_12-21-22")
         #main_program(eval_dir="test_combdiac_12-21-22")
         #main_program(eval_dir="test_combboth_12-21-22")
         #main_program(eval_dir="test_notones_12-21-22")
     else:
-        print("no cuda")
+        print("no cuda")"""

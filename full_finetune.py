@@ -66,5 +66,5 @@ main_program(output_dir = output_dir,
     ldrop=args['ldrop'])
     
 logging.debug("***Evaluating model***")
-eval_program(eval_dir = output_dir)
+eval_program(eval_dir = output_dir, cpu=args['cpu'])
 logging.debug("***Fine-tuning complete!***")

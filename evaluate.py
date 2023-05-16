@@ -14,18 +14,6 @@ from Levenshtein import editops
 
 from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, Wav2Vec2ForCTC, TrainingArguments, Trainer, AutoModelForCTC
 
-#Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-import warnings
-warnings.simplefilter("ignore")
-
-parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument("-d", "--eval_dir", default="output", help="Directory of model to be evaluated")
-parser.add_argument("--data_dir", default=None, help="Directory of data to evaluate model with")
-parser.add_argument("-c", "--checkpoint", default=None, help="Checkpoint of model to evaluate")
-parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
-args = vars(parser.parse_args())
-
 chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
 tone_regex = '[\¹\²\³\⁴\⁵\-]'
 nontone_regex = '[^\¹\²\³\⁴\⁵ \-]'
@@ -66,11 +54,7 @@ def tone_revert(text):
 
 import os
 
-def main_program(eval_dir=args['eval_dir'], 
-    data_dir=args['data_dir'], 
-    checkpoint=args['checkpoint'], 
-    cpu=args['cpu']):
-        
+def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     project_dir = "npp_asr"
     output_dir = "output"
     full_project = os.path.join(os.environ["HOME"], project_dir)

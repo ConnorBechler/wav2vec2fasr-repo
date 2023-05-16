@@ -22,6 +22,7 @@ parser.add_argument("--comb_tones", action="store_true", help="Combine tone pair
 parser.add_argument("--comb_diac", action="store_true", help="Combine diacritic character clusters")
 parser.add_argument("-r", "--learning_rate", default = 3e-4, type=float, help="Learning rate")
 parser.add_argument("-b", "--batch_size", default = 1, type=int, help="Number of batches per device")
+parser.add_argument("-g", "--grdacc_steps", default = 2, type=int, help="Number of gradient accumulation steps")
 parser.add_argument("-e","--epochs", default=30, type=int, help="Number of training epochs")
 parser.add_argument("--atn_dout", default=0.1, type=float, help="Attention dropout")
 parser.add_argument("--hid_dout", default=0.1, type=float, help="Hidden dropout")
@@ -59,6 +60,7 @@ logging.debug("***Finetuning model***")
 main_program(output_dir = output_dir,
     learn_rate=args['learning_rate'],
     batches=args['batch_size'],
+    grdacc_steps=args['grdacc_steps'],
     epochs=args['epochs'],
     mixed_precision=not(args['cpu']),
     atn_dout=args['atn_dout'],

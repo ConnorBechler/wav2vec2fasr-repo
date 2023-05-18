@@ -12,5 +12,5 @@
 #SBATCH --time=01:00:00          # total run time limit (HH:MM:SS)
 
 date
-$HOME/.conda/envs/npp_asr/bin/python evaluate.py
+$HOME/.conda/envs/npp_asr/bin/python eval.py "test_combboth_12-21-22"
 date

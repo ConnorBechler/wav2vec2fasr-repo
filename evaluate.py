@@ -215,6 +215,30 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
             f.write(csv)
         return csv
 
+    def count_errors(ind_list):
+        edits, err_counts = [], {}#, rep_types = [], {}, {}
+        for ind in ind_list:
+            label, pred = get_predictions(ind)
+            ops = editops(label, pred)
+            edits += [(x[0], label[x[1]], pred[x[2]]) for x in ops if x[0] != 'insert']
+            edits += [(x[0], pred[x[2]], label[x[1]]) for x in ops if x[0] == 'insert']
+        for e in edits:
+            err_counts[e[1]] = err_counts.setdefault(e[1], {y : 0 for y in ['replace', 'insert', 'delete']})
+            err_counts[e[1]][e[0]] += 1
+            #if e[0] == 'replace': 
+            #    rep_types[e[1]] = rep_types.setdefault(e[1], {})
+            #    rep_types[e[1]][e[2]] = rep_types[e[1]].setdefault(e[2], 0) + 1
+        return err_counts#, rep_types
+    
+    def save_error_table(name, ind_list):
+        err_counts = count_errors(ind_list)
+        errs = ['replace', 'insert', 'delete']
+        header = "\t"+ "\t".join(list(err_counts.keys())) + "\n"
+        body = "\n".join([f"{err}:\t" + "\t".join([str(err_counts[k][err]) for k in err_counts.keys()]) for err in errs])
+        csv = header + body
+        with open(name+'.tsv', 'w') as f:
+            f.write(csv)
+        return csv
     
 
     print(eval_dir)
@@ -274,7 +298,8 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     for key in list(recordings):
         print(f"{eval_dir} CER on {key}: {compute_cer(recordings[key])}")
     
-    #Save replacements table to eval directory
+    #Save error and replacements tables to eval directory
+    print(save_error_table(eval_dir+'_errors', full))
     print(save_replacements_table(eval_dir+'_replacements', full))
     
     

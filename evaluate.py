@@ -219,6 +219,8 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
         edits, err_counts = [], {}#, rep_types = [], {}, {}
         for ind in ind_list:
             label, pred = get_predictions(ind)
+            #Include padding to avoid indexing errors with final deletions/insertions
+            label, pred = label + "#", pred + "#"
             ops = editops(label, pred)
             edits += [(x[0], label[x[1]], pred[x[2]]) for x in ops if x[0] != 'insert']
             edits += [(x[0], pred[x[2]], label[x[1]]) for x in ops if x[0] == 'insert']
@@ -234,8 +236,9 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
         err_counts = count_errors(ind_list)
         errs = ['replace', 'insert', 'delete']
         header = "\t"+ "\t".join(list(err_counts.keys())) + "\n"
-        body = "\n".join([f"{err}:\t" + "\t".join([str(err_counts[k][err]) for k in err_counts.keys()]) for err in errs])
-        csv = header + body
+        body = "\n".join([f"{err[:3]}:\t" + "\t".join([str(err_counts[k][err]) for k in err_counts.keys()]) for err in errs])
+        sum = "\nsum:\t" + "\t".join([str(err_counts[k][errs[0]] + err_counts[k][errs[1]] + err_counts[k][errs[2]]) for k in err_counts.keys()])
+        csv = header + body + sum
         with open(name+'.tsv', 'w') as f:
             f.write(csv)
         return csv

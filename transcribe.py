@@ -85,36 +85,49 @@ def chunk_audio_by_eaf_into_data(filename, path, aud_ext=".mp3"):
     else: 
         print(f"Audio or eaf files not found for {filename}, chunking not possible")
 
-def chunk_audio_by_silence_into_eaf(filename, path, aud_ext=".mp3", has_eaf=False):
-    """Uses librosa.effects.split described at https://librosa.org/doc/main/generated/librosa.effects.split.html"""
-    if pathlib.Path(path+filename+aud_ext).is_file():
-        aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
-        chunks = silence.detect_nonsilent(aud, min_silence_len=100, silence_thresh=-35)
-        ##COULD NOT GET THIS TO WORK FOR THE LIFE OF ME
-        #if has_eaf==True: 
-        #    veaf = pympi.Eaf(f"{path}{filename}.eaf")
-        #    transcripts = ["|".join(str(veaf.get_annotation_data_between_times(word_tier, chunks[x][0], chunks[x][1]))) for x in range(len(chunks))]
-        #else: transcripts = ["" for x in range(len(chunks))]
-        eaf = pympi.Eaf(author="CB")
-        eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:] )
-        for x in range(len(chunks)):
-            eaf.add_annotation("default", chunks[x][0], chunks[x][1], "")#value=transcripts[x])
-            #aud[chunks[x][0]:chunks[x][1]].export(f"d:/Northern Prinmi Data/{filename}{str(x)}.mp3", format="mp3")
-        eaf.to_file(f"d:/Northern Prinmi Data/{filename}_test.eaf")
-        #audio, sr = librosa.load(path+filename+aud_ext, sr=16000)
-        #output = librosa.effects.split(audio, top_db=25, frame_length=256, hop_length=64)
-        #start = output[0][0]#librosa.time_to_samples(output[0][0]/1000, sr=sr)
-        #end = output[0][1]#librosa.time_to_samples(output[0][1]/1000, sr=sr)
-        #soundfile.write(f"d:/Northern Prinmi Data/{filename}LIBROSA.mp3", audio[start:end], sr)
-    #print(output)
 
-def silence_chunk_audio_into_data(filename, path, aud_ext=".wav", sr=16000, has_eaf=False, min_sil=200):
+def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chunk = 100, max_chunk=10000):
+    """Uses librosa.effects.split described at https://librosa.org/doc/main/generated/librosa.effects.split.html"""
+    aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
+    chunks = silence.detect_nonsilent(aud, min_silence_len=min_sil, silence_thresh=-35)
+    nchunks = []
+    for chunk in chunks:
+        start, stop = chunk[0], chunk[1]
+        diff = stop-start
+        if start > 100: start -= 100
+        if diff >= min_chunk:
+            if diff >= max_chunk:
+                solved = False
+                for x in range(2, 10):
+                    tch = silence.detect_nonsilent(aud[chunk[0]:chunk[1]], min_silence_len=round(min_sil/x), silence_thresh=-35)
+                    if len([y for y in tch if y[1]-y[0] > max_chunk]) == 0: 
+                        print("solved at", round(min_sil/x))
+                        nchunks += [[y[0]+start, y[1]+start] for y in tch]
+                        solved=True
+                        break
+                    else:
+                        pass
+                if not(solved): 
+                    print("Couldn't divide automatically, instead just chopping up into windows of arbitrary length")
+                    divs = round(diff/10000)
+                    step = round(diff/divs)
+                    for x in range(divs-1):
+                        nchunks.append([start+step*x, start+step*(x+1)-1])
+                    nchunks.append([start+step*(divs-1), stop])
+            else: nchunks.append([start, stop])
+    chunks = nchunks
+    return(chunks)
+
+def silence_chunk_audio_into_data(filename, path, aud_ext=".wav", sr=16000, has_eaf=False, 
+                                  min_sil=1000, min_chunk = 100, max_chunk = 10000):
+    """Various settings have been tested
+    OG: min_sil = 400, max_chunk = 20000 => CER = 0.39
+    min_sil = 500, max_chunk = 10000 => CER = 0.39, WER = 0.971
+    Best: min_sil = 1000, max_chunk = 10000 => CER = 0.32"""
     if pathlib.Path(path+filename+aud_ext).is_file():
         aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
         lib_aud, sr = librosa.load(path+filename+aud_ext, sr=sr)
-        #aud_array = aud.get_array_of_samples()
-        chunks = silence.detect_nonsilent(aud, min_silence_len=min_sil, silence_thresh=-35)
-        chunks = [chunk for chunk in chunks if chunk[1]-chunk[0] > 100]
+        chunks = chunk_audio_by_silence(filename, path, aud_ext, min_sil, min_chunk, max_chunk)
         transcripts = ["" for x in range(len(chunks))]
         if has_eaf==True: 
             eval_win = 800
@@ -145,11 +158,13 @@ def silence_chunk_audio_into_data(filename, path, aud_ext=".wav", sr=16000, has_
         print(f"{filename} chunked successfully")
         return(chunks, data)
 
-def apply_model_to_audio(dir, filename, path, aud_ext=".wav", device="cpu", has_eaf=False):
+def apply_model_to_audio(dir, filename, path, aud_ext=".wav", device="cpu", has_eaf=False, export=".eaf", 
+                         min_sil=1000, min_chunk=100, max_chunk=10000):
     model_dir = dir+"model/"
     processor = Wav2Vec2Processor.from_pretrained(dir)
     model = AutoModelForCTC.from_pretrained(model_dir).to(device)
-    chunks, target = silence_chunk_audio_into_data(filename, path, aud_ext, has_eaf=has_eaf)
+    chunks, target = silence_chunk_audio_into_data(filename, path, aud_ext, has_eaf=has_eaf, 
+                                                   min_sil=min_sil, min_chunk=min_chunk, max_chunk=max_chunk)
     target_ds = Dataset.from_pandas(DataFrame(target))
 
     def prepare_dataset(batch):
@@ -174,7 +189,7 @@ def apply_model_to_audio(dir, filename, path, aud_ext=".wav", device="cpu", has_
         return label, pred
     
     print("***Making Predictions***")
-    eaf = pympi.Eaf(author="CB")
+    eaf = pympi.Eaf(author="transcribe.py")
     eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
     eaf.remove_tier('default'), eaf.add_tier("prediction")
     if has_eaf: 
@@ -191,7 +206,11 @@ def apply_model_to_audio(dir, filename, path, aud_ext=".wav", device="cpu", has_
     if has_eaf:
         print("WER: ", wer(labels, preds))
         print("CER: ", cer(labels, preds))
-    eaf.to_file(f"d:/Northern Prinmi Data/{filename}_test.eaf")
+    if export == ".eaf":
+        eaf.to_file(f"d:/Northern Prinmi Data/{filename}_test.eaf")
+    elif export == ".TextGrid":
+        tg = eaf.to_textgrid()
+        tg.to_file(f"d:/Northern Prinmi Data/{filename}_test.TextGrid")
     print("***Process Complete!***")
 
 
@@ -211,8 +230,7 @@ for x in eaf.get_annotation_data_between_times(tar, 13000, 14000):
 """
 
 #apply_model_to_audio(model, t_file, t_path, aud_ext=".wav", has_eaf=True)
-#apply_model_to_audio(model, t2_file, t2_path, aud_ext=".wav")#, has_eaf=True)
-#chunk_audio_by_silence_into_eaf(t2_file, t2_path, aud_ext=".wav")
+apply_model_to_audio(model, t2_file, t2_path, aud_ext=".wav")#, has_eaf=True)
 
 #chunk_audio_by_silence_into_eaf(t_file, t_path, aud_ext=".wav", has_eaf=True)
 #t_data = Dataset.from_pandas(DataFrame(silence_chunk_audio_into_data(t_file, t_path, has_eaf=True)))

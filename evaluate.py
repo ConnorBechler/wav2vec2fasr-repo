@@ -14,6 +14,11 @@ from Levenshtein import editops
 
 from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, Wav2Vec2ForCTC, TrainingArguments, Trainer, AutoModelForCTC
 
+#Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import warnings
+warnings.simplefilter("ignore")
+
 chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
 tone_regex = '[\¹\²\³\⁴\⁵\-]'
 nontone_regex = '[^\¹\²\³\⁴\⁵ \-]'
@@ -344,7 +349,18 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     
 
 if __name__ == "__main__":
-    pass
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument("eval_dir", help="Directory of model to be evaluated")
+    parser.add_argument("-d", "--data_dir", default=None, help="Directory of data to evaluate model with")
+    parser.add_argument("-c", "--checkpoint", default=None, help="Checkpoint of model to evaluate")
+    parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
+    args = vars(parser.parse_args())
+    
+    logging.debug("***Evaluating model***")
+    main_program(eval_dir=args['eval_dir'], 
+        data_dir=args['data_dir'], 
+        checkpoint=args['checkpoint'], 
+        cpu=args['cpu'])
     """if torch.cuda.is_available():
         #main_program(eval_dir="test_nochanges_2-9-23")
         #main_program(eval_dir="test_nochanges_12-21-22")

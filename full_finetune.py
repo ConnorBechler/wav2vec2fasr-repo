@@ -20,6 +20,7 @@ parser.add_argument("-n", "--run_name", default="model_"+cur_time, help="Run nam
 parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
 parser.add_argument("--comb_tones", action="store_true", help="Combine tone pairs")
 parser.add_argument("--comb_diac", action="store_true", help="Combine diacritic character clusters")
+parser.add_argument("--remove_hyphen", action="store_true", help="Remove hyphens from transcripts")
 parser.add_argument("-r", "--learning_rate", default = 3e-4, type=float, help="Learning rate")
 parser.add_argument("-b", "--batch_size", default = 1, type=int, help="Number of batches per device")
 parser.add_argument("-g", "--grdacc_steps", default = 2, type=int, help="Number of gradient accumulation steps")
@@ -51,7 +52,8 @@ else:
 logging.debug("***Processing data***")
 process_data(data_dir = original_data, output_dir = output_dir, 
     combine_tones=args['comb_tones'], 
-    combine_diac=args['comb_diac'])
+    combine_diac=args['comb_diac'],
+    remove_hyphens=args['remove_hyphen'])
     
 logging.debug("***Setting up vocab***")
 setup_vocab(output_dir = output_dir)

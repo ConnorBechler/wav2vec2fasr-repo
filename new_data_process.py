@@ -12,7 +12,8 @@ def process_data(
         remove_tones=False,
         remove_nontones=False,
         combine_diac=False,
-        combine_tones=False):
+        combine_tones=False,
+        remove_hyphens=False):
             
     logging.basicConfig(level=logging.DEBUG)
     
@@ -79,11 +80,13 @@ def process_data(
         batch["transcript"] = re.sub("(?<!¹|²|³|⁵)[¹²³⁵] ", " ", batch["transcript"])
         return batch
     
+    def remove_hyphen_char(batch):
+        batch["transcript"] = re.sub('-', '', batch['transcript'])
+        return batch
     
     def remove_tone_chars(batch):
         batch["transcript"] = re.sub(tone_regex, '', batch["transcript"])
         return batch
-    
     
     def remove_nontone_chars(batch):
         batch["transcript"] = re.sub(nontone_regex, '', batch["transcript"])
@@ -92,7 +95,6 @@ def process_data(
             '[\¹\²\³\⁴\⁵][\¹\²\³\⁴\⁵]()[\¹\²\³\⁴\⁵][\¹\²\³\⁴\⁵]', ' ', batch['transcript'])
         batch["transcript"] = re.sub('  ', ' ', batch["transcript"])
         return batch
-    
     
     def convert_tones_to_onechar(batch):
         for x in range(len(tones)):
@@ -103,13 +105,11 @@ def process_data(
         #    batch["transcript"] = re.sub(tone_chars[x], "", batch["transcript"])
         return batch
     
-    
     def convert_onechar_to_tones(batch):
         for x in range(len(tones)):
             batch["transcript"] = re.sub(
                 rep_tones[x], tones[x], batch["transcript"])
         return batch
-    
     
     def convert_dcrts_to_phones(batch):
         for x in range(len(trips)):
@@ -119,7 +119,6 @@ def process_data(
             batch["transcript"] = re.sub(
                 doubs[x], rep_doubs[x], batch["transcript"])
         return batch
-    
     
     def convert_phones_to_dcrts(text):
         for x in range(len(trips)):
@@ -140,6 +139,10 @@ def process_data(
                        .map(remove_special_characters)
                        )
     
+    if remove_hyphens:
+        logging.debug("removing hyphens")
+        np_train_full_ds = np_train_full_ds.map(remove_hyphen_char)
+        np_test_full_ds = np_test_full_ds.map(remove_hyphen_char)
     
     if remove_tones:
         logging.debug("removing tones")

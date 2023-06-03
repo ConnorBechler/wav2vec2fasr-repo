@@ -63,6 +63,7 @@ def process_data(
     tone_chars = "¹ ² ³ ⁵".split(" ")
     tones = ["²¹", "²²", "³²", "³⁵", "⁵⁵", "⁵²", "⁵¹"]
     rep_tones = "1234567890"
+    rep_combs = {"õ": "õ", "ĩ": "ĩ"}
     # Question: currently stripping hyphen from nontone transcription, but treating it as syllable boundary
     # (subbing with space) for tone transcription; is this the right move?
     # Diacritics handled by combining them with consonants and vowels into abstract characters
@@ -71,6 +72,8 @@ def process_data(
     def remove_special_characters(batch):
         batch["transcript"] = re.sub(
             chars_to_ignore_regex, '', batch["transcript"]).lower() + " "
+        for k in rep_combs:
+            batch['transcript'] = batch['transcript'].replace(k, rep_combs[k])
         # There are errors in the transcripts, single and triple superscript tones (with the triples lacking movement, i.e. 555)
         # The following lines fix these errors by: 
         # A) coverting the 555 to high level tone 55 as these appear to show the same tone contour

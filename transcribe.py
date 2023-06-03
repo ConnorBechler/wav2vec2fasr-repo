@@ -4,6 +4,7 @@ import pympi
 import soundfile
 from pydub import AudioSegment, silence
 import numpy
+import os
 
 from datasets import Dataset
 from pandas import DataFrame
@@ -118,7 +119,7 @@ def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chu
                             print(ydiff)
                             for x in range(1, 6):
                                 ntch = silence.detect_nonsilent(aud[start+y[0]:start+y[1]], min_silence_len=round(min_sil/2), silence_thresh=-35+x)
-                                print(ntch)
+                                #print(ntch, -35+x)
                                 if len([z for z in ntch if z[1]-z[0] > max_chunk]) == 0: 
                                     print("solved at silence thresh of", -35+x)
                                     nchunks += [[z[0]+y[0]+start, z[1]+y[0]+start] for z in ntch]
@@ -143,7 +144,7 @@ def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chu
                     nchunks.append([start+step*(divs-1), stop])
                     """
             else: nchunks.append([start, stop])
-    chunks = nchunks
+    chunks = [chunk for chunk in nchunks if chunk[1]-chunk[0] > min_chunk]
     return(chunks)
 
 def try_to_align_og_phrases_w_detected_phrases(annotation_data, phrases, eval_win=800):
@@ -210,6 +211,11 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ha
     chunks, target, tar_txt, og_anns = silence_chunk_audio_into_data(filename, path, aud_ext, has_eaf=has_eaf, 
                                                    min_sil=min_sil, min_chunk=min_chunk, max_chunk=max_chunk)
     target_ds = Dataset.from_pandas(DataFrame(target))
+    
+    #deb_eaf = pympi.Eaf(author="transcriber.py")
+    #deb_eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
+    #[deb_eaf.add_annotation("default", chunk[0], chunk[1], "speaking") for chunk in chunks]
+    #deb_eaf.to_file(f"{output_path}DEBUG_{filename}.eaf")
 
     def prepare_dataset(batch):
         audio = batch["audio"]
@@ -236,9 +242,10 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ha
     eaf.remove_tier('default'), eaf.add_tier("prediction")
     preds = []
     for x in range(len(chunks)):
+        #print(x, chunks[x][1]-chunks[x][0], end=" ")
         pred = get_predictions(x)
         preds.append(pred)
-        print(pred)
+        #print(pred)
         eaf.add_annotation("prediction", chunks[x][0], chunks[x][1], pred)
     if has_eaf:
         eaf.add_tier("transcript")
@@ -255,9 +262,11 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ha
         tg.to_file(f"{output_path}{filename}_predicted_transcription.TextGrid")
     print("***Process Complete!***")
 
-def transcribe_dir(aud_dir, model_dir, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/", 
+def transcribe_dir(aud_dir, model_dir, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/Transcripts/", 
                    validate=False, export=".eaf", min_sil=1000, min_chunk=100, max_chunk=10000):
     """Function for automatically chunking all audio files in a given directory by eaf annotation tier time stamps"""
+    if not(os.path.exists(output_path)):
+        os.mkdir(output_path)
     for path in pathlib.Path(aud_dir).iterdir():
         if path.is_file():
             if str(path).lower().endswith(aud_ext):

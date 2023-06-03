@@ -25,7 +25,8 @@ def main_program(project_dir = "npp_asr",
         hid_dout=0.1,
         ft_proj_dout=0.0,
         msk_tm_prob=0.05,
-        ldrop=0.1):
+        ldrop=0.1,
+        w2v2_model="facebook/wav2vec2-large-xlsr-53"):
             
     project_dir = project_dir#"npp_asr"
     full_project = os.path.join(os.environ["HOME"], project_dir)
@@ -186,7 +187,7 @@ def main_program(project_dir = "npp_asr",
 
     logging.debug("Downloading model")
     model = Wav2Vec2ForCTC.from_pretrained(
-        "facebook/wav2vec2-large-xlsr-53", 
+        w2v2_model, 
         attention_dropout=atn_dout,#0.1,
         hidden_dropout=hid_dout,#0.1,
         feat_proj_dropout=ft_proj_dout,#0.0,

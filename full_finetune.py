@@ -30,6 +30,7 @@ parser.add_argument("--hid_dout", default=0.1, type=float, help="Hidden dropout"
 parser.add_argument("--ft_proj_dout", default=0.0, type=float,  help="Feature projection dropout")
 parser.add_argument("--msk_tm_prob", default=0.05, type=float,  help="Mask time probability")
 parser.add_argument("--ldrop", default=0.1, type=float, help="Layer drop")
+parser.add_argument("--model", default="facebook/wav2vec2-large-xlsr-53", type=str, help="Wav2vec 2.0 model to use")
 
 args = vars(parser.parse_args())
 logging.debug("***Configuration: " + str(args)+"***")
@@ -69,7 +70,8 @@ main_program(output_dir = output_dir,
     hid_dout=args['hid_dout'],
     ft_proj_dout=args['ft_proj_dout'],
     msk_tm_prob=args['msk_tm_prob'],
-    ldrop=args['ldrop'])
+    ldrop=args['ldrop'],
+    w2v2_model=args['model'])
     
 logging.debug("***Evaluating model***")
 eval_program(eval_dir = output_dir, cpu=args['cpu'])

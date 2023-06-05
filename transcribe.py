@@ -202,6 +202,29 @@ def silence_chunk_audio_into_data(filename, path, aud_ext=".wav", sr=16000, has_
         print(f"{filename} chunked successfully")
         return(chunks, data, tar_txt, anns)
 
+def crude_ctc_decode(char_list, start):
+    inp_pred = [[char_list[y], start+20*y,start+20*(y+1)] for y in range(len(char_list))]
+    last_break = 0
+    if inp_pred[0][0] == "[PAD]": 
+        inp_pred[0][0] = "|"
+        last_break = 1
+    out_pred = [inp_pred[0]]
+    out_words = []
+    for x in range(1, len(inp_pred)):
+        if inp_pred[x][0] == "|":
+            out_words.append([phone_revert(tone_revert(
+                "".join([c[0] for c in inp_pred[last_break:x] if c[0] != "[PAD]"])
+                )), 
+            inp_pred[last_break][1], inp_pred[x][2]])
+            last_break = x+1
+        if inp_pred[x][0] != inp_pred[x-1][0] and inp_pred[x][0] != "[PAD]" and (inp_pred[x][0] not in rep_tones):
+            out_pred.append([phone_revert(tone_revert(inp_pred[x][0])), inp_pred[x][1], inp_pred[x][2]])
+        else:
+            out_pred[-1][2] = inp_pred[x][2]
+            if inp_pred[x][0] in rep_tones:
+                out_pred[-1][0] += tone_revert(inp_pred[x][0])
+    return(out_pred, out_words)
+
 def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", has_eaf=False, 
                      output_path="d:/Northern Prinmi Data/", export=".eaf", min_sil=1000, min_chunk=100, 
                      max_chunk=10000):
@@ -233,24 +256,27 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ha
         input_dict = processor(target_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
         logits = model(input_dict.input_values.to(device)).logits
         pred_ids = torch.argmax(logits, dim=-1)[0]
-        phn_list = processor.tokenizer.convert_ids_to_tokens(pred_ids.tolist())
-        phn_preds = [phone_revert(tone_revert(phn)) for phn in phn_list]
+        #The next line is drawn primarily from https://huggingface.co/blog/fine-tune-wav2vec2-english
+        char_preds = processor.tokenizer.convert_ids_to_tokens(pred_ids.tolist())
         pred = phone_revert(tone_revert(processor.decode(pred_ids))) + " "
-        return pred, phn_preds
+        return pred, char_preds
     
     print("***Making Predictions***")
     eaf = pympi.Eaf(author="transcribe.py")
     eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
-    eaf.remove_tier('default'), eaf.add_tier("prediction"), eaf.add_tier("phn_preds")
+    eaf.remove_tier('default'), eaf.add_tier("prediction"), eaf.add_tier("words"), eaf.add_tier("chars")
     preds = []
     for x in range(len(chunks)):
         #print(x, chunks[x][1]-chunks[x][0], end=" ")
-        pred, phn_preds = get_predictions(x)
+        pred, char_preds = get_predictions(x)
         preds.append(pred)
+        alch_preds, word_preds = crude_ctc_decode(char_preds, chunks[x][0])
         print(pred)
         eaf.add_annotation("prediction", chunks[x][0], chunks[x][1], pred)
-        for y in range(len(phn_preds)):
-            eaf.add_annotation("phn_preds", chunks[x][0]+y*20, chunks[x][0]+(y+1)*20, phn_preds[y])
+        for word in word_preds:
+            eaf.add_annotation("words", word[1], word[2], word[0])
+        for char in alch_preds:
+            eaf.add_annotation("chars", char[1], char[2], char[0])
     if has_eaf:
         eaf.add_tier("transcript")
         [eaf.add_annotation("transcript", ann[0], ann[1], ann[2]) for ann in og_anns]
@@ -288,6 +314,10 @@ t2_path = "d:/Northern Prinmi Data/"
 t2_file = "jz18_040"
 model = "D:/Northern Prinmi Data/models/model_5-11-23_combboth_1e-4/"
 
+t3_path = "C:/Users/cbech/Desktop/Northern Prinmi Project/wq12_017/"
+t4_path = "C:/Users/cbech/Desktop/Northern Prinmi Project/td21-22_020/"
+model2 = "C:/Users/cbech/Desktop/Northern Prinmi Project/models/model_6-3-23_xls-r_cb_nh/"
+
 """
 eaf = pympi.Eaf(t_path+t_file+".eaf")
 print(eaf.get_tier_names())
@@ -297,11 +327,13 @@ for x in eaf.get_annotation_data_between_times(tar, 13000, 14000):
 """
 #transcribe_dir("d:/Northern Prinmi Data/wav-eaf-meta/testing/", model, validate=True)
 
-transcribe_audio(model, t_file, t_path, aud_ext=".wav", has_eaf=True, export='.TextGrid')
+#transcribe_audio(model, t_file, t_path, aud_ext=".wav", has_eaf=True, export='.TextGrid')
 #transcribe_audio(model, t2_file, t2_path, aud_ext=".wav")#, has_eaf=True)
 #transcribe_audio(model, "wq09_075", t_path, has_eaf=True)
 #transcribe_audio(model, "sl05_000", t_path, has_eaf=True)
 
+#transcribe_audio(model2, "wq12_017", t3_path, has_eaf=True, output_path=t3_path, export=".TextGrid")
+transcribe_audio(model2, "td21-22_020", t4_path, has_eaf=True, output_path=t4_path, export=".TextGrid")
 
 #chunk_audio_by_silence_into_eaf(t_file, t_path, aud_ext=".wav", has_eaf=True)
 #t_data = Dataset.from_pandas(DataFrame(silence_chunk_audio_into_data(t_file, t_path, has_eaf=True)))

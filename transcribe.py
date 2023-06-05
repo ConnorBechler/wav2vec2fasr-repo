@@ -87,7 +87,7 @@ def chunk_audio_by_eaf_into_data(filename, path, aud_ext=".mp3"):
         print(f"Audio or eaf files not found for {filename}, chunking not possible")
 
 def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chunk = 100, max_chunk=10000):
-    """Uses librosa.effects.split described at https://librosa.org/doc/main/generated/librosa.effects.split.html"""
+    """Uses pydub detect non-silent"""
     aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
     chunks = silence.detect_nonsilent(aud, min_silence_len=min_sil, silence_thresh=-35)
     nchunks = []
@@ -233,20 +233,24 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ha
         input_dict = processor(target_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
         logits = model(input_dict.input_values.to(device)).logits
         pred_ids = torch.argmax(logits, dim=-1)[0]
+        phn_list = processor.tokenizer.convert_ids_to_tokens(pred_ids.tolist())
+        phn_preds = [phone_revert(tone_revert(phn)) for phn in phn_list]
         pred = phone_revert(tone_revert(processor.decode(pred_ids))) + " "
-        return pred
+        return pred, phn_preds
     
     print("***Making Predictions***")
     eaf = pympi.Eaf(author="transcribe.py")
     eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
-    eaf.remove_tier('default'), eaf.add_tier("prediction")
+    eaf.remove_tier('default'), eaf.add_tier("prediction"), eaf.add_tier("phn_preds")
     preds = []
     for x in range(len(chunks)):
         #print(x, chunks[x][1]-chunks[x][0], end=" ")
-        pred = get_predictions(x)
+        pred, phn_preds = get_predictions(x)
         preds.append(pred)
-        #print(pred)
+        print(pred)
         eaf.add_annotation("prediction", chunks[x][0], chunks[x][1], pred)
+        for y in range(len(phn_preds)):
+            eaf.add_annotation("phn_preds", chunks[x][0]+y*20, chunks[x][0]+(y+1)*20, phn_preds[y])
     if has_eaf:
         eaf.add_tier("transcript")
         [eaf.add_annotation("transcript", ann[0], ann[1], ann[2]) for ann in og_anns]
@@ -291,9 +295,9 @@ tar = eaf.get_tier_ids_for_linguistic_type('word')[0]
 for x in eaf.get_annotation_data_between_times(tar, 13000, 14000):
     print(x[2], end=" ")
 """
-transcribe_dir("d:/Northern Prinmi Data/wav-eaf-meta/testing/", model, validate=True)
+#transcribe_dir("d:/Northern Prinmi Data/wav-eaf-meta/testing/", model, validate=True)
 
-#transcribe_audio(model, t_file, t_path, aud_ext=".wav", has_eaf=True)
+transcribe_audio(model, t_file, t_path, aud_ext=".wav", has_eaf=True, export='.TextGrid')
 #transcribe_audio(model, t2_file, t2_path, aud_ext=".wav")#, has_eaf=True)
 #transcribe_audio(model, "wq09_075", t_path, has_eaf=True)
 #transcribe_audio(model, "sl05_000", t_path, has_eaf=True)

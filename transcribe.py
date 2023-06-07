@@ -19,6 +19,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import warnings
 warnings.simplefilter("ignore")
 
+from copy import deepcopy
 
 chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
 tone_regex = '[\¹\²\³\⁴\⁵\-]'
@@ -207,28 +208,131 @@ def silence_chunk_audio_into_data(filename, path, aud_ext=".wav", sr=16000, has_
         print(f"{filename} chunked successfully")
         return(chunks, data, tar_txt, anns)
 
-def crude_ctc_decode(char_list, start):
-    inp_pred = [[char_list[y], start+20*y,start+20*(y+1)] for y in range(len(char_list))]
-    last_break = 0
-    if inp_pred[0][0] == "[PAD]": 
-        inp_pred[0][0] = "|"
-        last_break = 1
-    out_pred = [inp_pred[0]]
-    out_words = []
-    for x in range(1, len(inp_pred)):
-        if inp_pred[x][0] == "|":
-            out_words.append([phone_revert(tone_revert(
-                "".join([c[0] for c in inp_pred[last_break:x] if c[0] != "[PAD]"])
-                )), 
-            inp_pred[last_break][1], inp_pred[x][2]])
-            last_break = x+1
-        if inp_pred[x][0] != inp_pred[x-1][0] and inp_pred[x][0] != "[PAD]" and (inp_pred[x][0] not in rep_tones):
-            out_pred.append([phone_revert(tone_revert(inp_pred[x][0])), inp_pred[x][1], inp_pred[x][2]])
+class prediction:
+    def __init__(self, logit, char, start, end):
+        self.logit = logit
+        self.char = char
+        self.out_char = phone_revert(tone_revert(self.char))
+        self.start = start
+        self.end = end
+    
+    def update(self, newchar):
+        if newchar != self.char:
+            self.char = newchar
+            self.out_char = phone_revert(tone_revert(self.char))
+
+def merge_breaks(predlst):
+    w_predlst = deepcopy(predlst)
+    n_predlst = []
+    for pred in w_predlst:
+        if pred.char == "|" and n_predlst[-1].char == "|":
+            n_predlst[-1].end = pred.end
         else:
-            out_pred[-1][2] = inp_pred[x][2]
-            if inp_pred[x][0] in rep_tones:
-                out_pred[-1][0] += tone_revert(inp_pred[x][0])
-    return(out_pred, out_words)
+            n_predlst.append(pred)
+    return(n_predlst)
+
+def merge_pads(predlst):
+    w_predlst = deepcopy(predlst)
+    n_predlst = [w_predlst[0]]
+    for pred in w_predlst[1:]:
+        if pred.char == "[PAD]" and n_predlst[-1].char != "[PAD]":
+            n_predlst[-1].end = pred.end
+        else:
+            n_predlst.append(pred)
+    return(n_predlst)
+
+def process_pads(predlst, processor):
+    w_predlst = deepcopy(predlst)
+    last_np_ind, next_np_ind = 0, 0
+    last_wb = 0
+    for x in range(len(predlst)):
+        if predlst[x].char == "|":
+            next_wb = x
+            break
+    for x in range(len(predlst)):
+        if predlst[x].char == "[PAD]":
+            #Search for next non-pad prediction if old or not yet made
+            if next_np_ind <= x or next_np_ind == last_np_ind:
+                prob_next = 0
+                for y in range(x, len(predlst)):
+                    if predlst[y].char != "[PAD]" and predlst[y].char != "|": 
+                        next_np_ind = y
+                        break
+                    elif predlst[y].char == "|":
+                        next_wb = y
+            prob_last = predlst[x].logit[processor.tokenizer.convert_tokens_to_ids(predlst[last_np_ind].char)]
+            prob_next = predlst[x].logit[processor.tokenizer.convert_tokens_to_ids(predlst[next_np_ind].char)]
+            if last_np_ind < last_wb: prob_last = -777
+            elif next_np_ind > next_wb: prob_next = -777
+            if prob_last >= prob_next:
+                w_predlst[x].update(predlst[last_np_ind].char)
+            else:
+                w_predlst[x].update(predlst[next_np_ind].char)
+        elif predlst[x].char != "|":
+            last_np_ind = x
+            #n_predlst.append(predlst[x])
+        else:
+            last_wb = x
+    return(w_predlst)
+
+def merge_reps(predlst):
+    w_predlst = deepcopy(predlst)
+    n_predlst = [w_predlst[0]]
+    for pred in w_predlst[1:]:
+        if pred.char == n_predlst[-1].char:
+            n_predlst[-1].end = pred.end
+        else:
+            n_predlst.append(pred)
+    return(n_predlst)
+
+def comb_tones_w_vows(predlst):
+    w_predlst = deepcopy(predlst)
+    n_predlst = [w_predlst[0]]
+    for pred in w_predlst[1:]:
+        if pred.char in rep_tones and n_predlst[-1].char != "|":
+            n_predlst[-1].end = pred.end
+            if pred.char not in n_predlst[-1].char:
+                n_predlst[-1].update(n_predlst[-1].char+pred.char)
+        else:
+            n_predlst.append(pred)
+    return(n_predlst)
+
+def comb_words(predlst):
+    w_predlst = deepcopy(predlst)
+    n_predlst = [w_predlst[0]]
+    for pred in w_predlst:
+        word = n_predlst[-1]
+        if pred.char != "|":
+            word.end = pred.end
+            word.update(word.char+pred.char)
+        else:
+            pred.update("")
+            word = pred
+            n_predlst.append(pred)
+    return(n_predlst)
+            
+def rem_breaks(predlst):
+    w_predlst = deepcopy(predlst)
+    n_predlst = [w_predlst[0]]
+    for x in range(len(w_predlst[:-1])):
+        pred = w_predlst[x]
+        if pred.char == "|":
+            n_predlst.append(w_predlst[x+1])
+            n_predlst[-1].start = pred.start
+            #n_predlst[-1].update(pred.char+n_predlst[-1].char)
+        elif w_predlst[x+1].char != "|":
+            n_predlst.append(w_predlst[x+1])
+    return(n_predlst)
+
+def ctc_decode(predlst, processor=None):
+    predlst_mb = merge_breaks(predlst)
+    if processor != None: predlst_pp = process_pads(predlst_mb, processor)
+    else: predlst_pp = merge_pads(predlst_mb)
+    predlst_mr = merge_reps(predlst_pp)
+    predlst_ctwv = comb_tones_w_vows(predlst_mr)
+    predlst_words = comb_words(predlst_ctwv)
+    predlst_chars = rem_breaks(predlst_ctwv)
+    return(predlst_words, predlst_chars)
 
 def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/", 
                      has_eaf=False, export=".eaf", min_sil=1000, min_chunk=100, 
@@ -239,12 +343,6 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     chunks, target, tar_txt, og_anns = silence_chunk_audio_into_data(filename, path, aud_ext, has_eaf=has_eaf, 
                                                    min_sil=min_sil, min_chunk=min_chunk, max_chunk=max_chunk)
     target_ds = Dataset.from_pandas(DataFrame(target))
-    
-    #deb_eaf = pympi.Eaf(author="transcriber.py")
-    #deb_eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
-    #[deb_eaf.add_annotation("default", chunk[0], chunk[1], "speaking") for chunk in chunks]
-    #deb_eaf.to_file(f"{output_path}DEBUG_{filename}.eaf")
-
     def prepare_dataset(batch):
         audio = batch["audio"]
         batch["input_values"] = processor(audio["array"], 
@@ -257,37 +355,29 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     target_prepped_ds = target_ds.map(prepare_dataset, remove_columns=target_ds.column_names, num_proc=1)
     print("***Dataset Prepared***")
 
-    def get_predictions(ind):
-        input_dict = processor(target_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-        logits = model(input_dict.input_values.to(device)).logits
-        pred_ids = torch.argmax(logits, dim=-1)[0]
-        #The next line is drawn primarily from https://huggingface.co/blog/fine-tune-wav2vec2-english
-        char_preds = processor.tokenizer.convert_ids_to_tokens(pred_ids.tolist())
-        pred = phone_revert(tone_revert(processor.decode(pred_ids))) + " "
-        return pred, char_preds
-    
     print("***Making Predictions***")
     eaf = pympi.Eaf(author="transcribe.py")
     eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
     eaf.remove_tier('default'), eaf.add_tier("prediction"), eaf.add_tier("words"), eaf.add_tier("chars")
-    preds = []
+    phrase_preds = []
     for x in range(len(chunks)):
-        #print(x, chunks[x][1]-chunks[x][0], end=" ")
-        pred, char_preds = get_predictions(x)
-        preds.append(pred)
-        alch_preds, word_preds = crude_ctc_decode(char_preds, chunks[x][0])
-        print(pred)
-        eaf.add_annotation("prediction", chunks[x][0], chunks[x][1], pred)
-        for word in word_preds:
-            eaf.add_annotation("words", word[1], word[2], word[0])
-        for char in alch_preds:
-            eaf.add_annotation("chars", char[1], char[2], char[0])
+        input_dict = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
+        logits = model(input_dict.input_values.to(device)).logits
+        pred_ids = torch.argmax(logits, dim=-1)[0]
+        char_preds = processor.tokenizer.convert_ids_to_tokens(pred_ids.tolist())
+        phrase_preds.append(phone_revert(tone_revert(processor.decode(pred_ids))) + " ")
+        eaf.add_annotation("prediction", chunks[x][0], chunks[x][1], phrase_preds[-1])
+        pred_list = [prediction(logit=torch.tensor(logits[0][y]), char=char_preds[y], start =chunks[x][0]+y*20, 
+                                end=chunks[x][0]+(y+1)*20) for y in range(len(logits[0]))] 
+        pred_list_words, pred_list_chars = ctc_decode(pred_list)
+        for word in pred_list_words:
+            eaf.add_annotation("words", word.start, word.end, word.out_char)
+        for char in pred_list_chars:
+            eaf.add_annotation("chars", char.start, char.end, char.out_char)
     if has_eaf:
         eaf.add_tier("transcript")
         [eaf.add_annotation("transcript", ann[0], ann[1], ann[2]) for ann in og_anns]
-        pred_txt = " # ".join(preds)
-        #print(tar_txt)
-        #print(pred_txt)
+        pred_txt = " # ".join(phrase_preds)
         print("WER: ", wer(tar_txt, pred_txt))
         print("CER: ", cer(tar_txt, pred_txt))
     if export == ".eaf":

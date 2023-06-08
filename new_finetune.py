@@ -39,7 +39,7 @@ def main_program(project_dir = "npp_asr",
     data_test = os.path.join(data_dir, "testing/")
     if vocab_dir == None: 
         vocab_dir = output_dir
-    mod_dir = os.path.join(output_dir, "model/")
+    mod_dir = output_dir#os.path.join(output_dir, "model/")
     if os.path.exists(mod_dir):
         logging.debug(f"Output directory {mod_dir} exists")
     else:
@@ -246,7 +246,7 @@ def main_program(project_dir = "npp_asr",
     logging.debug("training")
     trainer.train()
     logging.debug("saving model")
-    trainer.save_model(os.path.join(mod_dir))
+    trainer.save_model(mod_dir)
     #New test line 2.9.23
     processor.save_pretrained(output_dir)
 

@@ -1,9 +1,9 @@
 import librosa
 import pathlib
 import pympi
-import soundfile
+#import soundfile
 from pydub import AudioSegment, silence
-import numpy
+#import numpy
 import os
 
 from datasets import Dataset
@@ -12,7 +12,7 @@ from pandas import DataFrame
 import re
 from jiwer import wer, cer
 
-from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, Wav2Vec2ForCTC, TrainingArguments, Trainer, AutoModelForCTC
+from transformers import Wav2Vec2Processor, AutoModelForCTC#, Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor,  Wav2Vec2ForCTC, TrainingArguments, Trainer
 import torch
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -93,7 +93,10 @@ def chunk_audio_by_eaf_into_data(filename, path, aud_ext=".mp3"):
         print(f"Audio or eaf files not found for {filename}, chunking not possible")
 
 def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chunk = 100, max_chunk=10000):
-    """Uses pydub detect non-silent"""
+    """
+    Uses pydub detect non-silent to chunk audio by silences into speech segments.
+    Crude and slow, but functional
+    """
     aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
     chunks = silence.detect_nonsilent(aud, min_silence_len=min_sil, silence_thresh=-35)
     nchunks = []
@@ -319,7 +322,6 @@ def rem_breaks(predlst):
         if pred.char == "|":
             n_predlst.append(w_predlst[x+1])
             n_predlst[-1].start = pred.start
-            #n_predlst[-1].update(pred.char+n_predlst[-1].char)
         elif w_predlst[x+1].char != "|":
             n_predlst.append(w_predlst[x+1])
     return(n_predlst)
@@ -339,7 +341,10 @@ def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
 def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/", 
                      has_eaf=False, format=".eaf", min_sil=1000, min_chunk=100, 
                      max_chunk=10000, char_align = True, word_align = True):
-    inner_model_dir = model_dir+"model/"
+    if os.path.exists(model_dir) and os.path.exists(model_dir+"model/"):
+        inner_model_dir = model_dir+"model/"
+    else: 
+        inner_model_dir = model_dir
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     model = AutoModelForCTC.from_pretrained(inner_model_dir).to(device)
     chunks, target, tar_txt, og_anns = silence_chunk_audio_into_data(filename, path, aud_ext, has_eaf=has_eaf, 
@@ -361,8 +366,8 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     eaf = pympi.Eaf(author="transcribe.py")
     eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
     eaf.remove_tier('default'), eaf.add_tier("prediction")
-    if char_align: eaf.add_tier("chars")
     if word_align: eaf.add_tier("words")
+    if char_align: eaf.add_tier("chars")
     phrase_preds = []
     for x in range(len(chunks)):
         input_dict = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
@@ -386,11 +391,12 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         pred_txt = " # ".join(phrase_preds)
         print("WER: ", wer(tar_txt, pred_txt))
         print("CER: ", cer(tar_txt, pred_txt))
+    model_name = model_dir[model_dir.rfind("/", 0, -2)+1:-1]
     if format == ".eaf":
-        eaf.to_file(f"{output_path}{filename}_predicted_transcription.eaf")
+        eaf.to_file(f"{output_path}{filename}_{model_name}_preds.eaf")
     elif format == ".TextGrid":
         tg = eaf.to_textgrid()
-        tg.to_file(f"{output_path}{filename}_predicted_transcription.TextGrid")
+        tg.to_file(f"{output_path}{filename}_{model_name}_preds.TextGrid")
     print("***Process Complete!***")
 
 def transcribe_dir(model_dir, aud_dir, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/Transcripts/", 

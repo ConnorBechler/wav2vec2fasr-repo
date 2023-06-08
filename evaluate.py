@@ -8,6 +8,7 @@ import torch
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 import random
+import os
 
 from jiwer import wer, cer
 from Levenshtein import editops
@@ -57,8 +58,6 @@ def tone_revert(text):
         text = re.sub(rep_tones[x], tones[x], text)
     return text
 
-import os
-
 def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     project_dir = "npp_asr"
     output_dir = "output"
@@ -71,7 +70,9 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     data_test = os.path.join(data_dir, "testing/")
     vocab_dir = os.path.join(eval_dir, "vocab.json")
     if checkpoint == None:
-        model_dir = os.path.join(eval_dir, "model/")
+        if os.path.exists(os.path.join(eval_dir, "model/")):
+            model_dir = os.path.join(eval_dir, "model/")
+        else: model_dir = eval_dir
     else:
         model_dir = os.path.join(eval_dir, f"checkpoint-{str(checkpoint)}")
     if cpu: 

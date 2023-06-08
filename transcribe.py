@@ -324,19 +324,21 @@ def rem_breaks(predlst):
             n_predlst.append(w_predlst[x+1])
     return(n_predlst)
 
-def ctc_decode(predlst, processor=None):
+def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
     predlst_mb = merge_breaks(predlst)
     if processor != None: predlst_pp = process_pads(predlst_mb, processor)
     else: predlst_pp = merge_pads(predlst_mb)
     predlst_mr = merge_reps(predlst_pp)
     predlst_ctwv = comb_tones_w_vows(predlst_mr)
-    predlst_words = comb_words(predlst_ctwv)
-    predlst_chars = rem_breaks(predlst_ctwv)
+    if word_align: predlst_words = comb_words(predlst_ctwv)
+    else: predlst_words = None
+    if char_align: predlst_chars = rem_breaks(predlst_ctwv)
+    else: predlst_chars = None
     return(predlst_words, predlst_chars)
 
 def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/", 
-                     has_eaf=False, export=".eaf", min_sil=1000, min_chunk=100, 
-                     max_chunk=10000):
+                     has_eaf=False, format=".eaf", min_sil=1000, min_chunk=100, 
+                     max_chunk=10000, char_align = True, word_align = True):
     inner_model_dir = model_dir+"model/"
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     model = AutoModelForCTC.from_pretrained(inner_model_dir).to(device)
@@ -358,7 +360,9 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     print("***Making Predictions***")
     eaf = pympi.Eaf(author="transcribe.py")
     eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
-    eaf.remove_tier('default'), eaf.add_tier("prediction"), eaf.add_tier("words"), eaf.add_tier("chars")
+    eaf.remove_tier('default'), eaf.add_tier("prediction")
+    if char_align: eaf.add_tier("chars")
+    if word_align: eaf.add_tier("words")
     phrase_preds = []
     for x in range(len(chunks)):
         input_dict = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
@@ -369,26 +373,29 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         eaf.add_annotation("prediction", chunks[x][0], chunks[x][1], phrase_preds[-1])
         pred_list = [prediction(logit=torch.tensor(logits[0][y]), char=char_preds[y], start =chunks[x][0]+y*20, 
                                 end=chunks[x][0]+(y+1)*20) for y in range(len(logits[0]))] 
-        pred_list_words, pred_list_chars = ctc_decode(pred_list)
-        for word in pred_list_words:
-            eaf.add_annotation("words", word.start, word.end, word.out_char)
-        for char in pred_list_chars:
-            eaf.add_annotation("chars", char.start, char.end, char.out_char)
+        pred_list_words, pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)
+        if word_align: 
+            for word in pred_list_words:
+                eaf.add_annotation("words", word.start, word.end, word.out_char)
+        if char_align:
+            for char in pred_list_chars:
+                eaf.add_annotation("chars", char.start, char.end, char.out_char)
     if has_eaf:
         eaf.add_tier("transcript")
         [eaf.add_annotation("transcript", ann[0], ann[1], ann[2]) for ann in og_anns]
         pred_txt = " # ".join(phrase_preds)
         print("WER: ", wer(tar_txt, pred_txt))
         print("CER: ", cer(tar_txt, pred_txt))
-    if export == ".eaf":
+    if format == ".eaf":
         eaf.to_file(f"{output_path}{filename}_predicted_transcription.eaf")
-    elif export == ".TextGrid":
+    elif format == ".TextGrid":
         tg = eaf.to_textgrid()
         tg.to_file(f"{output_path}{filename}_predicted_transcription.TextGrid")
     print("***Process Complete!***")
 
 def transcribe_dir(model_dir, aud_dir, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/Transcripts/", 
-                   validate=False, export=".eaf", min_sil=1000, min_chunk=100, max_chunk=10000):
+                   validate=False, format=".eaf", min_sil=1000, min_chunk=100, max_chunk=10000, 
+                   char_align=True, word_align=True):
     """Function for automatically chunking all audio files in a given directory by eaf annotation tier time stamps"""
     if not(os.path.exists(output_path)):
         os.mkdir(output_path)
@@ -399,7 +406,8 @@ def transcribe_dir(model_dir, aud_dir, aud_ext=".wav", device="cpu", output_path
                 try:
                     print(f"Attempting to transcribe {flname} using {model_dir}")
                     transcribe_audio(model_dir, flname, aud_dir, aud_ext, device=device, has_eaf=validate, output_path=output_path,
-                                     export=export, min_sil=min_sil, min_chunk=min_chunk, max_chunk=max_chunk)
+                                     format=format, min_sil=min_sil, min_chunk=min_chunk, max_chunk=max_chunk, char_align=char_align,
+                                     word_align=word_align)
                 except OSError as error:
                     print(f"Transcribing {flname} failed: {error}")
 
@@ -424,13 +432,13 @@ for x in eaf.get_annotation_data_between_times(tar, 13000, 14000):
 """
 #transcribe_dir(model, "d:/Northern Prinmi Data/wav-eaf-meta/testing/", validate=True)
 
-#transcribe_audio(model, t_file, t_path, aud_ext=".wav", has_eaf=True, export='.TextGrid')
+#transcribe_audio(model, t_file, t_path, aud_ext=".wav", has_eaf=True, format='.TextGrid')
 #transcribe_audio(model, t2_file, t2_path, aud_ext=".wav")#, has_eaf=True)
 #transcribe_audio(model, "wq09_075", t_path, has_eaf=True)
 #transcribe_audio(model, "sl05_000", t_path, has_eaf=True)
 
-#transcribe_audio(model2, "wq12_017", t3_path, output_path=t3_path, has_eaf=True, export=".TextGrid")
-#transcribe_audio(model2, "td21-22_020", t4_path, output_path=t4_path, has_eaf=True, export=".TextGrid")
+#transcribe_audio(model2, "wq12_017", t3_path, output_path=t3_path, has_eaf=True, format=".TextGrid")
+#transcribe_audio(model2, "td21-22_020", t4_path, output_path=t4_path, has_eaf=True, format=".TextGrid")
 
 #chunk_audio_by_silence_into_eaf(t_file, t_path, aud_ext=".wav", has_eaf=True)
 #t_data = Dataset.from_pandas(DataFrame(silence_chunk_audio_into_data(t_file, t_path, has_eaf=True)))
@@ -448,11 +456,15 @@ if __name__ == "__main__":
     parser.add_argument("--min_sil", type=int, default=1000, help="Minimum decibel threshold for silence detection")
     parser.add_argument("--min_chunk", type=int, default=100, help="Minimum speech chunk length in ms")
     parser.add_argument("--max_chunk", type=int, default=10000, help="Maximum speech chunk length in ms")
+    parser.add_argument("--no_char_align", action="store_false", help="Don't align character predictions")
+    parser.add_argument("--no_word_align", action="store_false", help="Don't align word predictions")
 
     args = vars(parser.parse_args())
     if args['file_name'] == None:
         transcribe_dir(args['model_dir'], args['audio_dir'], args['audio_type'], args['device'], args['output_dir'], 
-        args['has_eaf'], args['format'], args['min_sil'], args['min_chunk'], args['max_chunk'])
+        args['has_eaf'], args['format'], args['min_sil'], args['min_chunk'], args['max_chunk'], args['no_char_align'], 
+        args['no_word_align'])
     else:
-        transcribe_audio(args['model_dir'], args['file_name'], args['audio_dir'], args['audio_type'], args['device'], args['output_dir'], 
-        args['has_eaf'], args['format'], args['min_sil'], args['min_chunk'], args['max_chunk'])
+        transcribe_audio(args['model_dir'], args['file_name'], args['audio_dir'], args['audio_type'], args['device'], 
+        args['output_dir'], args['has_eaf'], args['format'], args['min_sil'], args['min_chunk'], args['max_chunk'], 
+        args['no_char_align'], args['no_word_align'])

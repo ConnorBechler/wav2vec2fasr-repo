@@ -49,7 +49,7 @@ def process_data(
     #np_test_full_ds = np_test_full_ds.select(range(21))
     
     chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
-    tone_regex = '[\¹\²\³\⁴\⁵\-]'
+    tone_regex = '[\¹\²\³\⁴\⁵]'
     nontone_regex = '[^\¹\²\³\⁴\⁵ \-]'
     diacritics = "ʲʷ ʰʷ ̥ ʰ ʲ ʰ ̃ ʷ".split(" ")
     trips = ['sʰʷ', 'ʈʰʷ', 'ʂʰʷ', 'tʰʷ', 'qʰʷ', 'nʲʷ', 'kʰʷ', 'lʲʷ', 'ɕʰʷ', 'tʲʷ']
@@ -64,7 +64,7 @@ def process_data(
     tones = ["²¹", "²²", "³²", "³⁵", "⁵⁵", "⁵²", "⁵¹"]
     rep_tones = "1234567890"
     rep_combs = {"õ": "õ", "ĩ": "ĩ"}
-    # Question: currently stripping hyphen from nontone transcription, but treating it as syllable boundary
+    # Question: currently stripping hyphen from nontone transcription, but treating it as morpheme boundary
     # (subbing with space) for tone transcription; is this the right move?
     # Diacritics handled by combining them with consonants and vowels into abstract characters
     

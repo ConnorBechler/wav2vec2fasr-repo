@@ -13,7 +13,8 @@ import os
 from jiwer import wer, cer
 from Levenshtein import editops
 
-from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, Wav2Vec2ForCTC, TrainingArguments, Trainer, AutoModelForCTC
+from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, Wav2Vec2ProcessorWithLM, Wav2Vec2ForCTC, TrainingArguments, Trainer, AutoModelForCTC
+from pyctcdecode import build_ctcdecoder
 
 #Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -58,7 +59,7 @@ def tone_revert(text):
         text = re.sub(rep_tones[x], tones[x], text)
     return text
 
-def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
+def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, lm=None):
     project_dir = "npp_asr"
     output_dir = "output"
     full_project = os.path.join(os.environ["HOME"], project_dir)
@@ -79,6 +80,8 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
         device = 'cpu'
     else: 
         device = 'cuda'
+    if lm== None: eval_name = eval_dir
+    else: eval_name = eval_dir+"_w_"+lm
 
 
     logging.debug(f"Loading training data from {data_train}")
@@ -94,10 +97,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     except:
         logging.debug("No finetuned processor found, generating from vocab")
         logging.debug("tokenizer setup")
-        tokenizer = Wav2Vec2CTCTokenizer(vocab_dir, 
-                                        unk_token="[UNK]", 
-                                        pad_token="[PAD]", 
-                                        word_delimiter_token="|")
+        tokenizer = Wav2Vec2CTCTokenizer(vocab_dir, unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
     
         logging.debug("extractor setup")
         feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, 
@@ -109,6 +109,24 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
         logging.debug("processor setup")
         processor = Wav2Vec2Processor(feature_extractor=feature_extractor, 
                                     tokenizer=tokenizer)
+        
+    if lm !=None:
+        logging.debug("Setting up language model")
+        logging.debug("lm decoder setup")
+        n_tokenizer = Wav2Vec2CTCTokenizer(vocab_dir, bos_token=None, eos_token=None)
+        vocab_dict = n_tokenizer.get_vocab()
+        sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
+        decoder = build_ctcdecoder(
+            labels=list(sorted_vocab_dict.keys()),
+            kenlm_model_path=model_dir+lm,
+        )
+        logging.debug("processor with lm setup")
+        processor_w_lm = Wav2Vec2ProcessorWithLM(
+            feature_extractor = processor.feature_extractor,
+            tokenizer = n_tokenizer,
+            decoder = decoder
+        )
+        processor = processor_w_lm
 
     
     def prepare_dataset(batch):
@@ -120,8 +138,8 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
             batch["labels"] = processor(batch["transcript"]).input_ids
         return batch
 
-    logging.debug("training prep")
-    np_train_prepped_ds = np_train_ds.map(prepare_dataset, remove_columns=np_train_ds.column_names, num_proc=4)
+    #logging.debug("training prep")
+    #np_train_prepped_ds = np_train_ds.map(prepare_dataset, remove_columns=np_train_ds.column_names, num_proc=4)
 
     logging.debug("test prep")
     np_test_prepped_ds = np_test_ds.map(prepare_dataset, remove_columns=np_test_ds.column_names, num_proc=4)
@@ -156,11 +174,18 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     }
     
     def get_predictions(ind):
-        input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-        logits = model(input_dict.input_values.to(device)).logits
-        pred_ids = torch.argmax(logits, dim=-1)[0]
+        if lm != None:
+            input_values = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000).input_values
+            with torch.no_grad():
+                logits = model(input_values).logits[0].to(device).numpy()
+                output = processor.decode(logits)
+                pred = phone_revert(tone_revert(output.text))
+        else:
+            input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
+            logits = model(input_dict.input_values.to(device)).logits
+            pred_ids = torch.argmax(logits, dim=-1)[0]
+            pred = phone_revert(tone_revert(processor.decode(pred_ids)))
         label = phone_revert(tone_revert(np_test_ds[ind]["transcript"]))
-        pred = phone_revert(tone_revert(processor.decode(pred_ids)))
         return label, pred
     
     def compute_wer(ind_list):
@@ -250,7 +275,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
         return csv
     
 
-    print(eval_dir)
+    print(eval_name)
     #Lines that collect and print the encoded vocab (preprocessed prediction labels) of the training dataset
     vocab_count = {}
     for entry in np_train_ds:
@@ -284,32 +309,32 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     print("Decoded testing vocab: ", d_vocab_count)
     
     text = [phone_revert(tone_revert(np_test_ds[ind]["transcript"])) for ind in range(279)]
-    with open(eval_dir+'_transcript.txt', 'w') as f:
+    with open(eval_name+'_transcript.txt', 'w') as f:
         f.write("\n".join(text))
     
 
       
     #Block used to calculate WER on each subsection of the testing set
-    print(f"{eval_dir} WER on full testing set: {compute_wer(full)}")
-    print(f"{eval_dir} WER on songs: {compute_wer(songs)}")
-    print(f"{eval_dir} WER on rituals: {compute_wer(rituals)}")
-    print(f"{eval_dir} WER on Sichuan recordings: {compute_wer(sichuan)}")
-    print(f"{eval_dir} WER on Yunnan recordings: {compute_wer(yunnan)}")
+    print(f"{eval_name} WER on full testing set: {compute_wer(full)}")
+    print(f"{eval_name} WER on songs: {compute_wer(songs)}")
+    print(f"{eval_name} WER on rituals: {compute_wer(rituals)}")
+    print(f"{eval_name} WER on Sichuan recordings: {compute_wer(sichuan)}")
+    print(f"{eval_name} WER on Yunnan recordings: {compute_wer(yunnan)}")
     for key in list(recordings):
-        print(f"{eval_dir} WER on {key}: {compute_wer(recordings[key])}")
+        print(f"{eval_name} WER on {key}: {compute_wer(recordings[key])}")
     
     #Block used to calculate CER on each subsection of the testing set
-    print(f"{eval_dir} CER on full testing set: {compute_cer(full)}")
-    print(f"{eval_dir} CER on songs: {compute_cer(songs)}")
-    print(f"{eval_dir} CER on rituals: {compute_cer(rituals)}")
-    print(f"{eval_dir} CER on Sichuan recordings: {compute_cer(sichuan)}")
-    print(f"{eval_dir} CER on Yunnan recordings: {compute_cer(yunnan)}")
+    print(f"{eval_name} CER on full testing set: {compute_cer(full)}")
+    print(f"{eval_name} CER on songs: {compute_cer(songs)}")
+    print(f"{eval_name} CER on rituals: {compute_cer(rituals)}")
+    print(f"{eval_name} CER on Sichuan recordings: {compute_cer(sichuan)}")
+    print(f"{eval_name} CER on Yunnan recordings: {compute_cer(yunnan)}")
     for key in list(recordings):
-        print(f"{eval_dir} CER on {key}: {compute_cer(recordings[key])}")
+        print(f"{eval_name} CER on {key}: {compute_cer(recordings[key])}")
     
     #Save error and replacements tables to eval directory
-    print(save_error_table(eval_dir+'_errors', full))
-    print(save_replacements_table(eval_dir+'_replacements', full))
+    print(save_error_table(eval_name+'_errors', full))
+    print(save_replacements_table(eval_name+'_replacements', full))
     
     
 
@@ -338,15 +363,12 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False):
     ex_inds = inds[:20]
     #ex_inds = list(range(0, 279, 4))
     for ind in ex_inds:
-        input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-        logits = model(input_dict.input_values.to(device)).logits
-        pred_ids = torch.argmax(logits, dim=-1)[0]
-        
+        label, pred = get_predictions(ind)
         print(f"Index: {ind}")
         print("Actual:")
-        print(phone_revert(tone_revert(np_test_ds[ind]["transcript"])))
+        print(label)
         print("Prediction:")
-        print(phone_revert(tone_revert(processor.decode(pred_ids))))
+        print(pred)
     
 
 if __name__ == "__main__":
@@ -356,12 +378,14 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--checkpoint", default=None, help="Checkpoint of model to evaluate")
     parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
     args = vars(parser.parse_args())
+    parser.add_argument("--lm", default=None, help="Kenlm language model")
     
     logging.debug("***Evaluating model***")
     main_program(eval_dir=args['eval_dir'], 
         data_dir=args['data_dir'], 
         checkpoint=args['checkpoint'], 
-        cpu=args['cpu'])
+        cpu=args['cpu'],
+        lm=args['lm'])
     """if torch.cuda.is_available():
         #main_program(eval_dir="test_nochanges_2-9-23")
         #main_program(eval_dir="test_nochanges_12-21-22")

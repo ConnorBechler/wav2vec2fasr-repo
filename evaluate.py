@@ -377,8 +377,8 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--data_dir", default=None, help="Directory of data to evaluate model with")
     parser.add_argument("-c", "--checkpoint", default=None, help="Checkpoint of model to evaluate")
     parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
-    args = vars(parser.parse_args())
     parser.add_argument("--lm", default=None, help="Path to kenlm language model")
+    args = vars(parser.parse_args())
     
     logging.debug("***Evaluating model***")
     main_program(eval_dir=args['eval_dir'], 

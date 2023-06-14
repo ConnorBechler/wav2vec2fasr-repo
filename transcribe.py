@@ -360,7 +360,7 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
         decoder = build_ctcdecoder(
             labels=list(sorted_vocab_dict.keys()),
-            kenlm_model_path=model_dir+lm,
+            kenlm_model_path=lm,
         )
         processor_w_lm = Wav2Vec2ProcessorWithLM(
             feature_extractor = processor.feature_extractor,
@@ -390,8 +390,8 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     if char_align: eaf.add_tier("chars")
     phrase_preds = []
     for x in range(len(chunks)):
-        input_values = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000).input_values
         if lm != None:
+            input_values = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000).input_values
             with torch.no_grad():
                 logits = model(input_values).logits[0].to(device).numpy()
                 output = processor.decode(logits, output_word_offsets=word_align)
@@ -431,7 +431,7 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         print("WER: ", wer(tar_txt, pred_txt))
         print("CER: ", cer(tar_txt, pred_txt))
     model_name = model_dir[model_dir.rfind("/", 0, -2)+1:-1]
-    if lm != None: model_name += "_w_" + lm
+    if lm != None: model_name += "_w_" + lm.split("/")[-1].split(".")[0]
     if format == ".eaf":
         eaf.to_file(f"{output_path}{filename}_{model_name}_preds.eaf")
     elif format == ".TextGrid":
@@ -505,7 +505,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_chunk", type=int, default=10000, help="Maximum speech chunk length in ms")
     parser.add_argument("--no_char_align", action="store_false", help="Don't align character predictions")
     parser.add_argument("--no_word_align", action="store_false", help="Don't align word predictions")
-    parser.add_argument("--lm", default=None, help="Kenlm language model")
+    parser.add_argument("--lm", default=None, help="Path to kenlm language model")
 
     args = vars(parser.parse_args())
     if args['file_name'] == None:

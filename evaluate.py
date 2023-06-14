@@ -81,7 +81,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
     else: 
         device = 'cuda'
     if lm== None: eval_name = eval_dir
-    else: eval_name = eval_dir+"_w_"+lm
+    else: eval_name = eval_dir+"_w_"+lm.split("/")[-1].split(".")[0]
 
 
     logging.debug(f"Loading training data from {data_train}")
@@ -118,7 +118,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
         sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
         decoder = build_ctcdecoder(
             labels=list(sorted_vocab_dict.keys()),
-            kenlm_model_path=model_dir+lm,
+            kenlm_model_path=lm,
         )
         logging.debug("processor with lm setup")
         processor_w_lm = Wav2Vec2ProcessorWithLM(
@@ -378,7 +378,7 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--checkpoint", default=None, help="Checkpoint of model to evaluate")
     parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
     args = vars(parser.parse_args())
-    parser.add_argument("--lm", default=None, help="Kenlm language model")
+    parser.add_argument("--lm", default=None, help="Path to kenlm language model")
     
     logging.debug("***Evaluating model***")
     main_program(eval_dir=args['eval_dir'], 

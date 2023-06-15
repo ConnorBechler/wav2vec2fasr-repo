@@ -116,8 +116,6 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
         vocab_dict = n_tokenizer.get_vocab()
         sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
         decoder = build_ctcdecoder(labels=list(sorted_vocab_dict.keys()), kenlm_model_path=lm)
-        processor = Wav2Vec2Processor(feature_extractor=processor.feature_extractor, tokenizer=n_tokenizer)
-
     
     def prepare_dataset(batch):
         audio = batch["audio"]
@@ -169,7 +167,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
         if lm == None: 
             pred_ids = torch.argmax(logits, dim=-1)[0]
             pred = phone_revert(tone_revert(processor.decode(pred_ids)))
-        else: pred = phone_revert(tone_revert(decoder.decode(logits[0].detach().numpy())))
+        else: pred = phone_revert(tone_revert(decoder.decode(logits[0].detach().cpu().numpy())))
         label = phone_revert(tone_revert(np_test_ds[ind]["transcript"]))
         return label, pred
     

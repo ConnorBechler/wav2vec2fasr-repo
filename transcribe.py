@@ -3,7 +3,7 @@ import pathlib
 import pympi
 #import soundfile
 from pydub import AudioSegment, silence
-#import numpy
+import numpy
 import os
 
 from datasets import Dataset
@@ -12,8 +12,8 @@ from pandas import DataFrame
 import re
 from jiwer import wer, cer
 
-#Originally used transformers 4.11.3, but I need to change it to use language model
-from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2ProcessorWithLM, Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor,  Wav2Vec2ForCTC, TrainingArguments, Trainer
+#IF USING NEWEST VERSION OF TRANSFORMERS (I use 4.11.3 instead): import Wav2Vec2ProcessorWithLM
+from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2CTCTokenizer#, Wav2Vec2FeatureExtractor,  Wav2Vec2ForCTC, TrainingArguments, Trainer
 import torch
 from pyctcdecode import build_ctcdecoder
 
@@ -358,17 +358,8 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         n_tokenizer = Wav2Vec2CTCTokenizer(model_dir+"vocab.json", bos_token=None, eos_token=None)
         vocab_dict = n_tokenizer.get_vocab()
         sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
-        decoder = build_ctcdecoder(
-            labels=list(sorted_vocab_dict.keys()),
-            kenlm_model_path=lm,
-        )
-        processor_w_lm = Wav2Vec2ProcessorWithLM(
-            feature_extractor = processor.feature_extractor,
-            tokenizer = n_tokenizer,
-            decoder = decoder
-        )
-        processor = processor_w_lm
-        time_offset = model.config.inputs_to_logits_ratio / processor.feature_extractor.sampling_rate
+        decoder = build_ctcdecoder(labels=list(sorted_vocab_dict.keys()), kenlm_model_path=lm)
+        processor = Wav2Vec2Processor(feature_extractor=processor.feature_extractor, tokenizer=n_tokenizer)
 
     def prepare_dataset(batch):
         audio = batch["audio"]
@@ -389,35 +380,27 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     if word_align: eaf.add_tier("words")
     if char_align: eaf.add_tier("chars")
     phrase_preds = []
+    if word_align: 
+        pred_list_words = []
+        #time_offset = (model.config.inputs_to_logits_ratio / processor.feature_extractor.sampling_rate)*1000
+        time_offset = (320 / processor.feature_extractor.sampling_rate)*1000
     for x in range(len(chunks)):
-        if lm != None:
-            input_values = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000).input_values
-            with torch.no_grad():
-                logits = model(input_values).logits[0].to(device).numpy()
-                output = processor.decode(logits, output_word_offsets=word_align)
-            if word_align: pred_list_words = [prediction(logit=None, char=w['word'], 
-                                                         start = int(round(w['start_offset']*time_offset, 2)*1000 + chunks[x][0]),
-                                                         end = int(round(w['end_offset']*time_offset, 2)*1000 + chunks[x][0]))
-                                                         for w in output.word_offsets]
-            
-            phrase_pred = phone_revert(tone_revert(output.text))
-            pred_ids = torch.argmax(torch.tensor(logits), dim=-1)
-            phrase_preds.append(phrase_pred)
-        else:
-            input_dict = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-            logits = model(input_dict.input_values.to(device)).logits
-            pred_ids = torch.argmax(torch.tensor(logits[0]), dim=-1)
-            phrase_preds.append(phone_revert(tone_revert(processor.decode(pred_ids))) + " ")
+        input_dict = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
+        logits = model(input_dict.input_values.to(device)).logits
+        pred_ids = torch.argmax(torch.tensor(logits[0]), dim=-1)
+        if lm == None: phrase_preds.append(phone_revert(tone_revert(processor.decode(pred_ids))) + " ")
+        else: 
+            dbeam = decoder.decode_beams(logits[0].detach().numpy(), prune_history=True)[0]
+            phrase_preds.append(phone_revert(tone_revert(dbeam[0])))
+            if word_align:
+                pred_list_words += [prediction(logit=dbeam[-2], char=word[0], start=int(round(word[1][0]*time_offset, 2)+chunks[x][0]),
+                                            end = int(round(word[1][1]*time_offset, 2)+chunks[x][0])) for word in dbeam[2]]
         char_preds = processor.tokenizer.convert_ids_to_tokens(pred_ids.tolist())
         eaf.add_annotation("prediction", chunks[x][0], chunks[x][1], phrase_preds[-1])
-        if lm == None:
-            pred_list = [prediction(logit=torch.tensor(logits[0][y]), char=char_preds[y], start =chunks[x][0]+y*20,
-                                    end=chunks[x][0]+(y+1)*20) for y in range(len(logits[0]))]
-            pred_list_words, pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)
-        else:
-            pred_list = [prediction(logit=torch.tensor(logits[y]), char=char_preds[y], start =chunks[x][0]+y*20, 
-                                    end=chunks[x][0]+(y+1)*20) for y in range(len(logits))]
-            pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=False)[1]
+        pred_list = [prediction(logit=torch.tensor(logits[0][y]), char=char_preds[y], start =chunks[x][0]+y*20,
+                                end=chunks[x][0]+(y+1)*20) for y in range(len(logits[0]))]
+        if lm == None: pred_list_words, pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)
+        else: pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)[1]
         if word_align: 
             for word in pred_list_words:
                 eaf.add_annotation("words", word.start, word.end, word.out_char)

@@ -13,7 +13,7 @@ import os
 from jiwer import wer, cer
 from Levenshtein import editops
 
-from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, Wav2Vec2ProcessorWithLM, Wav2Vec2ForCTC, TrainingArguments, Trainer, AutoModelForCTC
+from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, AutoModelForCTC#, Wav2Vec2ProcessorWithLM, Wav2Vec2ForCTC, TrainingArguments, Trainer
 from pyctcdecode import build_ctcdecoder
 
 #Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
@@ -111,22 +111,12 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
                                     tokenizer=tokenizer)
         
     if lm !=None:
-        logging.debug("Setting up language model")
-        logging.debug("lm decoder setup")
+        logging.debug("Setting up language model decoder")
         n_tokenizer = Wav2Vec2CTCTokenizer(vocab_dir, bos_token=None, eos_token=None)
         vocab_dict = n_tokenizer.get_vocab()
         sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
-        decoder = build_ctcdecoder(
-            labels=list(sorted_vocab_dict.keys()),
-            kenlm_model_path=lm,
-        )
-        logging.debug("processor with lm setup")
-        processor_w_lm = Wav2Vec2ProcessorWithLM(
-            feature_extractor = processor.feature_extractor,
-            tokenizer = n_tokenizer,
-            decoder = decoder
-        )
-        processor = processor_w_lm
+        decoder = build_ctcdecoder(labels=list(sorted_vocab_dict.keys()), kenlm_model_path=lm)
+        processor = Wav2Vec2Processor(feature_extractor=processor.feature_extractor, tokenizer=n_tokenizer)
 
     
     def prepare_dataset(batch):
@@ -174,17 +164,12 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
     }
     
     def get_predictions(ind):
-        if lm != None:
-            input_values = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000).input_values
-            with torch.no_grad():
-                logits = model(input_values).logits[0].to(device).numpy()
-                output = processor.decode(logits)
-                pred = phone_revert(tone_revert(output.text))
-        else:
-            input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-            logits = model(input_dict.input_values.to(device)).logits
+        input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
+        logits = model(input_dict.input_values.to(device)).logits
+        if lm == None: 
             pred_ids = torch.argmax(logits, dim=-1)[0]
             pred = phone_revert(tone_revert(processor.decode(pred_ids)))
+        else: pred = phone_revert(tone_revert(decoder.decode(logits[0].detach().numpy())))
         label = phone_revert(tone_revert(np_test_ds[ind]["transcript"]))
         return label, pred
     

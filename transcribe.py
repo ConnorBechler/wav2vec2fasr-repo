@@ -14,6 +14,9 @@ from jiwer import wer, cer
 
 #IF USING NEWEST VERSION OF TRANSFORMERS (I use 4.11.3 instead): import Wav2Vec2ProcessorWithLM
 from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2CTCTokenizer#, Wav2Vec2FeatureExtractor,  Wav2Vec2ForCTC, TrainingArguments, Trainer
+#Testing pipeline stuff
+from transformers import pipeline
+import time
 import torch
 from pyctcdecode import build_ctcdecoder
 
@@ -347,6 +350,9 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         inner_model_dir = model_dir+"model/"
     else: 
         inner_model_dir = model_dir
+    #Pipeline testing stuff
+    pipe = pipeline('automatic-speech-recognition', model_dir)
+    #END pipeline testing stuff
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     model = AutoModelForCTC.from_pretrained(inner_model_dir).to(device)
     chunks, target, tar_txt, og_anns = silence_chunk_audio_into_data(filename, path, aud_ext, has_eaf=has_eaf, 
@@ -385,10 +391,20 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         #time_offset = (model.config.inputs_to_logits_ratio / processor.feature_extractor.sampling_rate)*1000
         time_offset = (320 / processor.feature_extractor.sampling_rate)*1000
     for x in range(len(chunks)):
+        #Pipeline performance testing stuff
+        stt = time.time()
+        pipe(target_prepped_ds[x]["input_values"])
+        print("Pipe performance:", time.time()-stt)
+        #END
         input_dict = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
         logits = model(input_dict.input_values.to(device)).logits
         pred_ids = torch.argmax(torch.tensor(logits[0]), dim=-1)
-        if lm == None: phrase_preds.append(phone_revert(tone_revert(processor.decode(pred_ids))) + " ")
+        #Timer for comparing pipeline to base
+        stt = time.time()
+        if lm == None: 
+            phrase_preds.append(phone_revert(tone_revert(processor.decode(pred_ids))) + " ")
+            print("Base performance:", time.time()-stt)
+            #End
         else: 
             dbeam = decoder.decode_beams(logits[0].detach().numpy(), prune_history=True)[0]
             phrase_preds.append(phone_revert(tone_revert(dbeam[0])))

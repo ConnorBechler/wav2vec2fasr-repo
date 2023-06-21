@@ -22,3 +22,12 @@ for chunk in chunks:
             nchunks.append([start, stop, (0, 0)])
 print(chunks)
 print(nchunks)
+
+#Weird debug thing I wrote to check the difference between the new and old transcribe_audio functions that seem to be
+# chunking audio in ever so slightly different ways
+with open('test_new.txt', 'r') as f, open('test_old.txt', 'r') as f2:
+    tn = f.readlines()
+    to = f2.readlines()
+for l in range(len(to)):
+     if tn[l] == to[l]: print(l, 'same')
+     else: print(l, to[l], tn[l])

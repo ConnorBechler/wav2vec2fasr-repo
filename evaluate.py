@@ -1,12 +1,12 @@
-from datasets import load_from_disk, load_metric, Audio
-import numpy as np
+from datasets import load_from_disk#, load_metric, Audio
+#import numpy as np
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import re
 import torch
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+#from dataclasses import dataclass, field
+#from typing import Any, Dict, List, Optional, Union
 import random
 import os
 
@@ -47,6 +47,18 @@ for x in range(len(tones)):
 print("Encoding scheme:", rep_dict)
 
 
+def phone_convert(text):
+    for x in range(len(trips)):
+        text = re.sub(trips[x], rep_trips[x], text)
+    for x in range(len(doubs)):
+        text = re.sub(doubs[x], rep_doubs[x], text)
+    return text
+
+def tone_convert(text):
+    for x in range(len(tones)):
+        text = re.sub(tones[x], rep_tones[x], text)
+    return text
+
 def phone_revert(text):
     for x in range(len(trips)):
         text = re.sub(rep_trips[x], trips[x], text)
@@ -80,9 +92,9 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
         device = 'cpu'
     else: 
         device = 'cuda'
-    if lm== None: eval_name = eval_dir
-    else: eval_name = eval_dir+"_w_"+lm.split("/")[-1].split(".")[0]
-
+    if lm== None: eval_name = eval_dir.split('/')[-1]
+    else: eval_name = eval_dir.split('/')[-1]+"_w_"+lm.split("/")[-1].split(".")[0]
+    print("Evaluating", eval_name)
 
     logging.debug(f"Loading training data from {data_train}")
     np_train_ds = load_from_disk(data_train)
@@ -117,32 +129,11 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
         sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
         decoder = build_ctcdecoder(labels=list(sorted_vocab_dict.keys()), kenlm_model_path=lm)
     
-    def prepare_dataset(batch):
-        audio = batch["audio"]
-        batch["input_values"] = processor(audio["array"], 
-                                        sampling_rate=audio["sampling_rate"]).input_values[0]
-        
-        with processor.as_target_processor():
-            batch["labels"] = processor(batch["transcript"]).input_ids
-        return batch
-
-    #logging.debug("training prep")
-    #np_train_prepped_ds = np_train_ds.map(prepare_dataset, remove_columns=np_train_ds.column_names, num_proc=4)
-
-    logging.debug("test prep")
-    np_test_prepped_ds = np_test_ds.map(prepare_dataset, remove_columns=np_test_ds.column_names, num_proc=4)
-    
     #Load fine-tuned model
     logging.debug("Loading finetuned model")
     model = AutoModelForCTC.from_pretrained(model_dir).to(device)
     
-    
-    #logging.debug("Loading wer metric")
-    #wer_metric = load_metric("wer")
-    
-    logging.debug("Loading logits for test values")
-    
-    full = list(range(len(np_test_prepped_ds["input_values"])))
+    full = list(range(len(np_test_ds["transcript"])))
     #Genre
     songs = list(range(0,5+1))+ list(range(76, 97+1)) + list(range(170,202+1))
     rituals = list(range(6, 75+1)) + list(range(98, 169+1)) + list(range(203, 278+1))
@@ -161,28 +152,36 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
         "yy29_000": list(range(217, 278))
     }
     
-    def get_predictions(ind):
-        input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
+    def get_predictions(ind, return_comb=False):
+        input_dict = processor(np_test_ds[ind]["audio"]['array'], return_tensors="pt", padding=True, sampling_rate=16000)
         logits = model(input_dict.input_values.to(device)).logits
         if lm == None: 
             pred_ids = torch.argmax(logits, dim=-1)[0]
+            if return_comb: comb_pred = phone_convert(tone_convert(processor.decode(pred_ids)))
             pred = phone_revert(tone_revert(processor.decode(pred_ids)))
-        else: pred = phone_revert(tone_revert(decoder.decode(logits[0].detach().cpu().numpy())))
+        else: 
+            if return_comb: comb_pred = phone_convert(tone_convert(decoder.decode(logits[0].detach().cpu().numpy())))
+            pred = phone_revert(tone_revert(decoder.decode(logits[0].detach().cpu().numpy())))
+        if return_comb: comb_label = phone_convert(tone_convert(np_test_ds[ind]["transcript"]))
         label = phone_revert(tone_revert(np_test_ds[ind]["transcript"]))
-        return label, pred
-    
-    def compute_wer(ind_list):
+        if return_comb:
+            return(label, pred, comb_label, comb_pred)
+        else: return(label, pred)
+
+    def compute_wer(ind_list, in_preds=None):
         labels, preds = [], []
         for ind in ind_list:
-            label, pred = get_predictions(ind)
+            if in_preds == None: label, pred = get_predictions(ind)
+            else: label, pred = in_preds[0][ind], in_preds[1][ind]
             labels.append(label)
             preds.append(pred)
         return(wer(labels, preds))
         
-    def compute_cer(ind_list):
+    def compute_cer(ind_list, in_preds=None):
         labels, preds = [], []
         for ind in ind_list:
-            label, pred = get_predictions(ind)
+            if in_preds == None: label, pred = get_predictions(ind)
+            else: label, pred = in_preds[0][ind], in_preds[1][ind]
             labels.append(label)
             preds.append(pred)
         return(cer(labels, preds))
@@ -208,14 +207,17 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
             rep_types[x[0]] = {x[1]: 1}
         return rep_counts, rep_types
     
-    def save_replacements_table(name, ind_list):
+    def save_replacements_table(name, ind_list, in_preds=None):
         replacements = []
+        comb_replacements = []
         for ind in ind_list:
-            label, pred = get_predictions(ind)
+            if in_preds == None: label, pred, comb_label, comb_pred = get_predictions(ind, return_comb=True)
+            else: label, pred, comb_label, comb_pred = in_preds[0][ind], in_preds[1][ind], in_preds[2][ind], in_preds[3][ind]
             edits = editops(label, pred)
+            comb_edits = editops(comb_label, comb_pred)
             replacements += [(label[x[1]], pred[x[2]]) for x in edits if x[0] == 'replace']
-        targets = set()
-        errors = set()
+            comb_replacements += [(comb_label[x[1]], comb_pred[x[2]]) for x in comb_edits if x[0] == 'replace']
+        targets, errors = set(), set()
         for x in replacements:
             targets.add(x[0])
             errors.add(x[1])
@@ -225,40 +227,69 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
         for x in replacements: table[targets.index(x[0])][errors.index(x[1])] += 1
         csv = "\t"+"\t".join(errors)
         for r in range(len(table)): csv += f"\n{targets[r]}\t"+"\t".join([str(i) for i in table[r]])
-        with open(name+'.tsv', 'w') as f:
+        with open(name+'.tsv', 'w', encoding='utf-8') as f:
             f.write(csv)
-        return csv
+        comb_targets, comb_errors = set(), set()
+        for x in comb_replacements:
+            comb_targets.add(x[0])
+            comb_errors.add(x[1])
+        comb_targets = sorted(list(comb_targets))
+        comb_errors = sorted(list(comb_errors))
+        table = [[0 for y in range(len(comb_errors))] for x in range(len(comb_targets))]
+        for x in comb_replacements: table[comb_targets.index(x[0])][comb_errors.index(x[1])] += 1
+        comb_csv = "\t"+"\t".join(errors)
+        for r in range(len(table)): comb_csv += f"\n{comb_targets[r]}\t"+"\t".join([str(i) for i in table[r]])
+        with open(name+'_comb.tsv', 'w', encoding='utf-8') as f:
+            f.write(comb_csv)
+        return csv, comb_csv
 
-    def count_errors(ind_list):
+    def count_errors(ind_list, in_preds=None):
         edits, err_counts = [], {}#, rep_types = [], {}, {}
+        comb_edits, comb_err_counts = [], {}
         for ind in ind_list:
-            label, pred = get_predictions(ind)
+            if in_preds == None: label, pred, comb_label, comb_pred = get_predictions(ind, return_comb=True)
+            else: label, pred, comb_label, comb_pred = in_preds[0][ind], in_preds[1][ind], in_preds[2][ind], in_preds[3][ind]
             #Include padding to avoid indexing errors with final deletions/insertions
             label, pred = label + "#", pred + "#"
-            ops = editops(label, pred)
+            comb_label, comb_pred = comb_label + "#", comb_pred + "#"
+            ops, comb_ops = editops(label, pred), editops(comb_label, comb_pred)
             edits += [(x[0], label[x[1]], pred[x[2]]) for x in ops if x[0] != 'insert']
             edits += [(x[0], pred[x[2]], label[x[1]]) for x in ops if x[0] == 'insert']
+            comb_edits += [(x[0], comb_label[x[1]], comb_pred[x[2]]) for x in comb_ops if x[0] != 'insert']
+            comb_edits += [(x[0], comb_pred[x[2]], comb_label[x[1]]) for x in comb_ops if x[0] == 'insert']
         for e in edits:
             err_counts[e[1]] = err_counts.setdefault(e[1], {y : 0 for y in ['replace', 'insert', 'delete']})
             err_counts[e[1]][e[0]] += 1
-            #if e[0] == 'replace': 
-            #    rep_types[e[1]] = rep_types.setdefault(e[1], {})
-            #    rep_types[e[1]][e[2]] = rep_types[e[1]].setdefault(e[2], 0) + 1
-        return err_counts#, rep_types
+        for ce in comb_edits:
+            comb_err_counts[ce[1]] = comb_err_counts.setdefault(ce[1], {y : 0 for y in ['replace', 'insert', 'delete']})
+            comb_err_counts[ce[1]][ce[0]] += 1
+        return err_counts, comb_err_counts
     
-    def save_error_table(name, ind_list):
-        err_counts = count_errors(ind_list)
+    def save_error_table(name, ind_list, in_preds=None):
+        err_counts, comb_err_counts = count_errors(ind_list, in_preds)
         errs = ['replace', 'insert', 'delete']
         header = "\t"+ "\t".join(list(err_counts.keys())) + "\n"
         body = "\n".join([f"{err[:3]}:\t" + "\t".join([str(err_counts[k][err]) for k in err_counts.keys()]) for err in errs])
         sum = "\nsum:\t" + "\t".join([str(err_counts[k][errs[0]] + err_counts[k][errs[1]] + err_counts[k][errs[2]]) for k in err_counts.keys()])
         csv = header + body + sum
-        with open(name+'.tsv', 'w') as f:
+        with open(name+'.tsv', 'w', encoding='utf-8') as f:
             f.write(csv)
-        return csv
+        header = "\t"+ "\t".join(list(comb_err_counts.keys())) + "\n"
+        body = "\n".join([f"{err[:3]}:\t" + "\t".join([str(comb_err_counts[k][err]) for k in comb_err_counts.keys()]) for err in errs])
+        sum = "\nsum:\t" + "\t".join([str(comb_err_counts[k][errs[0]] + comb_err_counts[k][errs[1]] + comb_err_counts[k][errs[2]]) for k in comb_err_counts.keys()])
+        comb_csv = header + body + sum
+        with open(name+'_comb.tsv', 'w', encoding='utf-8') as f:
+            f.write(comb_csv)
+        return csv, comb_csv
     
+    logging.debug("Loading logits for test values")
+    labels, preds, comb_labels, comb_preds = [], [], [], []
+    for ind in full:
+        label, pred, comb_label, comb_pred = get_predictions(ind, return_comb=True)
+        labels.append(label), preds.append(pred)
+        comb_labels.append(comb_label), comb_preds.append(comb_pred)
 
-    print(eval_name)
+    print('Printing vocab of', eval_name)
     #Lines that collect and print the encoded vocab (preprocessed prediction labels) of the training dataset
     vocab_count = {}
     for entry in np_train_ds:
@@ -292,51 +323,36 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
     print("Decoded testing vocab: ", d_vocab_count)
     
     text = [phone_revert(tone_revert(np_test_ds[ind]["transcript"])) for ind in range(279)]
-    with open(eval_name+'_transcript.txt', 'w') as f:
+    with open(eval_name+'_transcript.txt', 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
     
-
-      
+    in_preds = (labels, preds)
     #Block used to calculate WER on each subsection of the testing set
-    print(f"{eval_name} WER on full testing set: {compute_wer(full)}")
-    print(f"{eval_name} WER on songs: {compute_wer(songs)}")
-    print(f"{eval_name} WER on rituals: {compute_wer(rituals)}")
-    print(f"{eval_name} WER on Sichuan recordings: {compute_wer(sichuan)}")
-    print(f"{eval_name} WER on Yunnan recordings: {compute_wer(yunnan)}")
+    print(f"{eval_name} WER on full testing set: {compute_wer(full, in_preds)}")
+    print(f"{eval_name} WER on songs: {compute_wer(songs, in_preds)}")
+    print(f"{eval_name} WER on rituals: {compute_wer(rituals, in_preds)}")
+    print(f"{eval_name} WER on Sichuan recordings: {compute_wer(sichuan, in_preds)}")
+    print(f"{eval_name} WER on Yunnan recordings: {compute_wer(yunnan, in_preds)}")
     for key in list(recordings):
-        print(f"{eval_name} WER on {key}: {compute_wer(recordings[key])}")
+        print(f"{eval_name} WER on {key}: {compute_wer(recordings[key], in_preds)}")
     
     #Block used to calculate CER on each subsection of the testing set
-    print(f"{eval_name} CER on full testing set: {compute_cer(full)}")
-    print(f"{eval_name} CER on songs: {compute_cer(songs)}")
-    print(f"{eval_name} CER on rituals: {compute_cer(rituals)}")
-    print(f"{eval_name} CER on Sichuan recordings: {compute_cer(sichuan)}")
-    print(f"{eval_name} CER on Yunnan recordings: {compute_cer(yunnan)}")
+    print(f"{eval_name} CER on full testing set: {compute_cer(full, in_preds)}")
+    print(f"{eval_name} CER on songs: {compute_cer(songs, in_preds)}")
+    print(f"{eval_name} CER on rituals: {compute_cer(rituals, in_preds)}")
+    print(f"{eval_name} CER on Sichuan recordings: {compute_cer(sichuan, in_preds)}")
+    print(f"{eval_name} CER on Yunnan recordings: {compute_cer(yunnan, in_preds)}")
     for key in list(recordings):
-        print(f"{eval_name} CER on {key}: {compute_cer(recordings[key])}")
+        print(f"{eval_name} CER on {key}: {compute_cer(recordings[key], in_preds)}")
     
+    in_preds = (labels, preds, comb_labels, comb_preds)
     #Save error and replacements tables to eval directory
-    print(save_error_table(eval_name+'_errors', full))
-    print(save_replacements_table(eval_name+'_replacements', full))
-    
-    
-
-    """#OLD DEBUGGING: Block to take WER of each line from the testing set and average it
-    ex_inds = list(range(len(np_test_prepped_ds["input_values"])))
-    
-    sum_wer, num = 0, 0
-    for ind in ex_inds:
-        input_dict = processor(np_test_prepped_ds[ind]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-        logits = model(input_dict.input_values.to(device)).logits
-        pred_ids = torch.argmax(logits, dim=-1)[0]
-        pred_str = phone_revert(tone_revert(processor.decode(pred_ids)))
-        label_str = phone_revert(tone_revert(np_test_ds[ind]["transcript"]))
-        
-        
-        sum_wer += wer(label_str, pred_str)
-        num += 1
-    print(f"{eval_dir} average WER: {sum_wer/num}")
-    """
+    err_table, comb_err_table = save_error_table(eval_name+'_errors', full, in_preds)
+    print("Error Table: \n" + err_table)
+    print("Combined Error Table: \n" + comb_err_table)
+    rep_table, comb_rep_table = save_replacements_table(eval_name+'_replacements', full, in_preds)
+    print("Replacements Table: \n" + rep_table)
+    print("Combined Replacements Table: \n" + comb_rep_table)
 
     #Block which prints out random sample predictions
     logging.debug("Sample Predictions")
@@ -346,7 +362,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
     ex_inds = inds[:20]
     #ex_inds = list(range(0, 279, 4))
     for ind in ex_inds:
-        label, pred = get_predictions(ind)
+        label, pred = labels[ind], preds[ind]
         print(f"Index: {ind}")
         print("Actual:")
         print(label)
@@ -369,14 +385,3 @@ if __name__ == "__main__":
         checkpoint=args['checkpoint'], 
         cpu=args['cpu'],
         lm=args['lm'])
-    """if torch.cuda.is_available():
-        #main_program(eval_dir="test_nochanges_2-9-23")
-        #main_program(eval_dir="test_nochanges_12-21-22")
-        #main_program(eval_dir="test_combdiac_12-21-22")
-        #main_program(eval_dir="test_combtones_12-21-22")
-        #main_program(eval_dir="test_combboth_12-21-22")
-        #main_program(eval_dir="test_combdiac_12-21-22")
-        #main_program(eval_dir="test_combboth_12-21-22")
-        #main_program(eval_dir="test_notones_12-21-22")
-    else:
-        print("no cuda")"""

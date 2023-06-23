@@ -42,18 +42,6 @@ tone_chars = "¹ ² ³ ⁵".split(" ")
 tones = ["²¹", "²²", "³²", "³⁵", "⁵⁵", "⁵²", "⁵¹"]
 rep_tones = "1234567890"
 
-"""
-rep_dict = {}
-for x in range(len(trips)):
-    rep_dict[trips[x]] = rep_trips[x]
-for x in range(len(doubs)):
-    rep_dict[doubs[x]] = rep_doubs[x]  
-for x in range(len(tones)):
-    rep_dict[tones[x]] = rep_tones[x]
-print("Encoding scheme:", rep_dict)
-"""
-
-
 def phone_revert(text):
     for x in range(len(trips)):
         text = re.sub(rep_trips[x], trips[x], text)
@@ -66,26 +54,20 @@ def tone_revert(text):
         text = re.sub(rep_tones[x], tones[x], text)
     return text
 
-def check_dominant_tier(eaf, tar_txt=''):
-    """Function for returning the tier with the most annotations from an eaf file"""
-    pos_tiers = [tier for tier in eaf.tiers if len(tier) > 1 and tar_txt in tier]
-    num_chld = 0
-    candidate = None
-    for tier in pos_tiers:
-        chlds = len(eaf.get_child_tiers_for(tier))
-        if chlds > num_chld:
-            num_chld = chlds
-            candidate = tier
-    #print(f"Longest tier: {candidate}")
-    return(candidate)
+def get_dominant_tier(eaf, tier_type='phrase'):
+    candidates = eaf.get_tier_ids_for_linguistic_type(tier_type)
+    tiers_w_anns = [(tier, eaf.get_annotation_data_for_tier(tier)) for tier in candidates]
+    longest_tier = [(None, [None])]
+    for item in tiers_w_anns:
+        if len(item[1]) > len(longest_tier[-1][1]): longest_tier.append(item)
+    return(longest_tier[-1])
 
 def chunk_audio_by_eaf_into_data(filename, path, aud_ext=".mp3"):
     """Function for chunking an audio file by eaf time stamp values from a given annotation tier into a list of numpy arrays"""
     if pathlib.Path(path+filename+aud_ext).is_file() and pathlib.Path(f"{path}{filename}.eaf").is_file():
         audio, sr = librosa.load(path+filename+aud_ext, sr=16000)
         eaf = pympi.Elan.Eaf(f"{path}{filename}.eaf")
-        tar_tier = check_dominant_tier(eaf, 'segnum')
-        an_dat = eaf.get_annotation_data_for_tier(tar_tier)
+        tar_tier, an_dat = get_dominant_tier(eaf)
         data = []
         for x in range(len(an_dat)):
             start = librosa.time_to_samples(an_dat[x][0]/1000, sr=sr)
@@ -149,14 +131,6 @@ def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chu
                                     pass
                         else: 
                             nchunks += [[y[0]+start, y[1]+start]]
-                    """
-                    print("Couldn't divide automatically, instead just chopping up into windows of arbitrary length")
-                    divs = round(diff/10000)
-                    step = round(diff/divs)
-                    for x in range(divs-1):
-                        nchunks.append([start+step*x, start+step*(x+1)-1])
-                    nchunks.append([start+step*(divs-1), stop])
-                    """
             else: nchunks.append([start, stop])
     chunks = [chunk for chunk in nchunks if chunk[1]-chunk[0] > min_chunk]
     return(chunks)
@@ -194,19 +168,17 @@ def silence_chunk_audio_into_data(filename, path, aud_ext=".wav", sr=16000, has_
     min_sil = 500, max_chunk = 10000 => CER = 0.39, WER = 0.971
     Best: min_sil = 1000, max_chunk = 10000 => CER = 0.32"""
     if pathlib.Path(path+filename+aud_ext).is_file():
-        aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
+        #aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
         lib_aud, sr = librosa.load(path+filename+aud_ext, sr=sr)
+        length = librosa.get_duration(lib_aud)
         chunks = chunk_audio_by_silence(filename, path, aud_ext, min_sil, min_chunk, max_chunk)
         transcripts = ["" for x in range(len(chunks))]
         tar_txt, anns = None, None
         if has_eaf==True: 
             veaf = pympi.Eaf(f"{path}{filename}.eaf")
-            tar_tier = veaf.get_tier_ids_for_linguistic_type('phrase')[0]
-            anns = veaf.get_annotation_data_for_tier(tar_tier)
+            tar_tier, anns = get_dominant_tier(veaf)
             tar_txt = " # ".join([ann[2] for ann in anns])
             tar_txt = re.sub(chars_to_ignore_regex, "", tar_txt)
-            #Removed the following
-            #transcripts = try_to_align_og_phrases_w_detected_phrases(anns, chunks)
         data = []
         for x in range(len(chunks)):
             start = librosa.time_to_samples(chunks[x][0]/1000, sr=sr)
@@ -214,7 +186,7 @@ def silence_chunk_audio_into_data(filename, path, aud_ext=".wav", sr=16000, has_
             data.append({'from_file' : filename, 'segment' : x, 'transcript' : transcripts[x], 
                 'audio' : {'array': lib_aud[start:end], 'sampling_rate' : sr}})
         print(f"{filename} chunked successfully")
-        return(chunks, data, tar_txt, anns)
+        return(chunks, data, tar_txt, anns, length)
 
 class prediction:
     def __init__(self, logit, char, start, end):
@@ -350,12 +322,10 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         inner_model_dir = model_dir+"model/"
     else: 
         inner_model_dir = model_dir
-    #Pipeline testing stuff
-    pipe = pipeline('automatic-speech-recognition', model_dir)
-    #END pipeline testing stuff
+    tastt = time.time()
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     model = AutoModelForCTC.from_pretrained(inner_model_dir).to(device)
-    chunks, target, tar_txt, og_anns = silence_chunk_audio_into_data(filename, path, aud_ext, has_eaf=has_eaf, 
+    chunks, target, tar_txt, og_anns, length = silence_chunk_audio_into_data(filename, path, aud_ext, has_eaf=has_eaf, 
                                                    min_sil=min_sil, min_chunk=min_chunk, max_chunk=max_chunk)
     target_ds = Dataset.from_pandas(DataFrame(target))
 
@@ -388,35 +358,25 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     phrase_preds = []
     if word_align: 
         pred_list_words = []
-        #time_offset = (model.config.inputs_to_logits_ratio / processor.feature_extractor.sampling_rate)*1000
         time_offset = (320 / processor.feature_extractor.sampling_rate)*1000
     for x in range(len(chunks)):
-        #Pipeline performance testing stuff
-        stt = time.time()
-        pipe(target_prepped_ds[x]["input_values"])
-        print("Pipe performance:", time.time()-stt)
-        #END
         input_dict = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
         logits = model(input_dict.input_values.to(device)).logits
         pred_ids = torch.argmax(torch.tensor(logits[0]), dim=-1)
-        #Timer for comparing pipeline to base
-        stt = time.time()
+        char_preds = processor.tokenizer.convert_ids_to_tokens(pred_ids.tolist())
+        pred_list = [prediction(logit=torch.tensor(logits[0][y]), char=char_preds[y], start =chunks[x][0]+y*20,
+                                end=chunks[x][0]+(y+1)*20) for y in range(len(logits[0]))]
         if lm == None: 
             phrase_preds.append(phone_revert(tone_revert(processor.decode(pred_ids))) + " ")
-            print("Base performance:", time.time()-stt)
-            #End
+            pred_list_words, pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)
         else: 
             dbeam = decoder.decode_beams(logits[0].detach().numpy(), prune_history=True)[0]
             phrase_preds.append(phone_revert(tone_revert(dbeam[0])))
+            pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)[1]
             if word_align:
                 pred_list_words += [prediction(logit=dbeam[-2], char=word[0], start=int(round(word[1][0]*time_offset, 2)+chunks[x][0]),
                                             end = int(round(word[1][1]*time_offset, 2)+chunks[x][0])) for word in dbeam[2]]
-        char_preds = processor.tokenizer.convert_ids_to_tokens(pred_ids.tolist())
         eaf.add_annotation("prediction", chunks[x][0], chunks[x][1], phrase_preds[-1])
-        pred_list = [prediction(logit=torch.tensor(logits[0][y]), char=char_preds[y], start =chunks[x][0]+y*20,
-                                end=chunks[x][0]+(y+1)*20) for y in range(len(logits[0]))]
-        if lm == None: pred_list_words, pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)
-        else: pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)[1]
         if word_align: 
             for word in pred_list_words:
                 eaf.add_annotation("words", word.start, word.end, word.out_char)
@@ -436,7 +396,9 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     elif format == ".TextGrid":
         tg = eaf.to_textgrid()
         tg.to_file(f"{output_path}{filename}_{model_name}_preds.TextGrid")
-        
+    
+    proc_leng = time.time()-tastt
+    print(f"Transcription took {round(proc_leng, 2)}s, or {round(proc_leng/length, 2)}x the length of the recording")
     print("***Process Complete!***")
 
 def transcribe_dir(model_dir, aud_dir, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/Transcripts/", 

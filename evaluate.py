@@ -237,7 +237,7 @@ def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, l
         comb_errors = sorted(list(comb_errors))
         table = [[0 for y in range(len(comb_errors))] for x in range(len(comb_targets))]
         for x in comb_replacements: table[comb_targets.index(x[0])][comb_errors.index(x[1])] += 1
-        comb_csv = "\t"+"\t".join(errors)
+        comb_csv = "\t"+"\t".join(comb_errors)
         for r in range(len(table)): comb_csv += f"\n{comb_targets[r]}\t"+"\t".join([str(i) for i in table[r]])
         with open(name+'_comb.tsv', 'w', encoding='utf-8') as f:
             f.write(comb_csv)

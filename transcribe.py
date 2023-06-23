@@ -80,6 +80,89 @@ def chunk_audio_by_eaf_into_data(filename, path, aud_ext=".mp3"):
     else: 
         print(f"Audio or eaf files not found for {filename}, chunking not possible")
 
+def stride_chunk(max_chunk, stride, length):
+    """
+    Simple chunking using aribtary divisions based on max chunk length and striding
+    """
+    num_chunks = ceil((length*1000)/max_chunk)
+    nchunks = [[0, max_chunk+stride, (0, stride)]]
+    nchunks += [[x*max_chunk-stride, (x+1)*max_chunk+stride, (stride, stride)] for x in range(1, num_chunks-1)]
+    nchunks += [[max_chunk*(num_chunks-1), round(length*1000), (stride, 0)]]
+    print(nchunks)
+    return(nchunks)
+
+def silence_stride_chunk(fullpath, aud_ext, max_chunk, min_chunk, stride, min_sil):
+    """
+    Slightly more complex chunking using pydub's silence function once and then subdividing chunks that are 
+    too long using arbitrary divisions and striding
+    """
+    aud = AudioSegment.from_file(fullpath, format=aud_ext[1:])
+    chunks = silence.detect_nonsilent(aud, min_silence_len=min_sil, silence_thresh=-35)
+    nchunks = []
+    for chunk in chunks:
+        start, stop = chunk[0], chunk[1]
+        diff = stop-start
+        if diff > max_chunk:
+            num_chunks = ceil(diff/max_chunk)
+            step = round(diff/num_chunks)
+            nchunks.append([start, start+step+stride, (0, stride)])
+            for x in range(1, num_chunks):
+                nchunks.append([(start+x*step)-stride, (start+(x+1)*step)+stride, (stride, stride)])
+            nchunks.append([(start+(num_chunks)*step)-stride, stop, (stride, 0)])
+        elif diff > min_chunk:
+            nchunks.append([start, stop, (0, 0)])
+    return(nchunks)
+
+def og_silence_chunk(filename, path, aud_ext=".mp3", min_sil=1000, min_chunk = 100, max_chunk=10000):
+    """
+    Uses pydub detect non-silent to chunk audio by silences into speech segments.
+    Crude and slow, but functional
+    """
+    aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
+    chunks = silence.detect_nonsilent(aud, min_silence_len=min_sil, silence_thresh=-35)
+    nchunks = []
+    for chunk in chunks:
+        start, stop = chunk[0], chunk[1]
+        diff = stop-start
+        if start > 100: start -= 100
+        if diff >= min_chunk:
+            if diff >= max_chunk:
+                solved = False
+                for x in range(2, 11):
+                    tch = silence.detect_nonsilent(aud[chunk[0]:chunk[1]], min_silence_len=round(min_sil/x), silence_thresh=-35)
+                    if len([y for y in tch if y[1]-y[0] > max_chunk]) == 0: 
+                        print("solved at", round(min_sil/x))
+                        nchunks += [[y[0]+start, y[1]+start] for y in tch]
+                        solved=True
+                        break
+                if not(solved): 
+                    print("Couldn't solve using shorter minimum silence lengths, increasing silence threshold instead")
+                    tch = silence.detect_nonsilent(aud[chunk[0]:chunk[1]], min_silence_len=round(min_sil/2), silence_thresh=-35)
+                    for y in tch:
+                        ydiff = y[1]-y[0]
+                        if ydiff > max_chunk:
+                            print(ydiff)
+                            for x in range(1, 6):
+                                ntch = silence.detect_nonsilent(aud[start+y[0]:start+y[1]], min_silence_len=round(min_sil/2), silence_thresh=-35+x)
+                                if len([z for z in ntch if z[1]-z[0] > max_chunk]) == 0: 
+                                    print("solved at silence thresh of", -35+x)
+                                    nchunks += [[z[0]+y[0]+start, z[1]+y[0]+start] for z in ntch]
+                                    break
+                                else:
+                                    if x==5:
+                                        print("Couldn't divide automatically, instead just chopping up into windows of arbitrary length")
+                                        divs = round(ydiff/10000)
+                                        step = round(ydiff/divs)
+                                        for x in range(divs-1):
+                                            nchunks.append([y[0]+start+step*x, y[0]+start+step*(x+1)-1])
+                                        nchunks.append([y[0]+start+step*(divs-1), y[1]+start])
+                                    pass
+                        else: 
+                            nchunks += [[y[0]+start, y[1]+start]]
+            else: nchunks.append([start, stop])
+    chunks = [chunk for chunk in nchunks if chunk[1]-chunk[0] > min_chunk]
+    return(chunks)
+
 class prediction:
     def __init__(self, logit, char, start, end):
         self.logit = logit
@@ -95,8 +178,8 @@ class prediction:
 
 def merge_breaks(predlst):
     w_predlst = deepcopy(predlst)
-    n_predlst = []
-    for pred in w_predlst:
+    n_predlst = [w_predlst[0]]
+    for pred in w_predlst[1:]:
         if pred.char == "|" and n_predlst[-1].char == "|":
             n_predlst[-1].end = pred.end
         else:
@@ -236,27 +319,10 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     print("***Chunking audio***")
     if pathlib.Path(path+filename+aud_ext).is_file():
         lib_aud, sr = librosa.load(path+filename+aud_ext, sr=16000)
-        aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
-        length = librosa.get_duration(lib_aud)
+        length = librosa.get_duration(lib_aud, sr=sr)
         print(f"{filename} is {round(length, 2)}s long")
-        #num_chunks = ceil(length/max_chunk)
-        #nchunks = [[0, max_chunk+stride, (0, stride)]]
-        #nchunks += [[x*max_chunk-stride, (x+1)*max_chunk+stride, (stride, stride)] for x in range(1, num_chunks-1)]
-        #nchunks += [[max_chunk*(num_chunks-1), length, (stride, 0)]]
-        chunks = silence.detect_nonsilent(aud, min_silence_len=min_sil, silence_thresh=-35)
-        nchunks = []
-        for chunk in chunks:
-            start, stop = chunk[0], chunk[1]
-            diff = stop-start
-            if diff > max_chunk:
-                num_chunks = ceil(diff/max_chunk)
-                step = round(diff/num_chunks)
-                nchunks.append([start, start+step+stride, (0, stride)])
-                for x in range(1, num_chunks):
-                    nchunks.append([(start+x*step)-stride, (start+(x+1)*step)+stride, (stride, stride)])
-                nchunks.append([(start+(num_chunks)*step)-stride, stop, (stride, 0)])
-            elif diff > min_chunk:
-                nchunks.append([start, stop, (0, 0)])
+        #nchunks = stride_chunk(max_chunk, stride, length)
+        nchunks = silence_stride_chunk(path+filename+aud_ext, aud_ext, max_chunk, min_chunk, stride, min_sil)
         chunks = [nchunk + [lib_aud[librosa.time_to_samples(nchunk[0]/1000, sr=sr):
                                     librosa.time_to_samples(nchunk[1]/1000, sr=sr)]] for nchunk in nchunks]
         

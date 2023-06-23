@@ -308,6 +308,7 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     print("***Loading model and processor***")
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     model = AutoModelForCTC.from_pretrained(inner_model_dir).to(device)
+
     if lm!=None:
         #This line necessary to remove <s> and </s> from tokenizer vocab, otherwise prevents integration
         n_tokenizer = Wav2Vec2CTCTokenizer(model_dir+"vocab.json", bos_token=None, eos_token=None)
@@ -330,6 +331,7 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         eaf = pympi.Eaf(author="transcribe.py")
         eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
         eaf.remove_tier('default'), eaf.add_tier("prediction")
+
         if word_align: 
             eaf.add_tier("words")
             pred_list_words = []

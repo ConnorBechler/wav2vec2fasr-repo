@@ -98,14 +98,9 @@ def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chu
                     tch = silence.detect_nonsilent(aud[chunk[0]:chunk[1]], min_silence_len=round(min_sil/x), silence_thresh=-35)
                     if len([y for y in tch if y[1]-y[0] > max_chunk]) == 0: 
                         print("solved at", round(min_sil/x))
-                        #print([y[1]-y[0] for y in tch])
                         nchunks += [[y[0]+start, y[1]+start] for y in tch]
                         solved=True
                         break
-                    else:
-                        #if x == 10:
-                        #    print([y[1]-y[0] for y in tch])
-                        pass
                 if not(solved): 
                     print("Couldn't solve using shorter minimum silence lengths, increasing silence threshold instead")
                     tch = silence.detect_nonsilent(aud[chunk[0]:chunk[1]], min_silence_len=round(min_sil/2), silence_thresh=-35)
@@ -115,7 +110,6 @@ def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chu
                             print(ydiff)
                             for x in range(1, 6):
                                 ntch = silence.detect_nonsilent(aud[start+y[0]:start+y[1]], min_silence_len=round(min_sil/2), silence_thresh=-35+x)
-                                #print(ntch, -35+x)
                                 if len([z for z in ntch if z[1]-z[0] > max_chunk]) == 0: 
                                     print("solved at silence thresh of", -35+x)
                                     nchunks += [[z[0]+y[0]+start, z[1]+y[0]+start] for z in ntch]
@@ -168,7 +162,6 @@ def silence_chunk_audio_into_data(filename, path, aud_ext=".wav", sr=16000, has_
     min_sil = 500, max_chunk = 10000 => CER = 0.39, WER = 0.971
     Best: min_sil = 1000, max_chunk = 10000 => CER = 0.32"""
     if pathlib.Path(path+filename+aud_ext).is_file():
-        #aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
         lib_aud, sr = librosa.load(path+filename+aud_ext, sr=sr)
         length = librosa.get_duration(lib_aud)
         chunks = chunk_audio_by_silence(filename, path, aud_ext, min_sil, min_chunk, max_chunk)

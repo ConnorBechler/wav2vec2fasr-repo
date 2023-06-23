@@ -4,10 +4,11 @@ import pympi
 #import soundfile
 from pydub import AudioSegment, silence
 import numpy
+from math import ceil
 import os
 
-from datasets import Dataset
-from pandas import DataFrame
+#from datasets import Dataset
+#from pandas import DataFrame
 
 import re
 from jiwer import wer, cer
@@ -55,12 +56,12 @@ def tone_revert(text):
     return text
 
 def get_dominant_tier(eaf, tier_type='phrase'):
-    candidates = eaf.get_tier_ids_for_linguistic_type(tier_type)
-    tiers_w_anns = [(tier, eaf.get_annotation_data_for_tier(tier)) for tier in candidates]
-    longest_tier = [(None, [None])]
-    for item in tiers_w_anns:
-        if len(item[1]) > len(longest_tier[-1][1]): longest_tier.append(item)
-    return(longest_tier[-1])
+  candidates = eaf.get_tier_ids_for_linguistic_type(tier_type)
+  tiers_w_anns = [(tier, eaf.get_annotation_data_for_tier(tier)) for tier in candidates]
+  longest_tier = [(None, [None])]
+  for item in tiers_w_anns:
+    if len(item[1]) > len(longest_tier[-1][1]): longest_tier.append(item)
+  return(longest_tier[-1])
 
 def chunk_audio_by_eaf_into_data(filename, path, aud_ext=".mp3"):
     """Function for chunking an audio file by eaf time stamp values from a given annotation tier into a list of numpy arrays"""
@@ -79,7 +80,40 @@ def chunk_audio_by_eaf_into_data(filename, path, aud_ext=".mp3"):
     else: 
         print(f"Audio or eaf files not found for {filename}, chunking not possible")
 
-def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chunk = 100, max_chunk=10000):
+def stride_chunk(max_chunk, stride, length):
+    """
+    Simple chunking using aribtary divisions based on max chunk length and striding
+    """
+    num_chunks = ceil((length*1000)/max_chunk)
+    nchunks = [[0, max_chunk+stride, (0, stride)]]
+    nchunks += [[x*max_chunk-stride, (x+1)*max_chunk+stride, (stride, stride)] for x in range(1, num_chunks-1)]
+    nchunks += [[max_chunk*(num_chunks-1), round(length*1000), (stride, 0)]]
+    print(nchunks)
+    return(nchunks)
+
+def silence_stride_chunk(fullpath, aud_ext, max_chunk, min_chunk, stride, min_sil):
+    """
+    Slightly more complex chunking using pydub's silence function once and then subdividing chunks that are 
+    too long using arbitrary divisions and striding
+    """
+    aud = AudioSegment.from_file(fullpath, format=aud_ext[1:])
+    chunks = silence.detect_nonsilent(aud, min_silence_len=min_sil, silence_thresh=-35)
+    nchunks = []
+    for chunk in chunks:
+        start, stop = chunk[0], chunk[1]
+        diff = stop-start
+        if diff > max_chunk:
+            num_chunks = ceil(diff/max_chunk)
+            step = round(diff/num_chunks)
+            nchunks.append([start, start+step+stride, (0, stride)])
+            for x in range(1, num_chunks):
+                nchunks.append([(start+x*step)-stride, (start+(x+1)*step)+stride, (stride, stride)])
+            nchunks.append([(start+(num_chunks)*step)-stride, stop, (stride, 0)])
+        elif diff > min_chunk:
+            nchunks.append([start, stop, (0, 0)])
+    return(nchunks)
+
+def og_silence_chunk(filename, path, aud_ext=".mp3", min_sil=1000, min_chunk = 100, max_chunk=10000):
     """
     Uses pydub detect non-silent to chunk audio by silences into speech segments.
     Crude and slow, but functional
@@ -129,58 +163,6 @@ def chunk_audio_by_silence(filename, path, aud_ext=".mp3", min_sil=1000, min_chu
     chunks = [chunk for chunk in nchunks if chunk[1]-chunk[0] > min_chunk]
     return(chunks)
 
-def try_to_align_og_phrases_w_detected_phrases(annotation_data, phrases, eval_win=800):
-    """
-    Obsolete function trying to pull all words from original transcription that overlap with silence-detection
-    generated phrases in order to compare approximately the same time slot between the new transcript and the
-    original transcript. Did not work very well, unfortunately.
-    """
-    anns = annotation_data
-    chunks = phrases
-    transcripts = ["" for x in range(len(chunks))]
-    phrases = [[anns[0][3], 1]]
-    new_anns = [[0, 0, 1, 1, anns[0][2]]]
-    for a in range(1, len(anns)):
-        if anns[a][3] != anns[a-1][3]: phrases.append([anns[a][3], 1])
-        else: phrases[-1][1] += 1
-        new_anns.append([0, 0, len(phrases), phrases[-1][1], anns[a][2]])
-    for a in range(len(anns)):
-        new_anns[a][0] = round(((anns[a][1] - anns[a][0])/phrases[new_anns[a][2]-1][1]) * (new_anns[a][3]-1) + anns[a][0])
-        new_anns[a][1] = round(((anns[a][1] - anns[a][0])/phrases[new_anns[a][2]-1][1]) * (new_anns[a][3]) + anns[a][0])
-    for x in range(len(chunks)):
-        for y in range(len(anns)):
-            
-            if chunks[x][0]-eval_win <= new_anns[y][0] and chunks[x][1]+eval_win >= new_anns[y][1] and anns[y][2][0] not in chars_to_ignore_regex:
-                transcripts[x] += anns[y][2] + " "
-        if transcripts[x] == '': transcripts[x] += '#'
-    return(transcripts)
-
-def silence_chunk_audio_into_data(filename, path, aud_ext=".wav", sr=16000, has_eaf=False, 
-                                  min_sil=1000, min_chunk = 100, max_chunk = 10000):
-    """Various settings have been tested
-    OG: min_sil = 400, max_chunk = 20000 => CER = 0.39
-    min_sil = 500, max_chunk = 10000 => CER = 0.39, WER = 0.971
-    Best: min_sil = 1000, max_chunk = 10000 => CER = 0.32"""
-    if pathlib.Path(path+filename+aud_ext).is_file():
-        lib_aud, sr = librosa.load(path+filename+aud_ext, sr=sr)
-        length = librosa.get_duration(lib_aud)
-        chunks = chunk_audio_by_silence(filename, path, aud_ext, min_sil, min_chunk, max_chunk)
-        transcripts = ["" for x in range(len(chunks))]
-        tar_txt, anns = None, None
-        if has_eaf==True: 
-            veaf = pympi.Eaf(f"{path}{filename}.eaf")
-            tar_tier, anns = get_dominant_tier(veaf)
-            tar_txt = " # ".join([ann[2] for ann in anns])
-            tar_txt = re.sub(chars_to_ignore_regex, "", tar_txt)
-        data = []
-        for x in range(len(chunks)):
-            start = librosa.time_to_samples(chunks[x][0]/1000, sr=sr)
-            end = librosa.time_to_samples(chunks[x][1]/1000, sr=sr)
-            data.append({'from_file' : filename, 'segment' : x, 'transcript' : transcripts[x], 
-                'audio' : {'array': lib_aud[start:end], 'sampling_rate' : sr}})
-        print(f"{filename} chunked successfully")
-        return(chunks, data, tar_txt, anns, length)
-
 class prediction:
     def __init__(self, logit, char, start, end):
         self.logit = logit
@@ -196,8 +178,8 @@ class prediction:
 
 def merge_breaks(predlst):
     w_predlst = deepcopy(predlst)
-    n_predlst = []
-    for pred in w_predlst:
+    n_predlst = [w_predlst[0]]
+    for pred in w_predlst[1:]:
         if pred.char == "|" and n_predlst[-1].char == "|":
             n_predlst[-1].end = pred.end
         else:
@@ -207,12 +189,16 @@ def merge_breaks(predlst):
 def merge_pads(predlst):
     w_predlst = deepcopy(predlst)
     n_predlst = [w_predlst[0]]
-    for pred in w_predlst[1:]:
-        if pred.char == "[PAD]" and n_predlst[-1].char != "[PAD]":
-            n_predlst[-1].end = pred.end
+    np_st = None
+    for p in range(1, len(w_predlst[1:])):
+        if w_predlst[p].char == "[PAD]" and n_predlst[-1].char != "[PAD]":
+            n_predlst[-1].end = w_predlst[p].end
         else:
-            n_predlst.append(pred)
-    return(n_predlst)
+            #One possible way of removing pads from the beginning, although it leads to some counterintuitive results
+            #if w_predlst[p].char != "[PAD]" and np_st == None:
+            #    np_st = p
+            n_predlst.append(w_predlst[p])
+    return(n_predlst[np_st:])
 
 def process_pads(predlst, processor):
     w_predlst = deepcopy(predlst)
@@ -310,17 +296,18 @@ def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
 
 def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/", 
                      has_eaf=False, format=".eaf", min_sil=1000, min_chunk=100, 
-                     max_chunk=10000, char_align = True, word_align = True, lm=None):
+                     max_chunk=10000, stride = 1000, char_align = True, word_align = True, lm=None):
+    tastt = time.time()
     if os.path.exists(model_dir) and os.path.exists(model_dir+"model/"):
         inner_model_dir = model_dir+"model/"
     else: 
         inner_model_dir = model_dir
-    tastt = time.time()
+    if stride == None: 
+        stride = round(max_chunk/6)
+
+    print("***Loading model and processor***")
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     model = AutoModelForCTC.from_pretrained(inner_model_dir).to(device)
-    chunks, target, tar_txt, og_anns, length = silence_chunk_audio_into_data(filename, path, aud_ext, has_eaf=has_eaf, 
-                                                   min_sil=min_sil, min_chunk=min_chunk, max_chunk=max_chunk)
-    target_ds = Dataset.from_pandas(DataFrame(target))
 
     if lm!=None:
         #This line necessary to remove <s> and </s> from tokenizer vocab, otherwise prevents integration
@@ -328,57 +315,69 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         vocab_dict = n_tokenizer.get_vocab()
         sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
         decoder = build_ctcdecoder(labels=list(sorted_vocab_dict.keys()), kenlm_model_path=lm)
-        processor = Wav2Vec2Processor(feature_extractor=processor.feature_extractor, tokenizer=n_tokenizer)
+        processor = Wav2Vec2Processor(feature_extractor=processor.feature_extractor, tokenizer=n_tokenizer)        
 
-    def prepare_dataset(batch):
-        audio = batch["audio"]
-        batch["input_values"] = processor(audio["array"], 
-                                        sampling_rate=audio["sampling_rate"]).input_values[0]
-        with processor.as_target_processor():
-            batch["labels"] = processor(batch["transcript"]).input_ids
-        return batch
+    print("***Chunking audio***")
+    if pathlib.Path(path+filename+aud_ext).is_file():
+        lib_aud, sr = librosa.load(path+filename+aud_ext, sr=16000)
+        length = librosa.get_duration(lib_aud, sr=sr)
+        print(f"{filename} is {round(length, 2)}s long")
+        #nchunks = stride_chunk(max_chunk, stride, length)
+        nchunks = silence_stride_chunk(path+filename+aud_ext, aud_ext, max_chunk, min_chunk, stride, min_sil)
+        chunks = [nchunk + [lib_aud[librosa.time_to_samples(nchunk[0]/1000, sr=sr):
+                                    librosa.time_to_samples(nchunk[1]/1000, sr=sr)]] for nchunk in nchunks]
+        
+        print("***Making predictions***")
+        eaf = pympi.Eaf(author="transcribe.py")
+        eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
+        eaf.remove_tier('default'), eaf.add_tier("prediction")
 
-    print("***Preparing Dataset***")
-    target_prepped_ds = target_ds.map(prepare_dataset, remove_columns=target_ds.column_names, num_proc=1)
-    print("***Dataset Prepared***")
-
-    print("***Making Predictions***")
-    eaf = pympi.Eaf(author="transcribe.py")
-    eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
-    eaf.remove_tier('default'), eaf.add_tier("prediction")
-    if word_align: eaf.add_tier("words")
-    if char_align: eaf.add_tier("chars")
-    phrase_preds = []
-    if word_align: 
-        pred_list_words = []
-        time_offset = (320 / processor.feature_extractor.sampling_rate)*1000
-    for x in range(len(chunks)):
-        input_dict = processor(target_prepped_ds[x]["input_values"], return_tensors="pt", padding=True, sampling_rate=16000)
-        logits = model(input_dict.input_values.to(device)).logits
-        pred_ids = torch.argmax(torch.tensor(logits[0]), dim=-1)
-        char_preds = processor.tokenizer.convert_ids_to_tokens(pred_ids.tolist())
-        pred_list = [prediction(logit=torch.tensor(logits[0][y]), char=char_preds[y], start =chunks[x][0]+y*20,
-                                end=chunks[x][0]+(y+1)*20) for y in range(len(logits[0]))]
-        if lm == None: 
-            phrase_preds.append(phone_revert(tone_revert(processor.decode(pred_ids))) + " ")
-            pred_list_words, pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)
-        else: 
-            dbeam = decoder.decode_beams(logits[0].detach().numpy(), prune_history=True)[0]
-            phrase_preds.append(phone_revert(tone_revert(dbeam[0])))
-            pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)[1]
-            if word_align:
-                pred_list_words += [prediction(logit=dbeam[-2], char=word[0], start=int(round(word[1][0]*time_offset, 2)+chunks[x][0]),
-                                            end = int(round(word[1][1]*time_offset, 2)+chunks[x][0])) for word in dbeam[2]]
-        eaf.add_annotation("prediction", chunks[x][0], chunks[x][1], phrase_preds[-1])
         if word_align: 
-            for word in pred_list_words:
-                eaf.add_annotation("words", word.start, word.end, word.out_char)
-        if char_align:
-            for char in pred_list_chars:
-                eaf.add_annotation("chars", char.start, char.end, char.out_char)
+            eaf.add_tier("words")
+            pred_list_words = []
+            time_offset = (320 / processor.feature_extractor.sampling_rate)*1000
+        if char_align: eaf.add_tier("chars")
+        
+        phrase_preds = []
+        for x in range(len(chunks)):
+            st_ms, end_ms = chunks[x][2]
+            st_ind, end_ind = round(st_ms/20), round(end_ms/20)
+            input_values = processor(chunks[x][3], return_tensors="pt", padding=True, sampling_rate=16000).input_values
+            logits = model(input_values.to(device)).logits
+            pred_ids = torch.argmax(torch.tensor(logits[0]), dim=-1)
+            l_pred_ids = pred_ids[st_ind:len(pred_ids)-end_ind]
+            l_logits = logits[0][st_ind:len(logits[0])-end_ind]
+            
+            if len(l_logits) > 1:
+                char_preds = processor.tokenizer.convert_ids_to_tokens(l_pred_ids.tolist())
+                pred_list = [prediction(logit=torch.tensor(l_logits[y]), char=char_preds[y], start =chunks[x][0]+y*20+st_ms,
+                                        end=chunks[x][0]+(y+1)*20+st_ms) for y in range(len(l_logits))]
+                if lm == None: 
+                    phrase_preds.append(phone_revert(tone_revert(processor.decode(l_pred_ids))) + " ")
+                    pred_list_words, pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)
+                else: 
+                    dbeam = decoder.decode_beams(l_logits.detach().numpy(), prune_history=True)[0]
+                    phrase_preds.append(phone_revert(tone_revert(dbeam[0])))
+                    if word_align:
+                        pred_list_words += [prediction(logit=dbeam[-2], char=word[0], start=int(round(word[1][0]*time_offset, 2)+chunks[x][0]+st_ms),
+                                                    end = int(round(word[1][1]*time_offset, 2)+chunks[x][0]+st_ms)) for word in dbeam[2]]
+                    pred_list_chars = ctc_decode(pred_list, char_align=char_align, word_align=word_align)[1]
+                
+                eaf.add_annotation("prediction", chunks[x][0]+st_ms, chunks[x][1]-end_ms, phrase_preds[-1])
+                if word_align: 
+                    for word in pred_list_words:
+                        eaf.add_annotation("words", word.start, word.end, word.out_char)
+                if char_align:
+                    for char in pred_list_chars:
+                        eaf.add_annotation("chars", char.start, char.end, char.out_char) 
     if has_eaf:
+        print("***Fetching previous transcriptions for evaluation***")
+        veaf = pympi.Eaf(f"{path}{filename}.eaf")
+        tar_tier, anns = get_dominant_tier(veaf)
+        tar_txt = " # ".join([ann[2] for ann in anns])
+        tar_txt = re.sub(chars_to_ignore_regex, "", tar_txt)
         eaf.add_tier("transcript")
-        [eaf.add_annotation("transcript", ann[0], ann[1], re.sub(chars_to_ignore_regex, '', ann[2])) for ann in og_anns]
+        [eaf.add_annotation("transcript", ann[0], ann[1], re.sub(chars_to_ignore_regex, '', ann[2])) for ann in anns]
         pred_txt = " # ".join(phrase_preds)
         print("WER: ", wer(tar_txt, pred_txt))
         print("CER: ", cer(tar_txt, pred_txt))
@@ -389,9 +388,9 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     elif format == ".TextGrid":
         tg = eaf.to_textgrid()
         tg.to_file(f"{output_path}{filename}_{model_name}_preds.TextGrid")
-    
+        
     proc_leng = time.time()-tastt
-    print(f"Transcription took {round(proc_leng, 2)}s, or {round(proc_leng/length, 2)}x the length of the recording")
+    print(f"Transcription took {round(proc_leng, 2)}s, or {round(proc_leng/length, 2)}x the length of the recording")  
     print("***Process Complete!***")
 
 def transcribe_dir(model_dir, aud_dir, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/Transcripts/", 
@@ -412,39 +411,10 @@ def transcribe_dir(model_dir, aud_dir, aud_ext=".wav", device="cpu", output_path
                 except OSError as error:
                     print(f"Transcribing {flname} failed: {error}")
 
-"""
-t_path = "d:/Northern Prinmi Data/wav-eaf-meta/"
-t_file = "wq15_069"
-t2_path = "d:/Northern Prinmi Data/"
-t2_file = "jz18_040"
-model = "D:/Northern Prinmi Data/models/model_5-11-23_combboth_1e-4/"
-
-t3_path = "C:/Users/cbech/Desktop/Northern Prinmi Project/wq12_017/"
-t4_path = "C:/Users/cbech/Desktop/Northern Prinmi Project/td21-22_020/"
-model2 = "C:/Users/cbech/Desktop/Northern Prinmi Project/models/model_6-3-23_xls-r_cb_nh/"
-"""
-
-"""
-eaf = pympi.Eaf(t_path+t_file+".eaf")
-print(eaf.get_tier_names())
-tar = eaf.get_tier_ids_for_linguistic_type('word')[0]
-for x in eaf.get_annotation_data_between_times(tar, 13000, 14000):
-    print(x[2], end=" ")
-"""
-#transcribe_dir(model, "d:/Northern Prinmi Data/wav-eaf-meta/testing/", validate=True)
-
-#transcribe_audio(model, t_file, t_path, aud_ext=".wav", has_eaf=True, format='.TextGrid')
-#transcribe_audio(model, t2_file, t2_path, aud_ext=".wav")#, has_eaf=True)
-#transcribe_audio(model, "wq09_075", t_path, has_eaf=True)
-#transcribe_audio(model, "sl05_000", t_path, has_eaf=True)
-
-#transcribe_audio(model2, "wq12_017", t3_path, output_path=t3_path, has_eaf=True, format=".TextGrid")
-#transcribe_audio(model2, "td21-22_020", t4_path, output_path=t4_path, has_eaf=True, format=".TextGrid")
-
-#chunk_audio_by_silence_into_eaf(t_file, t_path, aud_ext=".wav", has_eaf=True)
-#t_data = Dataset.from_pandas(DataFrame(silence_chunk_audio_into_data(t_file, t_path, has_eaf=True)))
 
 if __name__ == "__main__":
+    tot_start = time.time()
+    
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("model_dir", type=str, help="wav2vec 2.0 ASR model to be used")
     parser.add_argument("audio_dir", type=str, help="Directory of audio to be transcribed")
@@ -463,10 +433,13 @@ if __name__ == "__main__":
 
     args = vars(parser.parse_args())
     if args['file_name'] == None:
-        transcribe_dir(args['model_dir'], args['audio_dir'], args['audio_type'], args['device'], args['output_dir'], 
-        args['has_eaf'], args['format'], args['min_sil'], args['min_chunk'], args['max_chunk'], args['no_char_align'], 
-        args['no_word_align'], args['lm'])
+        transcribe_dir(model_dir=args['model_dir'], aud_dir=args['audio_dir'], aud_ext=args['audio_type'], device=args['device'], 
+                       output_path=args['output_dir'], validate=args['has_eaf'], format=args['format'], min_sil=args['min_sil'], 
+                       min_chunk=args['min_chunk'], max_chunk=args['max_chunk'], char_align=args['no_char_align'], 
+                       word_align=args['no_word_align'], lm=args['lm'])
     else:
-        transcribe_audio(args['model_dir'], args['file_name'], args['audio_dir'], args['audio_type'], args['device'], 
-        args['output_dir'], args['has_eaf'], args['format'], args['min_sil'], args['min_chunk'], args['max_chunk'], 
-        args['no_char_align'], args['no_word_align'], args['lm'])
+        transcribe_audio(model_dir=args['model_dir'], filename=args['file_name'], path=args['audio_dir'], aud_ext=args['audio_type'], 
+                         device=args['device'], output_path=args['output_dir'], has_eaf=args['has_eaf'], format=args['format'], 
+                         min_sil=args['min_sil'], min_chunk=args['min_chunk'], max_chunk=args['max_chunk'], 
+                         char_align=args['no_char_align'], word_align=args['no_word_align'], lm=args['lm'])
+    print('Total time: ', time.time()-tot_start)

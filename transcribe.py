@@ -80,15 +80,15 @@ def chunk_audio_by_eaf_into_data(filename, path, aud_ext=".mp3"):
     else: 
         print(f"Audio or eaf files not found for {filename}, chunking not possible")
 
-def stride_chunk(max_chunk, stride, length):
+def stride_chunk(max_chunk, stride, length, start=0, end=None):
     """
     Simple chunking using aribtary divisions based on max chunk length and striding
     """
+    if end == None: end = round(length*1000)
     num_chunks = ceil((length*1000)/max_chunk)
-    nchunks = [[0, max_chunk+stride, (0, stride)]]
-    nchunks += [[x*max_chunk-stride, (x+1)*max_chunk+stride, (stride, stride)] for x in range(1, num_chunks-1)]
-    nchunks += [[max_chunk*(num_chunks-1), round(length*1000), (stride, 0)]]
-    print(nchunks)
+    nchunks = [[start, max_chunk+stride, (0, stride)]]
+    nchunks += [[start+x*max_chunk-stride, start+(x+1)*max_chunk+stride, (stride, stride)] for x in range(1, num_chunks-1)]
+    nchunks += [[start+max_chunk*(num_chunks-1), end, (stride, 0)]]
     return(nchunks)
 
 def silence_stride_chunk(fullpath, aud_ext, max_chunk, min_chunk, stride, min_sil):
@@ -113,12 +113,13 @@ def silence_stride_chunk(fullpath, aud_ext, max_chunk, min_chunk, stride, min_si
             nchunks.append([start, stop, (0, 0)])
     return(nchunks)
 
-def og_silence_chunk(filename, path, aud_ext=".mp3", min_sil=1000, min_chunk = 100, max_chunk=10000):
+def og_silence_chunk(fullpath, aud_ext, min_sil, min_chunk, max_chunk, stride):
     """
-    Uses pydub detect non-silent to chunk audio by silences into speech segments.
-    Crude and slow, but functional
+    Uses pydub detect non-silent to chunk audio by silences into speech segments, then iterates through resulting chunks
+    using a mixture of strategies to try and reduce their length to below max_chunk. This version integrates stride chunking
+    as a last resort.
     """
-    aud = AudioSegment.from_file(path+filename+aud_ext, format=aud_ext[1:])
+    aud = AudioSegment.from_file(fullpath, format=aud_ext[1:])
     chunks = silence.detect_nonsilent(aud, min_silence_len=min_sil, silence_thresh=-35)
     nchunks = []
     for chunk in chunks:
@@ -132,7 +133,7 @@ def og_silence_chunk(filename, path, aud_ext=".mp3", min_sil=1000, min_chunk = 1
                     tch = silence.detect_nonsilent(aud[chunk[0]:chunk[1]], min_silence_len=round(min_sil/x), silence_thresh=-35)
                     if len([y for y in tch if y[1]-y[0] > max_chunk]) == 0: 
                         print("solved at", round(min_sil/x))
-                        nchunks += [[y[0]+start, y[1]+start] for y in tch]
+                        nchunks += [[y[0]+start, y[1]+start, (0, 0)] for y in tch]
                         solved=True
                         break
                 if not(solved): 
@@ -146,20 +147,16 @@ def og_silence_chunk(filename, path, aud_ext=".mp3", min_sil=1000, min_chunk = 1
                                 ntch = silence.detect_nonsilent(aud[start+y[0]:start+y[1]], min_silence_len=round(min_sil/2), silence_thresh=-35+x)
                                 if len([z for z in ntch if z[1]-z[0] > max_chunk]) == 0: 
                                     print("solved at silence thresh of", -35+x)
-                                    nchunks += [[z[0]+y[0]+start, z[1]+y[0]+start] for z in ntch]
+                                    nchunks += [[z[0]+y[0]+start, z[1]+y[0]+start, (0, 0)] for z in ntch]
                                     break
                                 else:
                                     if x==5:
                                         print("Couldn't divide automatically, instead just chopping up into windows of arbitrary length")
-                                        divs = round(ydiff/10000)
-                                        step = round(ydiff/divs)
-                                        for x in range(divs-1):
-                                            nchunks.append([y[0]+start+step*x, y[0]+start+step*(x+1)-1])
-                                        nchunks.append([y[0]+start+step*(divs-1), y[1]+start])
+                                        nchunks+= stride_chunk(max_chunk, stride, ydiff/1000, y[0]+start, y[1]+start)
                                     pass
                         else: 
-                            nchunks += [[y[0]+start, y[1]+start]]
-            else: nchunks.append([start, stop])
+                            nchunks += [[y[0]+start, y[1]+start, (0, 0)]]
+            else: nchunks.append([start, stop, (0, 0)])
     chunks = [chunk for chunk in nchunks if chunk[1]-chunk[0] > min_chunk]
     return(chunks)
 
@@ -322,8 +319,9 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         lib_aud, sr = librosa.load(path+filename+aud_ext, sr=16000)
         length = librosa.get_duration(lib_aud, sr=sr)
         print(f"{filename} is {round(length, 2)}s long")
-        #nchunks = stride_chunk(max_chunk, stride, length)
+        #nchunks = stride_chunk(max_chunk, stride=1667, length=length)
         nchunks = silence_stride_chunk(path+filename+aud_ext, aud_ext, max_chunk, min_chunk, stride, min_sil)
+        #nchunks = og_silence_chunk(path+filename+aud_ext, aud_ext, min_sil, min_chunk, max_chunk, stride)
         chunks = [nchunk + [lib_aud[librosa.time_to_samples(nchunk[0]/1000, sr=sr):
                                     librosa.time_to_samples(nchunk[1]/1000, sr=sr)]] for nchunk in nchunks]
         

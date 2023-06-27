@@ -88,7 +88,10 @@ def stride_chunk(max_chunk, stride, length, start=0, end=None):
     num_chunks = ceil((length*1000)/max_chunk)
     nchunks = [[start, max_chunk+stride, (0, stride)]]
     nchunks += [[start+x*max_chunk-stride, start+(x+1)*max_chunk+stride, (stride, stride)] for x in range(1, num_chunks-1)]
-    nchunks += [[start+max_chunk*(num_chunks-1), end, (stride, 0)]]
+    if (end - start+max_chunk*(num_chunks-1)-stride) > 100:
+        nchunks += [[start+max_chunk*(num_chunks-1)-stride, end, (stride, 0)]]
+    else:
+        nchunks[-1][1], nchunks[-1][3] = end, (stride, 0)
     return(nchunks)
 
 def silence_stride_chunk(fullpath, aud_ext, max_chunk, min_chunk, stride, min_sil):
@@ -178,15 +181,13 @@ def vad_chunk(lib_aud, max_chunk, sr, stride, length):
     chunks = [[round(int(y*1000)) for y in x] for x in boundaries.numpy()]
     nchunks = []
     for x in range(len(chunks)):
-        print(chunks[x])
         diff = chunks[x][1] - chunks[x][0]
-        print(max_chunk, diff)
         if diff > max_chunk: 
             nchunk = stride_chunk(max_chunk, stride, length, chunks[x][0], chunks[x][1])
-            print(nchunk)
             nchunks += nchunk
         else: 
             nchunks += [[chunks[x][0], chunks[x][1], (0, 0)]]
+    os.remove(tempf)
     return(nchunks)
 
 class prediction:

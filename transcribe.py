@@ -160,6 +160,35 @@ def og_silence_chunk(fullpath, aud_ext, min_sil, min_chunk, max_chunk, stride):
     chunks = [chunk for chunk in nchunks if chunk[1]-chunk[0] > min_chunk]
     return(chunks)
 
+from speechbrain.pretrained import VAD
+VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty")
+import soundfile
+
+def vad_chunk(lib_aud, max_chunk, sr, stride, length):
+    tempf = "./.temp_audio.wav"
+    soundfile.write(tempf, lib_aud, samplerate=sr)
+    #chunks = VAD.get_speech_segments(tempf)
+    prob_chunks = VAD.get_speech_prob_file(tempf, overlap_small_chunk=True)
+    prob_th = VAD.apply_threshold(prob_chunks).float()
+    boundaries = VAD.get_boundaries(prob_th)
+    boundaries = VAD.energy_VAD(tempf,boundaries)
+    boundaries = VAD.merge_close_segments(boundaries, close_th=0.2)
+    boundaries = VAD.remove_short_segments(boundaries, len_th=0.1)
+    boundaries = VAD.double_check_speech_segments(boundaries, tempf,  speech_th=0.5)
+    chunks = [[round(int(y*1000)) for y in x] for x in boundaries.numpy()]
+    nchunks = []
+    for x in range(len(chunks)):
+        print(chunks[x])
+        diff = chunks[x][1] - chunks[x][0]
+        print(max_chunk, diff)
+        if diff > max_chunk: 
+            nchunk = stride_chunk(max_chunk, stride, length, chunks[x][0], chunks[x][1])
+            print(nchunk)
+            nchunks += nchunk
+        else: 
+            nchunks += [[chunks[x][0], chunks[x][1], (0, 0)]]
+    return(nchunks)
+
 class prediction:
     def __init__(self, logit, char, start, end):
         self.logit = logit
@@ -280,6 +309,7 @@ def rem_breaks(predlst):
     return(n_predlst)
 
 def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
+    #predlst_js = [pred for pred in predlst if pred.char not in ['[PAD]', '|']]
     predlst_mb = merge_breaks(predlst)
     if processor != None: predlst_pp = process_pads(predlst_mb, processor)
     else: predlst_pp = merge_pads(predlst_mb)
@@ -289,7 +319,7 @@ def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
     else: predlst_words = None
     if char_align: predlst_chars = rem_breaks(predlst_ctwv)
     else: predlst_chars = None
-    return(predlst_words, predlst_chars)
+    return(predlst_words, predlst_chars)#predlst_js)
 
 def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/", 
                      has_eaf=False, format=".eaf", min_sil=1000, min_chunk=100, 
@@ -320,8 +350,9 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         length = librosa.get_duration(lib_aud, sr=sr)
         print(f"{filename} is {round(length, 2)}s long")
         #nchunks = stride_chunk(max_chunk, stride=1667, length=length)
-        nchunks = silence_stride_chunk(path+filename+aud_ext, aud_ext, max_chunk, min_chunk, stride, min_sil)
+        #nchunks = silence_stride_chunk(path+filename+aud_ext, aud_ext, max_chunk, min_chunk, stride, min_sil)
         #nchunks = og_silence_chunk(path+filename+aud_ext, aud_ext, min_sil, min_chunk, max_chunk, stride)
+        nchunks = vad_chunk(lib_aud, max_chunk, 16000, stride, length)
         chunks = [nchunk + [lib_aud[librosa.time_to_samples(nchunk[0]/1000, sr=sr):
                                     librosa.time_to_samples(nchunk[1]/1000, sr=sr)]] for nchunk in nchunks]
         

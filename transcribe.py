@@ -84,9 +84,9 @@ def stride_chunk(max_chunk, stride, length, start=0, end=None):
     """
     Simple chunking using aribtary divisions based on max chunk length and striding
     """
-    if end == None: end = round(length*1000)
+    if end == None: end = start + round(length*1000)
     num_chunks = ceil((length*1000)/max_chunk)
-    nchunks = [[start, max_chunk+stride, (0, stride)]]
+    nchunks = [[start, start+max_chunk+stride, (0, stride)]]
     nchunks += [[start+x*max_chunk-stride, start+(x+1)*max_chunk+stride, (stride, stride)] for x in range(1, num_chunks-1)]
     if (end - start+max_chunk*(num_chunks-1)-stride) > 100:
         nchunks += [[start+max_chunk*(num_chunks-1)-stride, end, (stride, 0)]]
@@ -170,12 +170,13 @@ import soundfile
 def vad_chunk(lib_aud, max_chunk, sr, stride, length):
     tempf = "./.temp_audio.wav"
     soundfile.write(tempf, lib_aud, samplerate=sr)
-    #chunks = VAD.get_speech_segments(tempf)
+    #boundaries = VAD.get_speech_segments(tempf)
+    #print(boundaries)
     prob_chunks = VAD.get_speech_prob_file(tempf, overlap_small_chunk=True)
     prob_th = VAD.apply_threshold(prob_chunks).float()
     boundaries = VAD.get_boundaries(prob_th)
     boundaries = VAD.energy_VAD(tempf,boundaries)
-    boundaries = VAD.merge_close_segments(boundaries, close_th=0.2)
+    boundaries = VAD.merge_close_segments(boundaries, close_th=0.25)
     boundaries = VAD.remove_short_segments(boundaries, len_th=0.1)
     boundaries = VAD.double_check_speech_segments(boundaries, tempf,  speech_th=0.5)
     chunks = [[round(int(y*1000)) for y in x] for x in boundaries.numpy()]
@@ -183,7 +184,7 @@ def vad_chunk(lib_aud, max_chunk, sr, stride, length):
     for x in range(len(chunks)):
         diff = chunks[x][1] - chunks[x][0]
         if diff > max_chunk: 
-            nchunk = stride_chunk(max_chunk, stride, length, chunks[x][0], chunks[x][1])
+            nchunk = stride_chunk(max_chunk, stride, (chunks[x][1]-chunks[x][0])/1000, chunks[x][0], chunks[x][1])
             nchunks += nchunk
         else: 
             nchunks += [[chunks[x][0], chunks[x][1], (0, 0)]]

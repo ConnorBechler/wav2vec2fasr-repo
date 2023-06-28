@@ -1,6 +1,9 @@
 slurm*
 data*
-pretrained_models/VAD-52336fa835e57c11253cb3c5e034bb20/hyperparams.yaml
-pretrained_models/VAD-52336fa835e57c11253cb3c5e034bb20/mean_var_norm.ckpt
-pretrained_models/VAD-52336fa835e57c11253cb3c5e034bb20/model.ckpt
 pretrained_models/
+pretrained_model_checkpoints/
+*.eaf
+*.pfsx
+*.TextGrid
+*.wav
+*.mp3

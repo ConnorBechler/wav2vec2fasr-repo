@@ -167,7 +167,7 @@ from speechbrain.pretrained import VAD
 VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty")
 import soundfile
 
-def vad_chunk(lib_aud, max_chunk, sr, stride, length):
+def vad_chunk(lib_aud, max_chunk, sr, stride):
     tempf = "./.temp_audio.wav"
     soundfile.write(tempf, lib_aud, samplerate=sr)
     #boundaries = VAD.get_speech_segments(tempf)
@@ -175,10 +175,10 @@ def vad_chunk(lib_aud, max_chunk, sr, stride, length):
     prob_chunks = VAD.get_speech_prob_file(tempf, overlap_small_chunk=True)
     prob_th = VAD.apply_threshold(prob_chunks).float()
     boundaries = VAD.get_boundaries(prob_th)
-    boundaries = VAD.energy_VAD(tempf,boundaries)
-    boundaries = VAD.merge_close_segments(boundaries, close_th=0.25)
+    boundaries = VAD.energy_VAD(tempf,boundaries, .1)
+    boundaries = VAD.merge_close_segments(boundaries, close_th=0.5)
     boundaries = VAD.remove_short_segments(boundaries, len_th=0.1)
-    boundaries = VAD.double_check_speech_segments(boundaries, tempf,  speech_th=0.5)
+    #boundaries = VAD.double_check_speech_segments(boundaries, tempf,  speech_th=0.5)
     chunks = [[round(int(y*1000)) for y in x] for x in boundaries.numpy()]
     nchunks = []
     for x in range(len(chunks)):
@@ -223,8 +223,8 @@ def merge_pads(predlst):
             n_predlst[-1].end = w_predlst[p].end
         else:
             #One possible way of removing pads from the beginning, although it leads to some counterintuitive results
-            #if w_predlst[p].char != "[PAD]" and np_st == None:
-            #    np_st = p
+            if w_predlst[p].char != "[PAD]" and np_st == None:
+                np_st = p
             n_predlst.append(w_predlst[p])
     return(n_predlst[np_st:])
 
@@ -354,7 +354,7 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         #nchunks = stride_chunk(max_chunk, stride=1667, length=length)
         #nchunks = silence_stride_chunk(path+filename+aud_ext, aud_ext, max_chunk, min_chunk, stride, min_sil)
         #nchunks = og_silence_chunk(path+filename+aud_ext, aud_ext, min_sil, min_chunk, max_chunk, stride)
-        nchunks = vad_chunk(lib_aud, max_chunk, 16000, stride, length)
+        nchunks = vad_chunk(lib_aud, max_chunk, 16000, stride)
         chunks = [nchunk + [lib_aud[librosa.time_to_samples(nchunk[0]/1000, sr=sr):
                                     librosa.time_to_samples(nchunk[1]/1000, sr=sr)]] for nchunk in nchunks]
         

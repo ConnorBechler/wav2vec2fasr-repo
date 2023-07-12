@@ -323,9 +323,32 @@ def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
     else: predlst_chars = None
     return(predlst_words, predlst_chars)#predlst_js)
 
+def chunk_audio(lib_aud=None, path=None, aud_ext=".wav", min_sil=1000, min_chunk=100, 
+                    max_chunk=10000, stride = 1000, method='stride_chunk', length = None, sr = 16000):
+    """
+    Function for chunking long audio into shorter chunks with a specified method
+        Requires either 
+    """
+    if type(lib_aud) == type(None) and path != None:
+        if pathlib.Path(path).is_file():
+            lib_aud, sr = librosa.load(path, sr=16000)
+    if length == None: length = librosa.get_duration(lib_aud, sr=sr)
+    if method == 'silence_chunk': nchunks = silence_stride_chunk(path, aud_ext, max_chunk, 
+                                                                   min_chunk, stride, min_sil)
+    elif method == 'og_chunk': nchunks = og_silence_chunk(path, aud_ext, min_sil, min_chunk, max_chunk, stride)
+    elif method == 'vad_chunk': nchunks = vad_chunk(lib_aud, max_chunk, sr, stride)
+    else: 
+        method = 'stride_chunk'
+        nchunks = stride_chunk(max_chunk, stride=stride, length=length)
+    print(f'Chunked using {method} method')
+    chunks = [nchunk + [lib_aud[librosa.time_to_samples(nchunk[0]/1000, sr=sr):
+                                librosa.time_to_samples(nchunk[1]/1000, sr=sr)]] for nchunk in nchunks]
+    return chunks
+
+
 def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/", 
-                     has_eaf=False, format=".eaf", min_sil=1000, min_chunk=100, 
-                     max_chunk=10000, stride = 1000, char_align = True, word_align = True, lm=None):
+                     has_eaf=False, format=".eaf", chunk_method='stride_chunk', min_sil=1000, min_chunk=100, max_chunk=10000, 
+                     stride = 1000, char_align = True, word_align = True, lm=None):
     tastt = time.time()
     if os.path.exists(model_dir) and os.path.exists(model_dir+"model/"):
         inner_model_dir = model_dir+"model/"
@@ -351,13 +374,9 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         lib_aud, sr = librosa.load(path+filename+aud_ext, sr=16000)
         length = librosa.get_duration(lib_aud, sr=sr)
         print(f"{filename} is {round(length, 2)}s long")
-        #nchunks = stride_chunk(max_chunk, stride=1667, length=length)
-        #nchunks = silence_stride_chunk(path+filename+aud_ext, aud_ext, max_chunk, min_chunk, stride, min_sil)
-        #nchunks = og_silence_chunk(path+filename+aud_ext, aud_ext, min_sil, min_chunk, max_chunk, stride)
-        nchunks = vad_chunk(lib_aud, max_chunk, 16000, stride)
-        chunks = [nchunk + [lib_aud[librosa.time_to_samples(nchunk[0]/1000, sr=sr):
-                                    librosa.time_to_samples(nchunk[1]/1000, sr=sr)]] for nchunk in nchunks]
-        
+        chunks = chunk_audio(lib_aud=lib_aud, path=path+filename+aud_ext, aud_ext=aud_ext, min_sil=min_sil, 
+                             min_chunk=min_chunk, max_chunk=max_chunk, stride=stride, method=chunk_method, length=length, sr=sr)
+
         print("***Making predictions***")
         eaf = pympi.Eaf(author="transcribe.py")
         eaf.add_linked_file(file_path=path+filename+aud_ext, mimetype=aud_ext[1:])
@@ -425,7 +444,7 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     print("***Process Complete!***")
 
 def transcribe_dir(model_dir, aud_dir, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/Transcripts/", 
-                   validate=False, format=".eaf", min_sil=1000, min_chunk=100, max_chunk=10000, 
+                   validate=False, format=".eaf", chunk_method='stride_chunk', min_sil=1000, min_chunk=100, max_chunk=10000, 
                    char_align=True, word_align=True, lm=None):
     """Function for automatically chunking all audio files in a given directory by eaf annotation tier time stamps"""
     if not(os.path.exists(output_path)):
@@ -437,8 +456,8 @@ def transcribe_dir(model_dir, aud_dir, aud_ext=".wav", device="cpu", output_path
                 try:
                     print(f"Attempting to transcribe {flname} using {model_dir}")
                     transcribe_audio(model_dir, flname, aud_dir, aud_ext, device=device, has_eaf=validate, output_path=output_path,
-                                     format=format, min_sil=min_sil, min_chunk=min_chunk, max_chunk=max_chunk, char_align=char_align,
-                                     word_align=word_align, lm=lm)
+                                     format=format, chunk_method=chunk_method, min_sil=min_sil, min_chunk=min_chunk, max_chunk=max_chunk, 
+                                     char_align=char_align, word_align=word_align, lm=lm)
                 except OSError as error:
                     print(f"Transcribing {flname} failed: {error}")
 
@@ -454,6 +473,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file_name", type=str, default=None, help="Include file name if you want only one file transcribed")
     parser.add_argument("-o", "--output_dir", type=str, default="./", help="Output directory")
     parser.add_argument("--format", type=str, default=".eaf", help="Output transcription format, either .eaf or .TextGrid")
+    parser.add_argument("--chunk_method", type=str, default="stride_chunk", help="Method for chunking audio: stride_chunk, silence_chunk, or vad_chunk")
     parser.add_argument("--has_eaf", action="store_true", help="Audio files have corresponding EAFs for comparison")
     parser.add_argument("--min_sil", type=int, default=1000, help="Minimum decibel threshold for silence detection")
     parser.add_argument("--min_chunk", type=int, default=100, help="Minimum speech chunk length in ms")
@@ -465,12 +485,12 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
     if args['file_name'] == None:
         transcribe_dir(model_dir=args['model_dir'], aud_dir=args['audio_dir'], aud_ext=args['audio_type'], device=args['device'], 
-                       output_path=args['output_dir'], validate=args['has_eaf'], format=args['format'], min_sil=args['min_sil'], 
-                       min_chunk=args['min_chunk'], max_chunk=args['max_chunk'], char_align=args['no_char_align'], 
+                       output_path=args['output_dir'], validate=args['has_eaf'], format=args['format'], chunk_method=args['chunk_method'],
+                       min_sil=args['min_sil'], min_chunk=args['min_chunk'], max_chunk=args['max_chunk'], char_align=args['no_char_align'], 
                        word_align=args['no_word_align'], lm=args['lm'])
     else:
         transcribe_audio(model_dir=args['model_dir'], filename=args['file_name'], path=args['audio_dir'], aud_ext=args['audio_type'], 
                          device=args['device'], output_path=args['output_dir'], has_eaf=args['has_eaf'], format=args['format'], 
-                         min_sil=args['min_sil'], min_chunk=args['min_chunk'], max_chunk=args['max_chunk'], 
-                         char_align=args['no_char_align'], word_align=args['no_word_align'], lm=args['lm'])
+                         chunk_method=args['chunk_method'], min_sil=args['min_sil'], min_chunk=args['min_chunk'], 
+                         max_chunk=args['max_chunk'], char_align=args['no_char_align'], word_align=args['no_word_align'], lm=args['lm'])
     print('Total time: ', time.time()-tot_start)

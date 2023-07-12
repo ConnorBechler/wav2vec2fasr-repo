@@ -7,3 +7,4 @@ pretrained_model_checkpoints/
 *.TextGrid
 *.wav
 *.mp3
+*.bak

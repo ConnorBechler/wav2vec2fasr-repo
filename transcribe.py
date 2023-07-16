@@ -3,7 +3,7 @@ import pathlib
 import pympi
 #import soundfile
 from pydub import AudioSegment, silence
-import numpy
+#import numpy
 from math import ceil
 import os
 
@@ -16,7 +16,7 @@ from jiwer import wer, cer
 #IF USING NEWEST VERSION OF TRANSFORMERS (I use 4.11.3 instead): import Wav2Vec2ProcessorWithLM
 from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2CTCTokenizer#, Wav2Vec2FeatureExtractor,  Wav2Vec2ForCTC, TrainingArguments, Trainer
 #Testing pipeline stuff
-from transformers import pipeline
+#from transformers import pipeline
 import time
 import torch
 from pyctcdecode import build_ctcdecoder
@@ -26,6 +26,8 @@ import warnings
 warnings.simplefilter("ignore")
 
 from copy import deepcopy
+
+import rvad_faster
 
 chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
 tone_regex = '[\¹\²\³\⁴\⁵\-]'
@@ -191,6 +193,33 @@ def vad_chunk(lib_aud, max_chunk, sr, stride):
     os.remove(tempf)
     return(nchunks)
 
+def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
+    aud_mono = librosa.to_mono(lib_aud)
+    soundfile.write("rvad_working_mono.wav", aud_mono, sr)
+    segs = rvad_faster.rVAD_fast("rvad_working_mono.wav", ftThres = 0.4)
+    os.remove("rvad_working_mono.wav")
+    win_st = None
+    win_end = None
+    nchunks = []
+    for x in range(len(segs)):
+        if segs[x] == 1:
+            if win_st == None: win_st = x*10
+            win_end = x*10
+        elif segs[x] == 0:
+            if win_end != None:
+                diff = win_end - win_st
+                if diff > max_chunk:
+                    num_chunks = ceil(diff/max_chunk)
+                    step = round(diff/num_chunks)
+                    nchunks.append([win_st, win_st+step+stride, (0, stride)])
+                    for x in range(1, num_chunks):
+                        nchunks.append([(win_st+x*step)-stride, (win_st+(x+1)*step)+stride, (stride, stride)])
+                    nchunks.append([(win_st+(num_chunks)*step)-stride, win_end, (stride, 0)])
+                elif diff > min_chunk:
+                    nchunks.append([win_st, win_end, (0, 0)])
+                win_st, win_end = None, None
+    return(nchunks)
+
 class prediction:
     def __init__(self, logit, char, start, end):
         self.logit = logit
@@ -229,6 +258,9 @@ def merge_pads(predlst):
     return(n_predlst[np_st:])
 
 def process_pads(predlst, processor):
+    """
+    Function for selecting most likely non-pad option for PAD tokens
+    """
     w_predlst = deepcopy(predlst)
     last_np_ind, next_np_ind = 0, 0
     last_wb = 0
@@ -337,6 +369,7 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=".wav", min_sil=1000, min_chunk
                                                                    min_chunk, stride, min_sil)
     elif method == 'og_chunk': nchunks = og_silence_chunk(path, aud_ext, min_sil, min_chunk, max_chunk, stride)
     elif method == 'vad_chunk': nchunks = vad_chunk(lib_aud, max_chunk, sr, stride)
+    elif method == 'rvad_chunk': nchunks = rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride)
     else: 
         method = 'stride_chunk'
         nchunks = stride_chunk(max_chunk, stride=stride, length=length)

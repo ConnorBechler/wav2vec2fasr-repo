@@ -457,11 +457,11 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         print("***Fetching previous transcriptions for evaluation***")
         veaf = pympi.Eaf(f"{path}{filename}.eaf")
         tar_tier, anns = get_dominant_tier(veaf)
-        tar_txt = " # ".join([ann[2] for ann in anns])
+        tar_txt = " ".join([ann[2] for ann in anns])
         tar_txt = re.sub(chars_to_ignore_regex, "", tar_txt)
         eaf.add_tier("transcript")
         [eaf.add_annotation("transcript", ann[0], ann[1], re.sub(chars_to_ignore_regex, '', ann[2])) for ann in anns]
-        pred_txt = " # ".join(phrase_preds)
+        pred_txt = " ".join(phrase_preds)
         print("WER: ", wer(tar_txt, pred_txt))
         print("CER: ", cer(tar_txt, pred_txt))
     model_name = model_dir[model_dir.rfind("/", 0, -2)+1:-1]

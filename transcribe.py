@@ -28,6 +28,7 @@ warnings.simplefilter("ignore")
 from copy import deepcopy
 
 import rvad_faster
+import parselmouth
 
 chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
 tone_regex = '[\¹\²\³\⁴\⁵\-]'
@@ -220,6 +221,47 @@ def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
                 win_st, win_end = None, None
     return(nchunks)
 
+def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
+    rec = parselmouth.Sound(fullpath)
+    pitch = rec.to_pitch()
+    pitch_values = pitch.selected_array['frequency']    
+    segs = list(pitch_values)
+    win_st = None
+    win_end = None
+    nchunks = []
+    for x in range(len(segs)):
+        if segs[x] >0:
+            if win_st == None: win_st = x*10
+            win_end = x*10
+        else:
+            if win_end != None:
+                diff = win_end - win_st
+                if diff > max_chunk:
+                    num_chunks = ceil(diff/max_chunk)
+                    step = round(diff/num_chunks)
+                    nchunks.append([win_st, win_st+step+stride, (0, stride)])
+                    for x in range(1, num_chunks):
+                        nchunks.append([(win_st+x*step)-stride, (win_st+(x+1)*step)+stride, (stride, stride)])
+                    nchunks.append([(win_st+(num_chunks)*step)-stride, win_end, (stride, 0)])
+                elif diff > min_chunk:
+                    nchunks.append([win_st, win_end, (0, 0)])
+                win_st, win_end = None, None
+    nnchunks = []
+    comb_chunk = None
+    for x in range(len(nchunks)-1):
+        if comb_chunk == None:
+            if nchunks[x+1][0] - nchunks[x][1] <= 100:
+                comb_chunk = [nchunks[x][0], nchunks[x+1][1], (nchunks[x][2][0], nchunks[x+1][2][1])]
+            else:
+                nnchunks.append(nchunks[x])
+        else:
+            if nchunks[x+1][0] - comb_chunk[1] <= 100:
+                comb_chunk = [comb_chunk[0], nchunks[x+1][1], (comb_chunk[2][0], nchunks[x+1][2][1])]
+            else:
+                nnchunks.append(comb_chunk)
+                comb_chunk = None
+    return(nnchunks)
+
 class prediction:
     def __init__(self, logit, char, start, end):
         self.logit = logit
@@ -252,9 +294,11 @@ def merge_pads(predlst):
             n_predlst[-1].end = w_predlst[p].end
         else:
             #One possible way of removing pads from the beginning, although it leads to some counterintuitive results
-            if w_predlst[p].char != "[PAD]" and np_st == None:
-                np_st = p
+            #if w_predlst[p].char != "[PAD]" and np_st == None:
+            #    np_st = p
             n_predlst.append(w_predlst[p])
+    #Crude method for removing pads from beginning
+    np_st = "".join([str(pred.char == "[PAD]")[0] for pred in n_predlst]).find("F")
     return(n_predlst[np_st:])
 
 def process_pads(predlst, processor):
@@ -370,6 +414,7 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=".wav", min_sil=1000, min_chunk
     elif method == 'og_chunk': nchunks = og_silence_chunk(path, aud_ext, min_sil, min_chunk, max_chunk, stride)
     elif method == 'vad_chunk': nchunks = vad_chunk(lib_aud, max_chunk, sr, stride)
     elif method == 'rvad_chunk': nchunks = rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride)
+    elif method == 'pitch_chunk': nchunks = pitch_chunk(path, min_chunk, max_chunk, stride)
     else: 
         method = 'stride_chunk'
         nchunks = stride_chunk(max_chunk, stride=stride, length=length)

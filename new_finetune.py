@@ -168,23 +168,6 @@ def main_program(project_dir = "npp_asr",
 
         return {"wer": wer}
 
-
-    """
-    Original Values:
-        attention_dropout=0.1,
-        hidden_dropout=0.1,
-        feat_proj_dropout=0.0,
-        mask_time_prob=0.05,
-        layerdrop=0.1,
-            
-    1st Test:
-        attention_dropout=0.0,
-        hidden_dropout=0.0,
-        feat_proj_dropout=0.0,
-        mask_time_prob=0.05,
-        layerdrop=0.0,
-    """
-
     logging.debug("Downloading model")
     model = Wav2Vec2ForCTC.from_pretrained(
         w2v2_model, 
@@ -205,14 +188,6 @@ def main_program(project_dir = "npp_asr",
     model.gradient_checkpointing_enable()
 
     logging.debug("Setting up training args")
-    
-    """
-    Original values:
-        learning_rate=3e-4,
-        
-    Test 2:
-        learning_rate=3e-05,
-    """
     
     training_args = TrainingArguments(
     # output_dir="/content/gdrive/MyDrive/wav2vec2-large-xlsr-turkish-demo",

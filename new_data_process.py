@@ -3,7 +3,8 @@ import logging
 import re
 
 from datasets import load_from_disk, Audio
-
+from prinmitext import chars_to_ignore_regex, tone_regex, nontone_regex, trips, doubs
+from prinmitext import rep_trips, rep_doubs, tones, rep_tones, rep_combs
 
 def process_data(
         project_dir = "npp_asr", 
@@ -47,27 +48,6 @@ def process_data(
     
     #np_train_full_ds = np_train_full_ds.select(range(81))
     #np_test_full_ds = np_test_full_ds.select(range(21))
-    
-    chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
-    tone_regex = '[\¹\²\³\⁴\⁵]'
-    nontone_regex = '[^\¹\²\³\⁴\⁵ \-]'
-    diacritics = "ʲʷ ʰʷ ̥ ʰ ʲ ʰ ̃ ʷ".split(" ")
-    trips = ['sʰʷ', 'ʈʰʷ', 'ʂʰʷ', 'tʰʷ', 'qʰʷ', 'nʲʷ', 'kʰʷ', 'lʲʷ', 'ɕʰʷ', 'tʲʷ']
-    doubs = ['ɕʰ', 'n̥', 'qʷ', 'ɬʷ', 'qʰ', 'xʲ', 'xʷ', 'ɨ̃', 'ʈʷ', 'ʈʰ', 'ŋʷ', 
-             'ʑʷ', 'mʲ', 'dʷ', 'ĩ', 'pʰ', 'ɕʷ', 'tʷ', 'rʷ', 'lʲ', 'ɡʷ', 'bʲ', 
-             'pʲ', 'tʲ', 'zʷ', 'ɬʲ', 'ʐʷ', 'dʲ', 'ɑ̃', 'lʷ', 'sʷ', 'ə̃', 'kʷ', 
-             'æ̃', 'ɖʷ', 'm̥', 'kʰ', 'ʂʷ', 'õ', 'ʂʰ', 'sʰ', 'r̥', 'nʲ', 'tʰ', 
-             'jʷ', "õ", "ĩ"]
-    rep_trips = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
-    rep_doubs = "ⓐⓑⓒⓓⓔⓕⓖⓗⓘⓙⓚⓛⓜⓝⓞⓟⓠⓡⓢⓣⓤⓥⓦⓧⓨⓩⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ"
-    tone_chars = "¹ ² ³ ⁵".split(" ")
-    tones = ["²¹", "²²", "³²", "³⁵", "⁵⁵", "⁵²", "⁵¹"]
-    rep_tones = "1234567890"
-    rep_combs = {"õ": "õ", "ĩ": "ĩ"}
-    # Question: currently stripping hyphen from nontone transcription, but treating it as morpheme boundary
-    # (subbing with space) for tone transcription; is this the right move?
-    # Diacritics handled by combining them with consonants and vowels into abstract characters
-    
     
     def remove_special_characters(batch):
         batch["transcript"] = re.sub(

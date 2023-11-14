@@ -7,6 +7,7 @@ built from (1) and (2)
 
 import torch
 from dataclasses import dataclass
+import re
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)
@@ -121,16 +122,24 @@ def merge_words(segments, separator="|"):
             i2 += 1
     return words
 
-def align_audio(transcript, processor, logits):
-    
-    labels = processor.tokenizer.get_vocab()
+def align_audio(processor, logits=None, transcript=None, model=None, audio=None, return_transcript=False):
+    """
+    Returns millisecond character and word alignments relative to start of audio
+    Structure largely adapted from https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py
+    """
+    if logits == None:
+        if type(audio) == type("string"):
+            lib_aud, sr = librosa.load(audio, sr=16000)
+        else: lib_aud = audio
+        input_values = processor(lib_aud, return_tensors="pt", padding=True, sampling_rate=16000).input_values
+        logits = model(input_values.to('cpu')).logits
+    if transcript == None : transcript = processor.batch_decode(torch.argmax(logits, dim=-1))
     align_dictionary = {char.lower(): code for char,code in processor.tokenizer.get_vocab().items()}
-    decode_dict = {code: char for char, code in labels.items()}
+    #decode_dict = {code: char for char, code in labels.items()}
     emission = logits[0].cpu().detach()
     clean_transcript = transcript[0].replace(' ', '|').lower()
+    clean_transcript = re.sub('\|+', '|', clean_transcript)
     tokens = [align_dictionary[c] for c in clean_transcript]
-
-
     blank_id = 0
     for char, code in align_dictionary.items():
         if char == '[pad]' or char == '<pad>':
@@ -138,5 +147,84 @@ def align_audio(transcript, processor, logits):
 
     trellis = get_trellis(emission, tokens, blank_id)
     path = backtrack(trellis, emission, tokens, blank_id)
+    if path != None:
+        char_segments = merge_repeats(path, clean_transcript)
 
-    char_segments = merge_repeats(path, clean_transcript)
+        char_alignments = []
+        word_alignments = []
+        word_idx = 0
+        word_start = None
+        word_end = None
+        word = ""
+        for cdx, char in enumerate(clean_transcript):
+            start, end, score = None, None, None
+            if char != "|":
+                char_seg = char_segments[cdx]
+                start = int(char_seg.start*20)#round(char_seg.start * ratio, 3)
+                if word_start == None:
+                    word_start = start
+                end = int(char_seg.end*20)#round(char_seg.end * ratio, 3)
+                word_end = end
+                score = round(char_seg.score, 3)
+                word += char
+                char_alignments.append(
+                    {
+                        "char": char,
+                        "start": start,
+                        "end": end,
+                        "score": score,
+                        "word-idx": word_idx,
+                    }
+                )
+            if cdx == len(clean_transcript)-1 or char == "|":
+                word_alignments.append(
+                    {
+                        "word" : word,
+                        "start" : word_start,
+                        "end": word_end,
+                        "word-idx": word_idx,
+                    }
+                )
+                word_start, word = None, ""
+                word_idx += 1
+        if return_transcript: return(char_alignments, word_alignments, transcript[0])
+        else: return(char_alignments, word_alignments)
+    else: return(None, None, transcript[0])
+
+def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output='.eaf'):
+    
+    model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    chunks = segment.chunk_audio(path=audio_path, method=chunking_method)
+    ts = pympi.Eaf(author='transcribe.ipynb')
+    ts.add_linked_file(file_path=audio, mimetype='wav')
+    ts.remove_tier('default')
+    ts.add_tier('prediction')
+    ts.add_tier('words')
+    ts.add_tier('chars')
+    for chunk in chunks:
+        print(chunk[0], chunk[1])
+        calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], return_transcript=True)
+        ts.add_annotation('prediction', chunk[0], chunk[1], pred)
+        if calign != None and walign != None:
+            for word in walign:
+                ts.add_annotation('words', word['start']+chunk[0], word['end']+chunk[0], word['word'])
+            for char in calign:
+                ts.add_annotation('chars', char['start']+chunk[0], char['end']+chunk[0], char['char'])
+    if output == '.TextGrid': ts = ts.to_textgrid()
+    ts.to_file(f"test_preds{output}")
+
+
+
+if __name__ == "__main__":
+    from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2CTCTokenizer
+    import pympi
+    import librosa
+    import segment
+    model_dir = "../models/model_6-8-23_xlsr53_nt_nh/"
+    audio = "../wav-eaf-meta/wq10_011.wav"
+    chunk_and_align(audio, model_dir, output='.TextGrid')
+
+    
+    
+    #align_audio(processor, model=model, audio=audio)

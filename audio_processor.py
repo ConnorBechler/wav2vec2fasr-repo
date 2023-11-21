@@ -115,9 +115,9 @@ dir = "/dataset"
 #print(DataFrame(test))
 
 
-#if not(os.path.isdir(p_testing+dir)): os.mkdir(p_testing+dir)
-#hgf_testing.save_to_disk(p_testing+dir)
+if not(os.path.isdir(p_testing+dir)): os.mkdir(p_testing+dir)
+hgf_testing.save_to_disk(p_testing+dir)
 
-#if not(os.path.isdir(p_training+dir)): os.mkdir(p_training+dir)
-#hgf_training.save_to_disk(p_training+dir)
+if not(os.path.isdir(p_training+dir)): os.mkdir(p_training+dir)
+hgf_training.save_to_disk(p_training+dir)
 

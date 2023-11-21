@@ -7,6 +7,7 @@ import os
 
 from prinmitext import phone_revert, tone_revert, rep_tones, chars_to_ignore_regex, tone_regex
 from segment import chunk_audio
+from forcedalignment import align_audio
 
 #from datasets import Dataset
 #from pandas import DataFrame

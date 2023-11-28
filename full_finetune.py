@@ -38,7 +38,7 @@ logging.debug("***Configuration: " + str(args)+"***")
 
 run_name = args['run_name']#"test_nochanges_2-9-23"
 logging.debug(f"Run name: {run_name}")
-original_data = "data"
+original_data = "output/data"
 
 
 project_dir = "npp_asr"

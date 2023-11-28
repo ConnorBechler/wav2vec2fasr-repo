@@ -23,19 +23,22 @@ def setup_vocab(
     logging.debug(f"Loading training data from {data_train}")
     np_train_ds = load_from_disk(data_train)
     
-    logging.debug("Loading test data from {data_test}")
-    np_test_ds = load_from_disk(data_train)
+    logging.debug(f"Loading test data from {data_test}")
+    np_test_ds = load_from_disk(data_test)
     
     def extract_all_chars(batch):
       all_text = " ".join(batch["transcript"])
       vocab = list(set(all_text))
       return {"vocab": [vocab], "all_text": [all_text]}
     
+    logging.debug("Extracting training chars")
     vocab_train = np_train_ds.map(extract_all_chars, 
                                   batched=True, 
                                   batch_size=-1, 
                                   keep_in_memory=True, 
                                   remove_columns=np_train_ds.column_names)
+    
+    logging.debug("Extracting testing chars")
     vocab_test = np_test_ds.map(extract_all_chars, 
                                 batched=True, 
                                 batch_size=-1,

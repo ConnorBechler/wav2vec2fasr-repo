@@ -192,7 +192,7 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=".wav", min_sil=1000, min_chunk
                     max_chunk=10000, stride = 1000, method='stride_chunk', length = None, sr = 16000):
     """
     Function for chunking long audio into shorter chunks with a specified method
-        Requires either 
+        Requires either audio array or path to audio file
     """
     if type(lib_aud) == type(None) and path != None:
         if pathlib.Path(path).is_file():
@@ -212,7 +212,7 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=".wav", min_sil=1000, min_chunk
                                 librosa.time_to_samples(nchunk[1]/1000, sr=sr)]] for nchunk in nchunks]
     return chunks
 
-def create_chunked_annotation(path, methods, format):
+def create_chunked_annotation(filepath, methods, format):
     eaf = pympi.Eaf(author="transcribe.py")
     eaf.add_linked_file(file_path=filepath, mimetype=filepath[-3])
     eaf.remove_tier('default')

@@ -3,6 +3,7 @@ Module for basic Prinmi transcription preprocessing
 """
 
 import re
+from pympi import Eaf, TextGrid
 
 chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
 tone_regex = '[\¹\²\³\⁴\⁵\-]'
@@ -31,6 +32,16 @@ for x in range(len(tones)):
     rep_dict[tones[x]] = rep_tones[x]
 print("Encoding scheme:", rep_dict)
 
+def remove_special_chars(text):
+    text = re.sub(chars_to_ignore_regex, '', text.lower())
+    # There are errors in the transcripts, single and triple superscript tones (with the triples lacking movement, i.e. 555)
+    # The following lines fix these errors by: 
+    # A) coverting the 555 to high level tone 55 as these appear to show the same tone contour
+    # B) Removing single tone superscripts, as leaving a tone off is an immediately visible error, easier to see than an incorrect tone guess
+    if "⁵⁵⁵" in text:
+        text = re.sub("⁵⁵⁵", "⁵⁵", text)
+    text = re.sub("(?<!¹|²|³|⁵)[¹²³⁵] ", " ", text)
+    return text
 
 def phone_convert(text):
     for x in range(len(trips)):
@@ -59,3 +70,13 @@ def tone_revert(text):
 def decomb_nasals(text):
     for k in rep_combs:
         text = re.sub(k, rep_combs[k], text)
+
+def process_text(text=str,remove_specials =True, convert_phone=False, convert_tone=False, 
+                  revert_tone=False, revert_phone=False, nasal_decomb=False):
+    if remove_specials: text = remove_special_chars(text)
+    if nasal_decomb: text = decomb_nasals(text)
+    if convert_phone: text = phone_convert(text)
+    if convert_tone: text = tone_convert(text)
+    if revert_tone: text = tone_revert(text)
+    if revert_phone: text = phone_revert(text)
+    return(text)

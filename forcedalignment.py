@@ -4,10 +4,14 @@ built from (1) and (2)
 (1) https://pytorch.org/audio/stable/tutorials/forced_alignment_tutorial.html
 (2) https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py
 """
-
+from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2CTCTokenizer
+import pympi
+import librosa
+import segment
 import torch
 from dataclasses import dataclass
 import re
+from pathlib import Path
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)
@@ -127,17 +131,24 @@ def align_audio(processor, logits=None, transcript=None, model=None, audio=None,
     Returns millisecond character and word alignments relative to start of audio
     Structure largely adapted from https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py
     """
+    # If logits are not provided, generate them using the model
     if logits == None:
-        if type(audio) == type("string"):
+        # If audio is a path, load from path, otherwise interpret as ndarray
+        if type(audio) == type(str()) or type(audio) == type(Path()):
             lib_aud, sr = librosa.load(audio, sr=16000)
-        else: lib_aud = audio
+        else: 
+            lib_aud = audio
+        # Process audio and generate logits
         input_values = processor(lib_aud, return_tensors="pt", padding=True, sampling_rate=16000).input_values
         logits = model(input_values.to('cpu')).logits
-    if transcript == None : transcript = processor.batch_decode(torch.argmax(logits, dim=-1))
+    # If transcript is not provided, also generate transcript
+    if transcript == None : 
+        transcript = processor.batch_decode(torch.argmax(logits, dim=-1))
     align_dictionary = {char.lower(): code for char,code in processor.tokenizer.get_vocab().items()}
-    #decode_dict = {code: char for char, code in labels.items()}
     emission = logits[0].cpu().detach()
+    # Replace spaces with vertical pipes symbolizing word boundaries/gaps
     clean_transcript = transcript[0].replace(' ', '|').lower()
+    # Combine multiple adjacent pipes into single pipe
     clean_transcript = re.sub('\|+', '|', clean_transcript)
     tokens = [align_dictionary[c] for c in clean_transcript]
     blank_id = 0
@@ -191,13 +202,18 @@ def align_audio(processor, logits=None, transcript=None, model=None, audio=None,
         else: return(char_alignments, word_alignments)
     else: return(None, None, transcript[0])
 
-def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output='.eaf'):
-    
+def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output='.eaf',
+                    phon_comb=False, tone_comb=False):
+    """
+    Function for (1) chunking a specified audio file by a specified method and
+     (2) transcribing and aligning it using a given wav2vec 2.0 model
+    """
+    name = Path(audio_path).name
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     chunks = segment.chunk_audio(path=audio_path, method=chunking_method)
-    ts = pympi.Eaf(author='transcribe.ipynb')
-    ts.add_linked_file(file_path=audio, mimetype='wav')
+    ts = pympi.Eaf()
+    ts.add_linked_file(file_path=audio_path, mimetype='wav')
     ts.remove_tier('default')
     ts.add_tier('prediction')
     ts.add_tier('words')
@@ -212,19 +228,50 @@ def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output=
             for char in calign:
                 ts.add_annotation('chars', char['start']+chunk[0], char['end']+chunk[0], char['char'])
     if output == '.TextGrid': ts = ts.to_textgrid()
-    ts.to_file(f"test_preds{output}")
+    ts.to_file(name+output)
 
+def correct_alignments(audio_path, corrected_doc, model_dir, cor_tier = "prediction", 
+                       word_tier="words", char_tier="chars"):
+    model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    if Path(audio_path).is_file(): lib_aud, sr = librosa.load(audio, sr=16000)
+    # Check and load corrected transcription as appropriate pympi object
+    cor_path = Path(corrected_doc)
+    if cor_path.suffix == ".TextGrid" : ts = pympi.TextGrid(cor_path)
+    elif cor_path.suffix == ".eaf" : ts = pympi.Eaf(cor_path)
+    # Convert to Eaf and relink audio if audio link is broken
+    ts = ts.to_eaf()
+    ts.add_linked_file(file_path=audio_path, mimetype='wav')
+    # Get annotation data for corrected tier and remove tiers being replaced
+    cor_an_dat = ts.get_annotation_data_for_tier(cor_tier)
+    if cor_tier != word_tier : 
+        if word_tier in ts.get_tier_names():
+            ts.remove_all_annotations_from_tier(word_tier)
+        else: ts.add_tier(word_tier)
+    if char_tier in ts.get_tier_names():
+        ts.remove_all_annotations_from_tier(char_tier)
+    else: ts.add_tier(char_tier)
+    # Iterate through corrected transcript, creating new alignments based on new transcription
+    for dat in cor_an_dat:
+        print(dat[0], dat[1], dat[2])
+        aud_chunk = lib_aud[librosa.time_to_samples(dat[0]/1000, sr=sr): librosa.time_to_samples(dat[1]/1000, sr=sr)]
+        calign, walign = align_audio(processor, transcript=dat[2], model=model, audio=aud_chunk)
+        if calign != None and walign != None:
+            if cor_tier != word_tier:
+                for word in walign:
+                    ts.add_annotation(word_tier, word['start']+dat[0], word['end']+dat[0], word['word'])
+            for char in calign:
+                ts.add_annotation(char_tier, char['start']+dat[0], char['end']+dat[0], char['char'])
+    if cor_path.suffix == '.TextGrid': ts = ts.to_textgrid()
+    ts.to_file(f"{cor_path.name}_ac{cor_path.suffix}")
 
 
 if __name__ == "__main__":
-    from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2CTCTokenizer
-    import pympi
-    import librosa
-    import segment
+    
     model_dir = "../models/model_6-8-23_xlsr53_nt_nh/"
     audio = "../wav-eaf-meta/wq10_011.wav"
-    chunk_and_align(audio, model_dir, output='.TextGrid')
-
+    #chunk_and_align(audio, model_dir, output='.TextGrid')
+    correct_alignments(audio, "../wq10_011_nt_nh_cor.TextGrid", model_dir)
     
     
     #align_audio(processor, model=model, audio=audio)

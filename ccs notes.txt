@@ -28,3 +28,7 @@ sbatch "jobname shell script".sh
 !!slurm file in directory is output of job
 
 !!odd.ccs.uky.edu will list what jobs are running
+
+!!to modify configuration, use:
+!!module load ccs/conda/python-3.8.0
+!!conda activate npp_asr

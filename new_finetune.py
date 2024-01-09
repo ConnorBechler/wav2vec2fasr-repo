@@ -151,8 +151,9 @@ def main_program(project_dir = "npp_asr",
     logging.debug("collator prep")
     data_collator = DataCollatorCTCWithPadding(processor=processor, padding=True)
 
-    logging.debug("loading wer")
+    logging.debug("loading wer and cer")
     wer_metric = load_metric("wer")
+    cer_metric = load_metric("cer")
 
     def compute_metrics(pred):
         pred_logits = pred.predictions
@@ -165,8 +166,9 @@ def main_program(project_dir = "npp_asr",
         label_str = processor.batch_decode(pred.label_ids, group_tokens=False)
 
         wer = wer_metric.compute(predictions=pred_str, references=label_str)
+        cer = cer_metric.compute(predictions=pred_str, references=label_str)
 
-        return {"wer": wer}
+        return {"cer": cer, "wer": wer}
 
     logging.debug("Downloading model")
     model = Wav2Vec2ForCTC.from_pretrained(

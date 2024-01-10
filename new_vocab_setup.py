@@ -4,11 +4,13 @@ import os
 import json
 
 def setup_vocab(
+        home = None,
         project_dir = "npp_asr",
         output_dir = "",
         data_dir=None):
     
-    full_project = os.path.join(os.environ["HOME"], project_dir)
+    if home == None: home = os.environ["HOME"]
+    full_project = os.path.join(home, project_dir)
     if output_dir == "": output_dir = os.path.join(full_project, output_dir)
     if data_dir == None: data_dir = os.path.join(output_dir, "data/")
     data_train = os.path.join(data_dir, "training/")

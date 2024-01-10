@@ -24,10 +24,12 @@ warnings.simplefilter("ignore")
 from prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
 
 
-def main_program(eval_dir="output", data_dir=None, checkpoint=None, cpu=False, lm=None):
+def main_program(home=None, eval_dir="output", data_dir=None, checkpoint=None, cpu=False, lm=None):
+
+    if home == None: home = os.environ["HOME"]
     project_dir = "npp_asr"
     output_dir = "output"
-    full_project = os.path.join(os.environ["HOME"], project_dir)
+    full_project = os.path.join(home, project_dir)
     output_path = os.path.join(full_project, output_dir)
     eval_dir = os.path.join(output_path, eval_dir)
     if data_dir == None:

@@ -17,6 +17,8 @@ cur_time = str(datetime.datetime.now()).replace(" ", "_")
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("-n", "--run_name", default="model_"+cur_time, help="Run name")
+parser.add_argument("--home", default=None, help="Specify a particular root directory")
+parser.add_argument("--proj_dir", default="npp_asr", help="Set this to the path from your home to the folder with the project")
 parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
 parser.add_argument("--comb_tones", action="store_true", help="Combine tone pairs")
 parser.add_argument("--comb_diac", action="store_true", help="Combine diacritic character clusters")
@@ -38,12 +40,13 @@ logging.debug("***Configuration: " + str(args)+"***")
 
 run_name = args['run_name']#"test_nochanges_2-9-23"
 logging.debug(f"Run name: {run_name}")
-original_data = "output/data"
 
-
-project_dir = "npp_asr"
-full_project = os.path.join(os.environ["HOME"], project_dir)
+if args['home'] == None : args['home'] = os.environ["HOME"]
+project_dir = args['proj_dir']
+full_project = os.path.join(args['home'], project_dir)
 output_dir = os.path.join(full_project, "output/"+run_name)
+original_data = os.path.join(full_project, "output/data/")
+
 
 if os.path.exists(output_dir):
     logging.debug(f"Output directory {output_dir} exists")
@@ -52,17 +55,18 @@ else:
     os.mkdir(output_dir)
 
 logging.debug("***Processing data***")
-process_data(data_dir = original_data, output_dir = output_dir, 
+process_data(home=args['home'],
+    data_dir = original_data, output_dir = output_dir, 
     remove_tones=args['no_tones'],
     combine_tones=args['comb_tones'], 
     combine_diac=args['comb_diac'],
     remove_hyphens=args['no_hyph'])
     
 logging.debug("***Setting up vocab***")
-setup_vocab(output_dir = output_dir)
+setup_vocab(home=args['home'], output_dir = output_dir)
 
 logging.debug("***Finetuning model***")
-main_program(output_dir = output_dir,
+main_program(home=args['home'], output_dir = output_dir,
     learn_rate=args['learning_rate'],
     batches=args['batch_size'],
     grdacc_steps=args['grdacc_steps'],
@@ -76,5 +80,5 @@ main_program(output_dir = output_dir,
     w2v2_model=args['model'])
     
 logging.debug("***Evaluating model***")
-eval_program(eval_dir = output_dir, cpu=args['cpu'])
+eval_program(home=args['home'], eval_dir = output_dir, cpu=args['cpu'])
 logging.debug("***Fine-tuning complete!***")

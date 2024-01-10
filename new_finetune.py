@@ -12,7 +12,8 @@ from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec
 import os
 
 
-def main_program(project_dir = "npp_asr", 
+def main_program(home = None,
+        project_dir = "npp_asr", 
         output_dir="", 
         data_dir=None, 
         vocab_dir=None,
@@ -27,9 +28,10 @@ def main_program(project_dir = "npp_asr",
         msk_tm_prob=0.05,
         ldrop=0.1,
         w2v2_model="facebook/wav2vec2-large-xlsr-53"):
-            
+
+    if home == None: home = os.environ["HOME"]
     project_dir = project_dir#"npp_asr"
-    full_project = os.path.join(os.environ["HOME"], project_dir)
+    full_project = os.path.join(home, project_dir)
     if output_dir == "": 
         output_dir = os.path.join(full_project, "output/" + output_dir)
     if data_dir == None: 

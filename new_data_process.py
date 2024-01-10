@@ -7,6 +7,7 @@ from prinmitext import chars_to_ignore_regex, tone_regex, nontone_regex, trips, 
 from prinmitext import rep_trips, rep_doubs, tones, rep_tones, rep_combs
 
 def process_data(
+        home = None,
         project_dir = "npp_asr", 
         data_dir="data", 
         output_dir="data_processed",
@@ -18,8 +19,9 @@ def process_data(
             
     logging.basicConfig(level=logging.DEBUG)
     
+    if home == None: home = os.environ["HOME"]
     project_dir = project_dir #"npp_asr"
-    full_project = os.path.join(os.environ["HOME"], project_dir)
+    full_project = os.path.join(home, project_dir)
     data_dir = os.path.join(full_project, data_dir)
     data_train = os.path.join(data_dir, "training/dataset/")
     data_test = os.path.join(data_dir, "testing/dataset/")

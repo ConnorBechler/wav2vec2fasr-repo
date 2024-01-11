@@ -17,8 +17,9 @@ cur_time = str(datetime.datetime.now()).replace(" ", "_")
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument("-n", "--run_name", default="model_"+cur_time, help="Run name")
-parser.add_argument("--home", default=None, help="Specify a particular root directory")
-parser.add_argument("--proj_dir", default="npp_asr", help="Set this to the path from your home to the folder with the project")
+parser.add_argument("--home", default=None, help="Specify a particular home directory in which your project is located")
+parser.add_argument("--proj_dir", default="npp_asr", help="The path from your home directory to the folder with your project")
+parser.add_argument("--data_dir", default="output/data/", help="The path from your project to the folder with the data")
 parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
 parser.add_argument("--comb_tones", action="store_true", help="Combine tone pairs")
 parser.add_argument("--comb_diac", action="store_true", help="Combine diacritic character clusters")
@@ -45,7 +46,7 @@ if args['home'] == None : args['home'] = os.environ["HOME"]
 project_dir = args['proj_dir']
 full_project = os.path.join(args['home'], project_dir)
 output_dir = os.path.join(full_project, "output/"+run_name)
-original_data = os.path.join(full_project, "output/data/")
+data_dir = os.path.join(full_project, args['data_dir'])
 
 
 if os.path.exists(output_dir):
@@ -56,7 +57,7 @@ else:
 
 logging.debug("***Processing data***")
 process_data(home=args['home'],
-    data_dir = original_data, output_dir = output_dir, 
+    data_dir = data_dir, output_dir = output_dir, 
     remove_tones=args['no_tones'],
     combine_tones=args['comb_tones'], 
     combine_diac=args['comb_diac'],

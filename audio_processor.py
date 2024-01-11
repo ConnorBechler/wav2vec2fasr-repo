@@ -30,14 +30,16 @@ def return_tiers(eaf, tar_txt='segnum', find_dominant=False):
       pos_tiers = [candidate]
     return(pos_tiers)
 
-def chunk_audio_by_eaf_into_audio(path, out_path=None, out_aud=".wav", tar_tier_type="segnum", find_dominant=False, exclude_regex=u'[\u4e00-\u9fff]'):
+def chunk_audio_by_eaf_into_audio(path, out_dir=None, out_aud=".wav", tar_tier_type="segnum", find_dominant=False, exclude_regex=u'[\u4e00-\u9fff]'):
     """Function for chunking an audio file by eaf time stamp values from a given annotation tier into audio files"""
     if path.is_file() and pathlib.Path(str(path).rstrip(path.suffix)+".eaf").is_file():
         audio, sr = librosa.load(path, sr=16000)
         print(str(path).rstrip(path.suffix)+".eaf")
         eaf = pympi.Elan.Eaf(str(path).rstrip(path.suffix)+".eaf")
         pos_tiers = return_tiers(eaf, tar_tier_type, find_dominant)
-        if out_path == None: out_path = path.parent+f"/{path.stem}_chunks/"
+        if out_dir == None: out_dir = os.path.join(str(path.parent), "chunks")
+        if not(os.path.isdir(out_dir)): os.mkdir(out_dir)
+        out_path = os.path.join(out_dir, f"{path.stem}_chunks")
         if not(os.path.isdir(out_path)): os.mkdir(out_path)
         for tier in pos_tiers:
           an_dat = eaf.get_annotation_data_for_tier(tier)
@@ -50,6 +52,18 @@ def chunk_audio_by_eaf_into_audio(path, out_path=None, out_aud=".wav", tar_tier_
         print(f"{path.stem} chunked successfully")
     else:
         print(f"Audio or eaf files not found for {path.stem}, chunking not possible")
+
+def chunk_dir_into_audio(directory, out_dir="chunks", out_aud=".wav", name_tar=".wav", file_list=[]):
+    """Function for automatically chunking all audio files in a given directory by eaf annotation tier time stamps into audio files"""
+    if not(os.path.isdir(out_dir)): os.mkdir(out_dir)
+    for path in pathlib.Path(directory).iterdir():
+        if path.is_file():
+            if name_tar in str(path) or name_tar=="":
+                if path.stem in file_list or file_list==[]:
+                  try:
+                      chunk_audio_by_eaf_into_audio(path, out_dir=os.path.join(directory, out_dir), out_aud=out_aud)
+                  except OSError as error:
+                      print(f"{path.name} chunking failed: {error}") 
 
 def chunk_audio_by_eaf_into_data(path, tar_tier_type="segnum", find_dominant=False, exclude_regex=u'[\u4e00-\u9fff]'):
     """Function for chunking an audio file by eaf time stamp values from a given type of annotation tier into a list of numpy arrays"""
@@ -71,17 +85,6 @@ def chunk_audio_by_eaf_into_data(path, tar_tier_type="segnum", find_dominant=Fal
         return(data)
     else:
         print(f"Audio or eaf files not found for {path.stem}, chunking not possible")
-
-def chunk_dir_into_audio(directory, out_aud=".wav", name_tar=".wav", file_list=[]):
-    """Function for automatically chunking all audio files in a given directory by eaf annotation tier time stamps into audio files"""
-    for path in pathlib.Path(directory).iterdir():
-        if path.is_file():
-            if name_tar in str(path) or name_tar=="":
-                if path.stem in file_list or file_list==[]:
-                  try:
-                      chunk_audio_by_eaf_into_audio(path, out_aud=out_aud)
-                  except OSError as error:
-                      print(f"{path.name} chunking failed: {error}") 
 
 def chunk_dir_into_dataset(directory, name_tar=".wav", file_list=[]):
     """Function for automatically chunking all audio files in a given directory by eaf annotation tier time stamps"""

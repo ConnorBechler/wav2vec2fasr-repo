@@ -126,10 +126,26 @@ def merge_words(segments, separator="|"):
             i2 += 1
     return words
 
-def align_audio(processor, logits=None, transcript=None, model=None, audio=None, return_transcript=False):
+def align_audio(processor: Wav2Vec2Processor, 
+                logits = None, 
+                transcript : str = None, 
+                model : AutoModelForCTC =None, 
+                audio = None, 
+                return_transcript : bool = False) -> tuple[list, list, str]:
     """
-    Returns millisecond character and word alignments relative to start of audio
+    Returns millisecond character and word alignments relative to start of audio, as well as transcript if requested
     Structure largely adapted from https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py
+    
+    Args:
+        processor (Wav2Vec2Processor) : 
+        logits :
+        transcript (str) :
+        model (AutoModelForCTC) :
+        audio (str or Path or ndarray) :
+        return_transcript (bool) :
+    
+    Returns:
+        tuple[list, list, str] : 
     """
     # If logits are not provided, generate them using the model
     if logits == None:
@@ -143,11 +159,11 @@ def align_audio(processor, logits=None, transcript=None, model=None, audio=None,
         logits = model(input_values.to('cpu')).logits
     # If transcript is not provided, also generate transcript
     if transcript == None : 
-        transcript = processor.batch_decode(torch.argmax(logits, dim=-1))
+        transcript = processor.batch_decode(torch.argmax(logits, dim=-1))[0]
     align_dictionary = {char.lower(): code for char,code in processor.tokenizer.get_vocab().items()}
     emission = logits[0].cpu().detach()
     # Replace spaces with vertical pipes symbolizing word boundaries/gaps
-    clean_transcript = transcript[0].replace(' ', '|').lower()
+    clean_transcript = transcript.replace(' ', '|').lower()
     # Combine multiple adjacent pipes into single pipe
     clean_transcript = re.sub('\|+', '|', clean_transcript)
     tokens = [align_dictionary[c] for c in clean_transcript]
@@ -198,9 +214,9 @@ def align_audio(processor, logits=None, transcript=None, model=None, audio=None,
                 )
                 word_start, word = None, ""
                 word_idx += 1
-        if return_transcript: return(char_alignments, word_alignments, transcript[0])
-        else: return(char_alignments, word_alignments)
-    else: return(None, None, transcript[0])
+        if return_transcript: return(char_alignments, word_alignments, transcript)
+        else: return(char_alignments, word_alignments, "")
+    else: return(None, None, transcript)
 
 def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output='.eaf',
                     phon_comb=False, tone_comb=False):

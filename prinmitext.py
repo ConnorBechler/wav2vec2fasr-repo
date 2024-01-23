@@ -4,6 +4,7 @@ Module for basic Prinmi transcription preprocessing
 
 import re
 from pympi import Eaf, TextGrid
+import pathlib
 
 chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
 tone_regex = '[\¹\²\³\⁴\⁵\-]'
@@ -80,3 +81,18 @@ def process_text(text=str,remove_specials =True, convert_phone=False, convert_to
     if revert_tone: text = tone_revert(text)
     if revert_phone: text = phone_revert(text)
     return(text)
+
+def export(path):
+    clean = "CLEAN\trepl\t⁵⁵⁵\t⁵⁵\nCLEAN\trepl\t(?<!¹|²|³|⁵)[¹²³⁵][ ]\t \n"
+    nasals = "\n".join([f"nasals\trepl\t{k}\t{rep_combs[k]}" for k in rep_combs])
+    tri = "\n".join([f"tri\tcomb\t{x}" for x in trips])
+    di = "\n".join([f"di\tcomb\t{x}" for x in doubs])
+    wtones = "\n".join([f"tone\tcomb\t{x}" for x in tones])
+    with open(path, 'w', encoding="utf-8") as f: 
+        f.write(f"{clean}{nasals}\n{tri}\n{di}\n{wtones}")
+
+if __name__ == "__main__":
+    export("c:/Users/cbech/desktop/Northern Prinmi Project/Northern-Prinmi-Project-Cluster/pumi_tok.tsv")
+    
+
+    

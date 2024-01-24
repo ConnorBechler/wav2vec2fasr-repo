@@ -74,7 +74,7 @@ Note: If you only want a rule to run on application and not on reversion, label 
         self._rules, self._rule_order = rules, rule_order
 
     def apply(self, txt, ignore_rules=[]):
-        """Applies orthographic combination rules"""
+        """Applies orthographic combination rules to a string"""
         output = txt
         for rule in self._rule_order: 
             if rule not in ignore_rules:
@@ -82,9 +82,14 @@ Note: If you only want a rule to run on application and not on reversion, label 
                 for rep in reps: 
                     output = re.sub(rep[0], rep[1], output)
         return(output)
+
+    def batch_apply(self, batch, key = "transcript", ignore_rules=[]):
+        """Applies orthographic combination rules to a batch"""
+        batch[key] = self.apply(batch[key], ignore_rules=ignore_rules)
+        return batch
     
     def revert(self, txt, ignore_rules=[]):
-        """Reverts orthographic combination rules"""
+        """Reverts orthographic combination rules applied to a string"""
         output = txt
         ignore_rules.append("CLEAN")
         for rule in self._rule_order: 
@@ -94,64 +99,11 @@ Note: If you only want a rule to run on application and not on reversion, label 
                     output = re.sub(rep[1], rep[0], output)
         return(output)
 
-def load_orthographic_scheme_from_tsv(path : str) -> dict:
-    """
-    Load orthographic combinations from tsv file
-    Args:
-        path (str) : A string path to a tsv with the following format
-            ex. "xxxx\t4graph\nxxx\ttrigraph\nxx\tdigraph"
-            Where the first column is the set of characters to be combined into one token and the second
-            column is the label for the ruleset
-    Returns:
-        rules (dict) : A dictionary where each key is the string name of a rule and each value is a list 
-            of strings of the orthographic characters to be combined according to the rule
-            ex. { "tri": ["xxx", "yyy", "zzz"], "di": ["xx", "yy", "zz"]}
-        rule_order (list) : A list of the rule names in the order they should be enacted
-            ex. ["tri", "di"]
-        combs (list) : A list of specific orthographic transformations to be applied to the text 
-            for tokenization by rule order
-    """
-    tsv = pathlib.Path(path).read_text(encoding="utf-8")
-    entries = [line.split("\t") for line in tsv.split("\n")]
-    rules, rule_order, combs = {}, [], []
-    for x in range(len(entries)):
-        combs.append((entries[x][0], rep_chrs[x]))
-        if entries[x][1] not in rules:
-            rules[entries[x][1]] = [entries[x][0]]
-            rule_order.append(entries[x][1])
-        else:
-            rules[entries[x][1]].append(entries[x][0])
-    return(Tokenization_Scheme(rules, rule_order, combs))
-
-def _apply_rules(txt : str, rules : dict, rule_order : list) -> str:
-    output = txt
-    num_reps = 0
-    for rule in rule_order:
-        for comb in rules[rule]:
-            output = re.sub(comb, rep_chrs[num_reps], output)
-            num_reps+=1
-    return(output)
-
-def _get_combs_from_rules(rules : list, rule_order : list) -> list:
-    num_reps = 0
-    encoding = []
-    for rule in rule_order:
-        for comb in rules[rule]:
-            encoding.append((comb, rep_chrs[num_reps]))
-            num_reps+=1
-    return(encoding)
-
-def apply_combs(txt : str, combs : list) -> str :
-    output = txt
-    for entry in combs:
-        output = re.sub(entry[0], entry[1], output)
-    return(output)
-
-def revert_combs(txt : str, combs : list) -> str :
-    output = txt
-    for entry in combs:
-        output = re.sub(entry[1], entry[0], output)
-    return(output)
+    def batch_revert(self, batch, key = "transcript", ignore_rules=[]):
+        """Reverts orthographic combination rules applied to a batch"""
+        batch[key] = self.revert(batch[key], ignore_rules=ignore_rules)
+        return batch
+        
 
 if __name__ == "__main__":
     txts = load_directory("C:/Users/cbech/Desktop/Northern Prinmi Project/wq12_017/", ".eaf", "phrase-seg")
@@ -160,9 +112,3 @@ if __name__ == "__main__":
     pumi = Tokenization_Scheme("c:/Users/cbech/Desktop/Northern Prinmi Project/Northern-Prinmi-Project-Cluster/pumi_tok.tsv")
     new = pumi.revert(pumi.apply(txt))
     print(new)
-    #rules, rule_order, combs = load_combs_from_tsv("c:/Users/cbech/comb_tokens.tsv")
-    #tfd = apply_combs(txts[0][1], combs)
-    #dtfd = revert_combs(tfd, combs)
-    #print(tfd[:100])
-    #print(dtfd[:100])
-    #print(txts[0][1] == dtfd)

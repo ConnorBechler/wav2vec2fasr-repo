@@ -5,6 +5,10 @@ Orthography manager
 import pathlib
 import re
 from pympi import Eaf, TextGrid
+import inspect, os.path
+
+ort_filename = inspect.getframeinfo(inspect.currentframe()).filename
+ort_module_dir_path = os.path.dirname(os.path.abspath(ort_filename)) +"/"
 
 rep_chrs = [chr(x) for x in list(range(9312, 9912))]
 chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
@@ -13,7 +17,11 @@ def remove_special_chars(text):
     text = re.sub(chars_to_ignore_regex, '', text.lower())
     return(text)
 
-def load_directory(directory, ext=".txt", tier_target = None) -> list[tuple[str, str], ...]:
+def batch_remove_special_chars(batch, key="transcript"):
+    batch[key] = remove_special_chars(batch[key])
+    return batch
+
+def load_directory(directory, ext=".txt", tier_target = None, report=True) -> list[tuple[str, str], ...]:
     """Function for loading all files with a particular extension within a specific directory as text files"""
     txts = []
     for path in pathlib.Path(directory).iterdir():
@@ -35,7 +43,7 @@ def load_directory(directory, ext=".txt", tier_target = None) -> list[tuple[str,
                         txt += " ".join([annotation[2] for annotation in tg.get_tier(tier_name).get_all_intervals()])
                 if txt != "":
                     txts.append((path.name,txt))
-    print("Loaded ", len(txts), " texts")
+    if report: print("Loaded ", len(txts), " texts")
     return txts
 
 def get_full_vocab(txts : list) -> set:
@@ -62,7 +70,6 @@ Note: If you only want a rule to run on application and not on reversion, label 
             tsv = pathlib.Path(path).read_text(encoding="utf-8")
             rows = [line.split("\t") for line in tsv.split("\n")]
             rules, rule_order = {}, []
-            print(rows)
             for x in range(len(rows)):
                 if rows[x][1] == "comb": rep = rep_chrs[x]
                 elif rows[x][1] == "repl": rep = rows[x][3]
@@ -73,21 +80,26 @@ Note: If you only want a rule to run on application and not on reversion, label 
                     rules[rows[x][0]] = [(rows[x][2], rep)]
         self._rules, self._rule_order = rules, rule_order
 
-    def apply(self, txt, ignore_rules=[]):
+    def apply(self, txt, ignore_rules=[], only_rule=None):
         """Applies orthographic combination rules to a string"""
         output = txt
-        for rule in self._rule_order: 
-            if rule not in ignore_rules:
-                reps = self._rules[rule]
-                for rep in reps: 
-                    output = re.sub(rep[0], rep[1], output)
+        if only_rule == None:
+            for rule in self._rule_order: 
+                if rule not in ignore_rules and only_rule == None:
+                    reps = self._rules[rule]
+                    for rep in reps: 
+                        output = re.sub(rep[0], rep[1], output)
+        elif only_rule in self._rule_order:
+            reps = self._rules[only_rule]
+            for rep in reps: 
+                output = re.sub(rep[0], rep[1], output)
         return(output)
 
-    def batch_apply(self, batch, key = "transcript", ignore_rules=[]):
+    def batch_apply(self, batch, key = "transcript", ignore_rules=[], only_rule=None):
         """Applies orthographic combination rules to a batch"""
-        batch[key] = self.apply(batch[key], ignore_rules=ignore_rules)
+        batch[key] = self.apply(batch[key], ignore_rules=ignore_rules, only_rule=only_rule)
         return batch
-    
+        
     def revert(self, txt, ignore_rules=[]):
         """Reverts orthographic combination rules applied to a string"""
         output = txt
@@ -104,11 +116,32 @@ Note: If you only want a rule to run on application and not on reversion, label 
         batch[key] = self.revert(batch[key], ignore_rules=ignore_rules)
         return batch
         
+#Load default tokenization scheme
+def_tok_path = ort_module_dir_path+"default_tokenization.tsv"
+def_tok = Tokenization_Scheme(def_tok_path)
+
+def load_tokenization(path, backup=True):
+    """Copy contents of new tsv into default tokenization tsv"""
+    old_tsv = pathlib.Path(def_tok_path).read_text(encoding="utf-8")
+    if path != None and pathlib.Path(path).is_file:
+        new_tsv = pathlib.Path(path).read_text(encoding="utf-8")
+    else: raise Exception("Bad path provided for update: "+path+" not valid tsv")
+    if old_tsv != new_tsv:
+        print("Previous tokenization scheme saved to backup_toks.tsv")
+        with open(ort_module_dir_path+"backup_toks.tsv", "w", encoding="utf-8") as f:
+            f.write(old_tsv)
+        with open(def_tok_path, "w", encoding="utf-8") as f:
+            f.write(new_tsv)
+    else: 
+        print("Same tokenization as previous, backup_toks.tsv not updated")
+    global def_tok
+    def_tok = Tokenization_Scheme(def_tok_path) 
 
 if __name__ == "__main__":
-    txts = load_directory("C:/Users/cbech/Desktop/Northern Prinmi Project/wq12_017/", ".eaf", "phrase-seg")
+    load_tokenization(ort_module_dir_path+"pumi_base.tsv")
+    txts = load_directory("C:/Users/cbech/Desktop/Northern Prinmi Project/wq12_017/", ".eaf", "phrase-seg", report=False)
     #txt = remove_special_chars(txts[0][1])
-    txt = remove_special_chars(txts[0][1])
-    pumi = Tokenization_Scheme("c:/Users/cbech/Desktop/Northern Prinmi Project/Northern-Prinmi-Project-Cluster/pumi_tok.tsv")
-    new = pumi.revert(pumi.apply(txt))
-    print(new)
+    txt = def_tok.apply(remove_special_chars(txts[0][1]), only_rule="CLEAN")
+    print(def_tok.apply(txt)[:100])
+    new = def_tok.revert(def_tok.apply(txt))
+    if new != txt : raise Exception("TEST FAILED")

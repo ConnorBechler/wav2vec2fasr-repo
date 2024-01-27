@@ -22,9 +22,19 @@ import warnings
 warnings.simplefilter("ignore")
 
 from prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
+import orthography
+#TODO: Actually implement the new orthography module's methods
 
-
-def main_program(home=None, eval_dir="output", data_dir=None, checkpoint=None, cpu=False, lm=None):
+def main_program(home=None, 
+                eval_dir="output", 
+                data_dir=None, 
+                checkpoint=None, 
+                cpu=False, 
+                lm=None,
+                rules_tsv=None):
+    """Function for evaluating the performance of a wav2vec2 model on a dataset
+    Generates a multitude of outputs, printing most to the console but also creating
+    error tables and replacement tables as csvs"""
 
     if home == None: home = os.environ["HOME"]
     project_dir = "npp_asr"

@@ -8,3 +8,4 @@ pretrained_model_checkpoints/
 *.wav
 *.mp3
 *.bak
+*.pyc

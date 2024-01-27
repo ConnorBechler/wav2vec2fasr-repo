@@ -12,6 +12,7 @@ import torch
 from dataclasses import dataclass
 import re
 from pathlib import Path
+import orthography
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)
@@ -137,12 +138,12 @@ def align_audio(processor: Wav2Vec2Processor,
     Structure largely adapted from https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py
     
     Args:
-        processor (Wav2Vec2Processor) : 
-        logits :
-        transcript (str) :
-        model (AutoModelForCTC) :
-        audio (str or Path or ndarray) :
-        return_transcript (bool) :
+        processor (Wav2Vec2Processor) : Required wav2vec2 processor used for processing the audio
+        logits : Optional argument for loading pregenerated logits (if you have them from transcription already)
+        transcript (str) : Optional argument for specifying the transcription (if it differs from the logits, for example)
+        model (AutoModelForCTC) : Necessary if you do not provide the logits, wav2vec2 model for generating logits
+        audio (str or Path or ndarray) : Either the path to an audio file or the audio as an ndarray
+        return_transcript (bool) : Set to true if you want the returned tuple to output a transcript
     
     Returns:
         tuple[list, list, str] : 

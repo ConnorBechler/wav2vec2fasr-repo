@@ -1,7 +1,8 @@
 CLEAN	repl	⁵⁵⁵	⁵⁵
 CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵][ ]	 
-nasals	repl	õ	õ
-nasals	repl	ĩ	ĩ
+CLEAN	repl	-	
+CLEAN	repl	õ	õ
+CLEAN	repl	ĩ	ĩ
 tri	comb	sʰʷ
 tri	comb	ʈʰʷ
 tri	comb	ʂʰʷ

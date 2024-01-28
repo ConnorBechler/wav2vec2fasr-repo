@@ -2,7 +2,7 @@ import os
 import logging
 import re
 import pathlib
-import orthography
+import orthography as ort
 
 from datasets import load_from_disk, Audio
 from prinmitext import chars_to_ignore_regex, tone_regex, nontone_regex, trips, doubs
@@ -18,6 +18,17 @@ def process_data(
         combine_diac=False,
         combine_tones=False,
         remove_hyphens=False):
+    """
+    Function for applying orthographic transformations to training/testing data
+    Args:
+        home (str) : root directory if files are not navigated from os home
+        project_dir (str) : project directory
+        data_dir (str) : path to directory with testing and training data directories
+        output_dir (str) : path to output directory
+        
+    Output:
+        Creates training and testing directories and exports huggingface style datasets to them
+    """
             
     logging.basicConfig(level=logging.DEBUG)
     
@@ -67,9 +78,9 @@ def process_data(
     
     #If legacy functions not called, use default tokenization
     if not(remove_hyphens or remove_tones or remove_nontones or combine_diac or combine_tones):
-        scheme = orthography.def_tok
-        np_train_full_ds = np_train_full_ds.map(batch_remove_special_chars)
-        np_test_full_ds = np_test_full_ds.map(batch_remove_special_chars)
+        scheme = ort.def_tok
+        np_train_full_ds = np_train_full_ds.map(ort.batch_remove_special_chars)
+        np_test_full_ds = np_test_full_ds.map(ort.batch_remove_special_chars)
         np_train_full_ds = np_train_full_ds.map(scheme.batch_apply)
         np_test_full_ds = np_test_full_ds.map(scheme.batch_apply)
     else: 
@@ -186,5 +197,29 @@ def process_data(
     np_test_full_ds.save_to_disk(output_dir + "/data/testing")
 
 if __name__ == "__main__":
-    process_data()
+    home = "C:/Users/bechl/code/speech_proc/"
+    project_dir = "npp_asr/"
+    data_dir = "data_all_speakers/"
+    
+    process_data(
+        home = home,
+        project_dir = project_dir,
+        data_dir = data_dir,
+        output_dir = home+project_dir+"output/pumi_cd_old/",
+        combine_diac=True,
+        remove_hyphens=True
+    )
+    ort.load_tokenization(ort.ort_module_dir_path+"pumi_cd.tsv")
+    process_data(
+        home = home,
+        project_dir = project_dir,
+        data_dir=data_dir,
+        output_dir = home+project_dir+"output/pumi_cd_new/"
+    )
+    
+    o_ct_train = load_from_disk(home+project_dir+"output/pumi_cd_old/data/training/")
+    n_ct_train = load_from_disk(home+project_dir+"output/pumi_cd_new/data/training/")
+    print(o_ct_train, o_ct_train['transcript'][1])
+    print(n_ct_train, n_ct_train['transcript'][1])
+    
     

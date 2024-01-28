@@ -7,6 +7,8 @@ import re
 from pympi import Eaf, TextGrid
 import inspect, os.path
 
+#TODO: Make the following work at a package level using importlib rather than
+# at the path level using inspect and os
 ort_filename = inspect.getframeinfo(inspect.currentframe()).filename
 ort_module_dir_path = os.path.dirname(os.path.abspath(ort_filename)) +"/"
 
@@ -21,8 +23,20 @@ def batch_remove_special_chars(batch, key="transcript"):
     batch[key] = remove_special_chars(batch[key])
     return batch
 
-def load_directory(directory, ext=".txt", tier_target = None, report=True) -> list[tuple[str, str], ...]:
-    """Function for loading all files with a particular extension within a specific directory as text files"""
+def load_directory(directory, 
+                   ext=".txt", 
+                   tier_target = None, 
+                   report=True) -> list[tuple[str, str]]:
+    """
+    Function for loading all files with a particular extension within a specific directory
+    Args:
+        directory (str | pathlib.Path) : directory to load files from
+        ext (str) : file extension of the file types to be loaded
+            Excepts txt, eaf, and TextGrid
+        tier_target (str) : name of tiers from eaf and TextGrid files to be loaded
+    Return:
+        txts (list) : A list of tuples with each files' name and contents
+    """
     txts = []
     for path in pathlib.Path(directory).iterdir():
         if path.is_file() and path.suffix == ext:

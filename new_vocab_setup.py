@@ -8,6 +8,18 @@ def setup_vocab(
         project_dir = "npp_asr",
         output_dir = "",
         data_dir=None):
+    """
+    Function for setting up vocab for wav2vec 2.0 training
+
+    Args:
+        home (str) : root system directory
+        project_dir (str) : name of project directory
+        output_dir (str) : output directory for vocab file
+        data_dir (str) : directory with named training and testing directories
+    
+    Output:
+        vocab.json file with full wav2vec 2.0 vocabulary
+    """
     
     if home == None: home = os.environ["HOME"]
     full_project = os.path.join(home, project_dir)

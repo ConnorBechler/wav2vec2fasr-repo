@@ -3,3 +3,10 @@ CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵][ ]
 CLEAN	repl	-	
 CLEAN	repl	õ	õ
 CLEAN	repl	ĩ	ĩ
+tone	comb	²¹
+tone	comb	²²
+tone	comb	³²
+tone	comb	³⁵
+tone	comb	⁵⁵
+tone	comb	⁵²
+tone	comb	⁵¹

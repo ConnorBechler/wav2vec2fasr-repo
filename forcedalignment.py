@@ -12,7 +12,7 @@ import torch
 from dataclasses import dataclass
 import re
 from pathlib import Path
-import orthography
+import orthography as ort
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)

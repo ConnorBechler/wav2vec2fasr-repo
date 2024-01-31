@@ -219,13 +219,12 @@ def align_audio(processor: Wav2Vec2Processor,
         else: return(char_alignments, word_alignments, "")
     else: return(None, None, transcript)
 
-def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output='.eaf',
-                    phon_comb=False, tone_comb=False):
+def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output='.eaf'):
     """
     Function for (1) chunking a specified audio file by a specified method and
      (2) transcribing and aligning it using a given wav2vec 2.0 model
     """
-    name = Path(audio_path).name
+    name = Path(audio_path).name[:-len(Path(audio_path).suffix)]
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     chunks = segment.chunk_audio(path=audio_path, method=chunking_method)
@@ -238,14 +237,16 @@ def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output=
     for chunk in chunks:
         print(chunk[0], chunk[1])
         calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], return_transcript=True)
-        ts.add_annotation('prediction', chunk[0], chunk[1], pred)
+        ts.add_annotation('prediction', chunk[0], chunk[1], ort.def_tok.revert(pred))
         if calign != None and walign != None:
             for word in walign:
-                ts.add_annotation('words', word['start']+chunk[0], word['end']+chunk[0], word['word'])
+                ts.add_annotation('words', word['start']+chunk[0], word['end']+chunk[0], 
+                ort.def_tok.revert(word['word']))
             for char in calign:
-                ts.add_annotation('chars', char['start']+chunk[0], char['end']+chunk[0], char['char'])
+                ts.add_annotation('chars', char['start']+chunk[0], char['end']+chunk[0], 
+                ort.def_tok.revert(char['char']))
     if output == '.TextGrid': ts = ts.to_textgrid()
-    ts.to_file(name+output)
+    ts.to_file(name+"_preds"+output)
 
 def correct_alignments(audio_path, corrected_doc, model_dir, cor_tier = "prediction", 
                        word_tier="words", char_tier="chars"):
@@ -285,10 +286,20 @@ def correct_alignments(audio_path, corrected_doc, model_dir, cor_tier = "predict
 
 if __name__ == "__main__":
     
+    #On home computer
+    """
     model_dir = "../models/model_6-8-23_xlsr53_nt_nh/"
     audio = "../wav-eaf-meta/wq10_011.wav"
     #chunk_and_align(audio, model_dir, output='.TextGrid')
     correct_alignments(audio, "../wq10_011_nt_nh_cor.TextGrid", model_dir)
+    """
     
+    #Laptop
+    ort.load_tokenization("pumi_cb.tsv")
+    model_dir = "../models/model_6-3-23_xls-r_cb_nh/"
+    audio = "../td21-22_020/td21-22_020.wav"
+    #chunk_and_align(audio, model_dir, output=".eaf")
+    correct_alignments(audio, "../td21-22_020/td21-22_020_preds_corrected.eaf")
+    ort.load_tokenization("backup_toks.tsv")
     
     #align_audio(processor, model=model, audio=audio)

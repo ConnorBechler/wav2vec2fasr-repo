@@ -197,7 +197,7 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=".wav", min_sil=1000, min_chunk
     if type(lib_aud) == type(None) and path != None:
         if pathlib.Path(path).is_file():
             lib_aud, sr = librosa.load(path, sr=16000)
-    if length == None: length = librosa.get_duration(lib_aud, sr=sr)
+    if length == None: length = librosa.get_duration(y=lib_aud, sr=sr)
     if method == 'silence_chunk': nchunks = silence_stride_chunk(path, aud_ext, max_chunk, 
                                                                    min_chunk, stride, min_sil)
     elif method == 'og_chunk': nchunks = og_silence_chunk(path, aud_ext, min_sil, min_chunk, max_chunk, stride)

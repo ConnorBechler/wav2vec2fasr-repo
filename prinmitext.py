@@ -84,7 +84,7 @@ def process_text(text=str,remove_specials =True, convert_phone=False, convert_to
 
 def export(path):
     clean = "CLEAN\trepl\t⁵⁵⁵\t⁵⁵\nCLEAN\trepl\t(?<!¹|²|³|⁵)[¹²³⁵][ ]\t \nCLEAN\trepl\t-\t\n"
-    nasals = "\n".join([f"nasals\trepl\t{k}\t{rep_combs[k]}" for k in rep_combs])
+    nasals = "\n".join([f"CLEAN\trepl\t{k}\t{rep_combs[k]}" for k in rep_combs])
     tri = "\n".join([f"tri\trepl\t{trips[x]}\t{rep_trips[x]}" for x in range(len(trips))])
     di = "\n".join([f"di\trepl\t{doubs[x]}\t{rep_doubs[x]}" for x in range(len(doubs))])
     wtones = "\n".join([f"tone\trepl\t{tones[x]}\t{rep_tones[x]}" for x in range(len(tones))])

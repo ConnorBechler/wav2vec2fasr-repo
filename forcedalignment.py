@@ -13,6 +13,8 @@ from dataclasses import dataclass
 import re
 from pathlib import Path
 import orthography as ort
+from orthography import def_tok
+from numpy import ndarray
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)
@@ -132,7 +134,7 @@ def align_audio(processor: Wav2Vec2Processor,
                 transcript : str = None, 
                 model : AutoModelForCTC =None, 
                 audio = None, 
-                return_transcript : bool = False) -> tuple[list, list, str]:
+                strides = (0,0)) -> tuple[list, list, str]:
     """
     Returns millisecond character and word alignments relative to start of audio, as well as transcript if requested
     Structure largely adapted from https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py
@@ -143,7 +145,6 @@ def align_audio(processor: Wav2Vec2Processor,
         transcript (str) : Optional argument for specifying the transcription (if it differs from the logits, for example)
         model (AutoModelForCTC) : Necessary if you do not provide the logits, wav2vec2 model for generating logits
         audio (str or Path or ndarray) : Either the path to an audio file or the audio as an ndarray
-        return_transcript (bool) : Set to true if you want the returned tuple to output a transcript
     
     Returns:
         tuple[list, list, str] : 
@@ -151,20 +152,27 @@ def align_audio(processor: Wav2Vec2Processor,
     # If logits are not provided, generate them using the model
     if logits == None:
         # If audio is a path, load from path, otherwise interpret as ndarray
-        if type(audio) == type(str()) or type(audio) == type(Path()):
+        if type(audio) == type("string") or type(audio) == type(Path("/")):
             lib_aud, sr = librosa.load(audio, sr=16000)
         else: 
             lib_aud = audio
         # Process audio and generate logits
         input_values = processor(lib_aud, return_tensors="pt", padding=True, sampling_rate=16000).input_values
+        #TODO: Decide if the following padding function is necessary
+        diff = 1200 - len(input_values[0])
+        if  diff > 0 :
+            pad = [-500 for x in range(round(diff /2))]
+            input_values =  torch.tensor([pad + list(input_values[0]) + pad])
         logits = model(input_values.to('cpu')).logits
+        # Line below slices tensor to only include predictions for window within strides
+        logits = torch.tensor([logits[0][round(strides[0]/20): len(logits[0])-round(strides[1]/20)].detach().numpy()]) 
     # If transcript is not provided, also generate transcript
     if transcript == None : 
         transcript = processor.batch_decode(torch.argmax(logits, dim=-1))[0]
-    align_dictionary = {char.lower(): code for char,code in processor.tokenizer.get_vocab().items()}
+    align_dictionary = {char: code for char,code in processor.tokenizer.get_vocab().items()}
     emission = logits[0].cpu().detach()
     # Replace spaces with vertical pipes symbolizing word boundaries/gaps
-    clean_transcript = transcript.replace(' ', '|').lower()
+    clean_transcript = transcript.replace(' ', '|')
     # Combine multiple adjacent pipes into single pipe
     clean_transcript = re.sub('\|+', '|', clean_transcript)
     tokens = [align_dictionary[c] for c in clean_transcript]
@@ -188,10 +196,10 @@ def align_audio(processor: Wav2Vec2Processor,
             start, end, score = None, None, None
             if char != "|":
                 char_seg = char_segments[cdx]
-                start = int(char_seg.start*20)#round(char_seg.start * ratio, 3)
+                start = int(char_seg.start*20) + strides[0]#round(char_seg.start * ratio, 3)
                 if word_start == None:
                     word_start = start
-                end = int(char_seg.end*20)#round(char_seg.end * ratio, 3)
+                end = int(char_seg.end*20) + strides[0]#round(char_seg.end * ratio, 3)
                 word_end = end
                 score = round(char_seg.score, 3)
                 word += char
@@ -215,8 +223,7 @@ def align_audio(processor: Wav2Vec2Processor,
                 )
                 word_start, word = None, ""
                 word_idx += 1
-        if return_transcript: return(char_alignments, word_alignments, transcript)
-        else: return(char_alignments, word_alignments, "")
+        return(char_alignments, word_alignments, transcript)
     else: return(None, None, transcript)
 
 def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output='.eaf'):
@@ -235,16 +242,18 @@ def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output=
     ts.add_tier('words')
     ts.add_tier('chars')
     for chunk in chunks:
-        print(chunk[0], chunk[1])
-        calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], return_transcript=True)
-        ts.add_annotation('prediction', chunk[0], chunk[1], ort.def_tok.revert(pred))
+        pred_st, pred_end = chunk[0] + chunk[2][0], chunk[1] - chunk[2][1]
+        calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], strides=chunk[2])
+        ts.add_annotation('prediction', pred_st, pred_end, def_tok.revert(pred))
         if calign != None and walign != None:
             for word in walign:
-                ts.add_annotation('words', word['start']+chunk[0], word['end']+chunk[0], 
-                ort.def_tok.revert(word['word']))
+                ts.add_annotation('words', 
+                word['start']+chunk[0], 
+                word['end']+chunk[0], 
+                def_tok.revert(word['word']))
             for char in calign:
                 ts.add_annotation('chars', char['start']+chunk[0], char['end']+chunk[0], 
-                ort.def_tok.revert(char['char']))
+                def_tok.revert(char['char']))
     if output == '.TextGrid': ts = ts.to_textgrid()
     ts.to_file(name+"_preds"+output)
 
@@ -255,10 +264,8 @@ def correct_alignments(audio_path, corrected_doc, model_dir, cor_tier = "predict
     if Path(audio_path).is_file(): lib_aud, sr = librosa.load(audio, sr=16000)
     # Check and load corrected transcription as appropriate pympi object
     cor_path = Path(corrected_doc)
-    if cor_path.suffix == ".TextGrid" : ts = pympi.TextGrid(cor_path)
+    if cor_path.suffix == ".TextGrid" : ts = pympi.TextGrid(cor_path).to_eaf()
     elif cor_path.suffix == ".eaf" : ts = pympi.Eaf(cor_path)
-    # Convert to Eaf and relink audio if audio link is broken
-    ts = ts.to_eaf()
     ts.add_linked_file(file_path=audio_path, mimetype='wav')
     # Get annotation data for corrected tier and remove tiers being replaced
     cor_an_dat = ts.get_annotation_data_for_tier(cor_tier)
@@ -269,19 +276,42 @@ def correct_alignments(audio_path, corrected_doc, model_dir, cor_tier = "predict
     if char_tier in ts.get_tier_names():
         ts.remove_all_annotations_from_tier(char_tier)
     else: ts.add_tier(char_tier)
-    # Iterate through corrected transcript, creating new alignments based on new transcription
+    # Iterate through corrected transcription file, creating new alignments based on new transcription
     for dat in cor_an_dat:
         print(dat[0], dat[1], dat[2])
-        aud_chunk = lib_aud[librosa.time_to_samples(dat[0]/1000, sr=sr): librosa.time_to_samples(dat[1]/1000, sr=sr)]
-        calign, walign = align_audio(processor, transcript=dat[2], model=model, audio=aud_chunk)
+        # Each corrected transcript entry has to be retokenized using the current tokenization scheme
+        transcript = def_tok.apply(ort.remove_special_chars(dat[2]))
+        print(transcript)
+        strides = (0, 0)
+        if cor_tier != word_tier:
+            #Get audio chunk
+            aud_chunk = lib_aud[librosa.time_to_samples(dat[0]/1000, sr=sr): librosa.time_to_samples(dat[1]/1000, sr=sr)]
+        else:
+            #TODO: Implement corrected word alignment, probably by taking either a set window of audio around
+            # the word, or by taking the three words surrounding
+            #Get audio chunk
+            strides = (30, 30)
+            aud_chunk = lib_aud[librosa.time_to_samples((dat[0] - strides[0])/1000 , sr=sr): 
+                                librosa.time_to_samples((dat[1] + strides[1])/1000, sr=sr)]
+        #Get alignments for corrected transcript    
+        calign, walign, trash = align_audio(processor, transcript=transcript, model=model, audio=aud_chunk,
+                                                strides=strides)
+        #If character and word alignments were generated, add annotations for both
         if calign != None and walign != None:
             if cor_tier != word_tier:
                 for word in walign:
-                    ts.add_annotation(word_tier, word['start']+dat[0], word['end']+dat[0], word['word'])
+                    ts.add_annotation(word_tier, word['start']+dat[0], word['end']+dat[0], 
+                        def_tok.revert(word['word']))
+            else:
+                ts.add_tier("new_words")
+                for word in walign:
+                    ts.add_annotation("new_words", word['start']+dat[0], word['end']+dat[0], 
+                        def_tok.revert(word['word']))
             for char in calign:
-                ts.add_annotation(char_tier, char['start']+dat[0], char['end']+dat[0], char['char'])
+                ts.add_annotation(char_tier, char['start']+dat[0]+strides[0], char['end']+dat[0]+strides[0], 
+                    def_tok.revert(char['char']))
     if cor_path.suffix == '.TextGrid': ts = ts.to_textgrid()
-    ts.to_file(f"{cor_path.name}_ac{cor_path.suffix}")
+    ts.to_file(f"{cor_path.stem}_ac{cor_path.suffix}")
 
 
 if __name__ == "__main__":
@@ -295,11 +325,11 @@ if __name__ == "__main__":
     """
     
     #Laptop
-    ort.load_tokenization("pumi_cb.tsv")
+    #ort.load_tokenization("pumi_cb.tsv")
     model_dir = "../models/model_6-3-23_xls-r_cb_nh/"
     audio = "../td21-22_020/td21-22_020.wav"
     #chunk_and_align(audio, model_dir, output=".eaf")
-    correct_alignments(audio, "../td21-22_020/td21-22_020_preds_corrected.eaf")
-    ort.load_tokenization("backup_toks.tsv")
+    correct_alignments(audio, "../td21-22_020/td21-22_020_preds_cor_ac_cor.eaf", model_dir, cor_tier="words")
+    #ort.load_tokenization("backup_toks.tsv")
     
     #align_audio(processor, model=model, audio=audio)

@@ -1,3 +1,5 @@
+#!/usr/local/bin/python
+# -*- coding: utf-8 -*-
 """
 Orthography manager
 
@@ -7,6 +9,10 @@ import os
 import re
 from pympi import Eaf, TextGrid
 import inspect, os.path
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import warnings
+warnings.simplefilter("ignore")
 
 from audio_processor import return_tiers
 
@@ -135,36 +141,41 @@ Note: If you only want a rule to run on application and not on reversion, label 
         batch[key] = self.revert(batch[key], ignore_rules=ignore_rules)
         return batch
 
-    def apply_to_transcriptions(self, 
+    def apply_to_files(self, 
                                 files = [], 
                                 tar_tiers = [], 
-                                new_name = None):
+                                new_name = None,
+                                revert_op=False):
         """Applies orthographic combination rules to a list of eaf or textgrid files
         Args:
             files (str | list) : either a single path to a TextGrid or eaf file or a list of such paths
             tar_tiers (str | list) : either a single tier name or a list of tier names
             new_name (str) : a new name for the resulting file, defaults to original name plus tokenization scheme name
+            revert (bool) : if set to true, reverses application of the tokenization scheme rather than applying it
         """
-        if type(files) == type(str): files = [files]
-        if type(tar_tiers) == type(str) : tar_tiers = [tar_tiers]
+        if type(files) == type("string"): files = [files]
+        if type(tar_tiers) == type("string") : tar_tiers = [tar_tiers]
         for file in files:
             path = pathlib.Path(file)
-            if path.is_file() and path.suffix in [".TextGrid", ".eaf"]:
-                name = path.stem
-                if path.suffix == ".eaf" : ts = Eaf(path)
-                if path.suffix == ".TextGrid" : ts = TextGrid(path).to_eaf()
-                tiers = [tier for tier in ts.tiers if len(tier) > 1 and tier in tar_tiers]
-                for tier in tiers:
-                    an_dat = ts.get_annotation_data_for_tier(tier)
-                    new_an_dat = []
-                    for an in an_dat:
-                        new_an_dat.append((an[0], an[1], self.apply(an[2])))
-                    ts.remove_all_annotations_from_tier(tier)
-                    for an in new_an_dat:
-                        ts.add_annotation(tier, an[0], an[1], an[2])
-                if ext == ".TextGrid": ts = ts.to_textgrid()
-                if new_name == None : new_name = name + "_" + self.name + ext
-                ts.to_file(os.path.join(path.parent, new_name+ext))
+            name = path.stem
+            if path.suffix == ".eaf" : ts = Eaf(path)
+            elif path.suffix == ".TextGrid" : ts = TextGrid(path).to_eaf()
+            else : raise Exception("files must be .eaf or .TextGrid")
+            tiers = [tier for tier in ts.tiers if len(tier) > 1 and tier in tar_tiers]
+            for tier in tiers:
+                an_dat = ts.get_annotation_data_for_tier(tier)
+                if revert_op : 
+                    new_an_dat = [(an[0], an[1], self.revert(an[2])) for an in an_dat]
+                elif not(revert_op) : 
+                    new_an_dat = [(an[0], an[1], self.apply(an[2])) for an in an_dat]
+                ts.remove_all_annotations_from_tier(tier)
+                for an in new_an_dat:
+                    ts.add_annotation(tier, an[0], an[1], an[2])
+            if path.suffix == ".TextGrid": ts = ts.to_textgrid()
+            if revert_op: operation = "_revert"
+            else: operation = "_apply"
+            if new_name == None : new_name = name + "_" + self.name + operation
+            ts.to_file(os.path.join(path.parent, new_name+path.suffix))
                     
         
 #Load default tokenization scheme
@@ -190,15 +201,25 @@ def load_tokenization(path, backup=True):
     global def_tok
     def_tok = Tokenization_Scheme(def_tok_path) 
 
+TESTING = False
 if __name__ == "__main__":
-    load_tokenization("pumi_ct.tsv")
-    txts = load_directory("C:/Users/cbech/Desktop/Northern Prinmi Project/wq12_017/", ".eaf", "phrase-seg", report=False)
-    #txt = remove_special_chars(txts[0][1])
-    txt = def_tok.apply(remove_special_chars(txts[0][1]), only_rule="CLEAN")
-    print(def_tok.apply(txt)[:100])
-    new = def_tok.revert(def_tok.apply(txt))
-    if new != txt : raise Exception("TEST FAILED")
+    
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--tokenization", default="default_tokenization.tsv", help="Name of tokenization tsv to load tokenization from")
+    args = vars(parser.parse_args())
+    if not(TESTING):
+        load_tokenization(args['tokenization'])
 
-    files = "C:/Users/cbech/Desktop/Northern Prinmi Project/td21-22_020/td21-22_020_preds.eaf"
-    tar_tiers = ["prediction", "words", "chars"]
-    def_tok.apply_to_files(files, tar_tiers)
+    if TESTING:
+        load_tokenization("pumi_ct.tsv")
+        txts = load_directory("C:/Users/cbech/Desktop/Northern Prinmi Project/wq12_017/", ".eaf", "phrase-seg", report=False)
+        #txt = remove_special_chars(txts[0][1])
+        txt = def_tok.apply(remove_special_chars(txts[0][1]), only_rule="CLEAN")
+        print(def_tok.apply(txt)[:100])
+        new = def_tok.revert(def_tok.apply(txt))
+        if new != txt : raise Exception("TEST FAILED")
+
+        files = "C:/Users/cbech/Desktop/Northern Prinmi Project/td21-22_020/td21-22_020_preds.eaf"
+        tar_tiers = ["prediction", "words", "chars"]
+        def_tok.apply_to_files(files, tar_tiers)
+        def_tok.apply_to_files(files, tar_tiers, revert_op=True)

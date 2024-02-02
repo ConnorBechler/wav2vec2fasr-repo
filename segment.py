@@ -7,6 +7,7 @@ import pympi
 import rvad_faster
 import parselmouth
 from math import ceil
+import pathlib
 
 
 def stride_chunk(max_chunk, stride, length, start=0, end=None):
@@ -138,13 +139,16 @@ def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
                 if diff > max_chunk:
                     num_chunks = ceil(diff/max_chunk)
                     step = round(diff/num_chunks)
-                    nchunks.append([win_st, win_st+step+stride, (0, stride)])
-                    for x in range(1, num_chunks):
-                        nchunks.append([(win_st+x*step)-stride, (win_st+(x+1)*step)+stride, (stride, stride)])
-                    nchunks.append([(win_st+(num_chunks)*step)-stride, win_end, (stride, 0)])
+                    newest_chunks = [[win_st+(step*x)-stride, win_st+(step*(x+1))+stride, 
+                                    (stride, stride)] for x in range(num_chunks)]
+                    if stride > 0 :
+                        newest_chunks[0] = [win_st, win_st+(step+stride), (0, stride)]
+                        newest_chunks[-1] = [win_end-step-stride, win_end, (stride, 0)]
+                    nchunks += newest_chunks
                 elif diff > min_chunk:
                     nchunks.append([win_st, win_end, (0, 0)])
                 win_st, win_end = None, None
+    print(nchunks)
     return(nchunks)
 
 def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
@@ -212,25 +216,33 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=".wav", min_sil=1000, min_chunk
                                 librosa.time_to_samples(nchunk[1]/1000, sr=sr)]] for nchunk in nchunks]
     return chunks
 
-def create_chunked_annotation(filepath, methods, format):
-    eaf = pympi.Eaf(author="transcribe.py")
-    eaf.add_linked_file(file_path=filepath, mimetype=filepath[-3])
-    eaf.remove_tier('default')
+def create_chunked_annotation(filepath : str, methods, format=".eaf"):
+    """Function for chunking a given audio file (mp3 or wav) by the specified chunking methods
+    Args:
+        filepath (str) : a path to an mp3 or wav audio file
+        methods (str | list) : a single method or list of methods using the method names
+            described by the chunk_audio function
+        format (str) : the format of the resulting transcription file (.eaf or .TextGrid)
+    Output:
+        An eaf or TextGrid file named f"{filepath.stem}_chunked{format}" with tiers
+            for each chunking method
+    """
+    filepath = pathlib.Path(filepath)
+    ts = pympi.Eaf()
+    ts.add_linked_file(file_path=filepath, mimetype=filepath.suffix)
+    ts.remove_tier('default')
     for method in methods:
-        eaf.add_tier(method)
-        chunks = chunk_audio(None, filepath, method=method)
+        ts.add_tier(method)
+        chunks = chunk_audio(None, str(filepath), method=method)
         print(len(chunks))
         for chunk in chunks:
-            eaf.add_annotation(method, chunk[0], chunk[1], 'CHUNK')
-    if format=="TextGrid":
-        tg = eaf.to_textgrid()
-        tg.to_file(f"{filepath[filepath.rfind('/')+1:]}_chunked.TextGrid")
-    else:
-        eaf.to_file(f"{filepath[filepath.rfind('/')+1:]}_chunked.eaf")
-#eaf.to_file(f"{method}_segments_of_{filepath[filepath.rfind('/'):]}.eaf")
+            ts.add_annotation(method, chunk[0]+chunk[2][0], chunk[1]-chunk[2][1], 'CHUNK')
+    ts.to_file(f"{filepath.stem}_chunked{format}")
+
 
 if __name__ == "__main__":
     
-    filepath = "../wav-eaf-meta/td21-22_020.wav"
+    #filepath = "../wav-eaf-meta/td21-22_020.wav"
+    filepath = "../td21-22_020/td21-22_020.wav"
     methods = ["rvad_chunk", "pitch_chunk"]
-    create_chunked_annotation(filepath, methods, 'eaf')
+    create_chunked_annotation(filepath, methods)

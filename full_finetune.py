@@ -6,6 +6,7 @@ from new_data_process import process_data
 from new_vocab_setup import setup_vocab
 from new_finetune import main_program
 from evaluate import main_program as eval_program
+from orthography import load_tokenization
 
 #Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -21,6 +22,7 @@ parser.add_argument("--home", default=None, help="Specify a particular home dire
 parser.add_argument("--proj_dir", default="npp_asr", help="The path from your home directory to the folder with your project")
 parser.add_argument("--data_dir", default="output/data/", help="The path from your project to the folder with the data")
 parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
+parser.add_argument("--tokenization", default="default_tokenization.tsv", help="Name of tokenization tsv to load tokenization from")
 parser.add_argument("--comb_tones", action="store_true", help="Combine tone pairs")
 parser.add_argument("--comb_diac", action="store_true", help="Combine diacritic character clusters")
 parser.add_argument("--no_tones", action="store_true", help="Remove tones from transcripts")
@@ -54,6 +56,9 @@ if os.path.exists(output_dir):
 else:
     logging.debug(f"Creating output directory {output_dir}")
     os.mkdir(output_dir)
+
+logging.debug("***Setting Tokenization Scheme***")
+load_tokenization(args['tokenization'])
 
 logging.debug("***Processing data***")
 process_data(home=args['home'],

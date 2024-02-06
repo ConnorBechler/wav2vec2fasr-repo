@@ -12,7 +12,8 @@ from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec
 import os
 
 
-def main_program(project_dir = "npp_asr", 
+def main_program(home = None,
+        project_dir = "npp_asr", 
         output_dir="", 
         data_dir=None, 
         vocab_dir=None,
@@ -27,9 +28,10 @@ def main_program(project_dir = "npp_asr",
         msk_tm_prob=0.05,
         ldrop=0.1,
         w2v2_model="facebook/wav2vec2-large-xlsr-53"):
-            
+
+    if home == None: home = os.environ["HOME"]
     project_dir = project_dir#"npp_asr"
-    full_project = os.path.join(os.environ["HOME"], project_dir)
+    full_project = os.path.join(home, project_dir)
     if output_dir == "": 
         output_dir = os.path.join(full_project, "output/" + output_dir)
     if data_dir == None: 
@@ -151,8 +153,9 @@ def main_program(project_dir = "npp_asr",
     logging.debug("collator prep")
     data_collator = DataCollatorCTCWithPadding(processor=processor, padding=True)
 
-    logging.debug("loading wer")
+    logging.debug("loading wer and cer")
     wer_metric = load_metric("wer")
+    cer_metric = load_metric("cer")
 
     def compute_metrics(pred):
         pred_logits = pred.predictions
@@ -165,25 +168,9 @@ def main_program(project_dir = "npp_asr",
         label_str = processor.batch_decode(pred.label_ids, group_tokens=False)
 
         wer = wer_metric.compute(predictions=pred_str, references=label_str)
+        cer = cer_metric.compute(predictions=pred_str, references=label_str)
 
-        return {"wer": wer}
-
-
-    """
-    Original Values:
-        attention_dropout=0.1,
-        hidden_dropout=0.1,
-        feat_proj_dropout=0.0,
-        mask_time_prob=0.05,
-        layerdrop=0.1,
-            
-    1st Test:
-        attention_dropout=0.0,
-        hidden_dropout=0.0,
-        feat_proj_dropout=0.0,
-        mask_time_prob=0.05,
-        layerdrop=0.0,
-    """
+        return {"cer": cer, "wer": wer}
 
     logging.debug("Downloading model")
     model = Wav2Vec2ForCTC.from_pretrained(
@@ -205,14 +192,6 @@ def main_program(project_dir = "npp_asr",
     model.gradient_checkpointing_enable()
 
     logging.debug("Setting up training args")
-    
-    """
-    Original values:
-        learning_rate=3e-4,
-        
-    Test 2:
-        learning_rate=3e-05,
-    """
     
     training_args = TrainingArguments(
     # output_dir="/content/gdrive/MyDrive/wav2vec2-large-xlsr-turkish-demo",

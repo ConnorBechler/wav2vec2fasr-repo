@@ -1,0 +1,2 @@
+#Northern-Prinmi-Project-Cluster Package
+Set of tools for fine-tuning wav2vec2 models for transcription and forced alignment, first developed specifically for application in language documentation of Northern Prinmi.

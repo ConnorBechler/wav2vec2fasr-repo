@@ -1,3 +1,7 @@
+"""
+Collection of functions for segmenting audio.
+Links together a bunch of other packages' functions to produce one uniform output.
+"""
 #from transcribe import chunk_audio
 import os
 import pathlib
@@ -8,6 +12,9 @@ import rvad_faster
 import parselmouth
 from math import ceil
 import pathlib
+from speechbrain.pretrained import VAD
+VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty")
+import soundfile
 
 
 def stride_chunk(max_chunk, stride, length, start=0, end=None):
@@ -93,11 +100,8 @@ def og_silence_chunk(fullpath, aud_ext, min_sil, min_chunk, max_chunk, stride):
     chunks = [chunk for chunk in nchunks if chunk[1]-chunk[0] > min_chunk]
     return(chunks)
 
-from speechbrain.pretrained import VAD
-VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty")
-import soundfile
-
 def vad_chunk(lib_aud, max_chunk, sr, stride):
+    """Uses speechbrain VAD to chunk audio, with fall-back stride chunking for segments that are too long"""
     tempf = "./.temp_audio.wav"
     soundfile.write(tempf, lib_aud, samplerate=sr)
     #boundaries = VAD.get_speech_segments(tempf)
@@ -122,6 +126,7 @@ def vad_chunk(lib_aud, max_chunk, sr, stride):
     return(nchunks)
 
 def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
+    """Uses rVAD to chunk audio, with fall-back stride chunking for segments that are too long"""
     aud_mono = librosa.to_mono(lib_aud)
     soundfile.write("rvad_working_mono.wav", aud_mono, sr)
     segs = rvad_faster.rVAD_fast("rvad_working_mono.wav", ftThres = 0.4)
@@ -152,6 +157,7 @@ def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
     return(nchunks)
 
 def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
+    """Chunking method that uses praat pitch contours to chunk audio, with fall-back stride chunking"""
     rec = parselmouth.Sound(fullpath)
     pitch = rec.to_pitch()
     pitch_values = pitch.selected_array['frequency']    
@@ -192,14 +198,30 @@ def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
                 comb_chunk = None
     return(nnchunks)
 
-def chunk_audio(lib_aud=None, path=None, aud_ext=".wav", min_sil=1000, min_chunk=100, 
-                    max_chunk=10000, stride = 1000, method='stride_chunk', length = None, sr = 16000):
+def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=100, 
+                    max_chunk=10000, stride = 1000, method='stride_chunk', length = None, sr = 16000) -> list:
     """
     Function for chunking long audio into shorter chunks with a specified method
         Requires either audio array or path to audio file
+    Args:
+        lib_aud (ndarray) : audio array representing waveform, as loaded by librosa
+        path (str | pathlib.Path) : path to an audio file
+        aud_ext (str) : file extension of audio (wav or mp3)
+        min_sil (int) : minimum silence duration in milliseconds
+        min_chunk (int) : minimum chunk duration in milliseconds
+        max_chunk (int) : maximum chunk duration in milliseconds
+        stride (int) : length of stride for stride chunking and fallback chunking for other methods
+        method (str) : method used for chunking audio; can be silence_chunk, og_chunk, vad_chunk, rvad_chunk, pitch_chunk, or stride_chunk
+        length (int) : duration of audio file in seconds, calculated using librosa if not provided
+        sr (int) : sampling rate, 16000 by default
+    Returns:
+        list : chunks paired with ndarrays of audio 
+        [ [ (chunk1_start_ms, chunk1_end_ms, (front_stride_ms, back_stride_ms) ), chunk1_audio_ndarray], ... 
+          [(chunkN_start_ms, chunkN_end_ms, (front_stride_ms, back_stride_ms)), chunkN_audio_ndarray]]
     """
     if type(lib_aud) == type(None) and path != None:
-        if pathlib.Path(path).is_file():
+        if pathlib.Path(path).exists():
+            aud_ext = pathlib.Path(path).suffix
             lib_aud, sr = librosa.load(path, sr=16000)
     if length == None: length = librosa.get_duration(y=lib_aud, sr=sr)
     if method == 'silence_chunk': nchunks = silence_stride_chunk(path, aud_ext, max_chunk, 

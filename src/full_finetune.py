@@ -1,7 +1,6 @@
 import os
 import logging
 
-
 from new_data_process import process_data
 from new_vocab_setup import setup_vocab
 from new_finetune import main_program

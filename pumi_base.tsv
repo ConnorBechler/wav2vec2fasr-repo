@@ -1,5 +1,0 @@
-CLEAN	repl	⁵⁵⁵	⁵⁵
-CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵][ ]	 
-CLEAN	repl	-	
-CLEAN	repl	õ	õ
-CLEAN	repl	ĩ	ĩ

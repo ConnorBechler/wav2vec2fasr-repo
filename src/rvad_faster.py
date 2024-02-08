@@ -1,3 +1,12 @@
+"""
+This is a wholesale copy of coldtaco's version fork of the original rVAD package
+fork: https://github.com/coldtaco/rVAD-faster
+original: https://github.com/zhenghuatan/rVAD
+
+I'm sure there is a better way to integrate this, but quite frankly I don't know one; maybe a github link in poetry?
+TODO: Figure out that better way
+"""
+
 from __future__ import division
 import numpy as np
 import math

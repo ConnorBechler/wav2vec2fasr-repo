@@ -1,12 +1,11 @@
 import os
 import logging
 
-
-from new_data_process import process_data
-from new_vocab_setup import setup_vocab
-from new_finetune import main_program
-from evaluate import main_program as eval_program
-from orthography import load_tokenization
+from src.new_data_process import process_data
+from src.new_vocab_setup import setup_vocab
+from src.new_finetune import main_program
+from src.evaluate import main_program as eval_program
+from src.orthography import load_tokenization
 
 #Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter

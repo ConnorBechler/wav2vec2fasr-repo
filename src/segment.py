@@ -1,13 +1,25 @@
+"""
+Collection of functions for segmenting audio.
+Links together a bunch of other packages' functions to produce one uniform output.
+"""
 #from transcribe import chunk_audio
 import os
 import pathlib
 from pydub import AudioSegment, silence
 import librosa
 import pympi
-import rvad_faster
 import parselmouth
 from math import ceil
 import pathlib
+try:
+    from speechbrain.pretrained import VAD
+    VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty")
+except Exception as e:
+    print("Speechbrain VAD import failed: " + str(e) +"\nTry to enable admin privileges to activate. In the meantime, Speechbrain VAD chunking disabled")
+    VAD = None
+import soundfile
+from src import rvad_faster
+
 
 
 def stride_chunk(max_chunk, stride, length, start=0, end=None):
@@ -93,35 +105,35 @@ def og_silence_chunk(fullpath, aud_ext, min_sil, min_chunk, max_chunk, stride):
     chunks = [chunk for chunk in nchunks if chunk[1]-chunk[0] > min_chunk]
     return(chunks)
 
-from speechbrain.pretrained import VAD
-VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty")
-import soundfile
-
 def vad_chunk(lib_aud, max_chunk, sr, stride):
-    tempf = "./.temp_audio.wav"
-    soundfile.write(tempf, lib_aud, samplerate=sr)
-    #boundaries = VAD.get_speech_segments(tempf)
-    #print(boundaries)
-    prob_chunks = VAD.get_speech_prob_file(tempf, overlap_small_chunk=True)
-    prob_th = VAD.apply_threshold(prob_chunks).float()
-    boundaries = VAD.get_boundaries(prob_th)
-    boundaries = VAD.energy_VAD(tempf,boundaries, .1)
-    boundaries = VAD.merge_close_segments(boundaries, close_th=0.5)
-    boundaries = VAD.remove_short_segments(boundaries, len_th=0.1)
-    #boundaries = VAD.double_check_speech_segments(boundaries, tempf,  speech_th=0.5)
-    chunks = [[round(int(y*1000)) for y in x] for x in boundaries.numpy()]
-    nchunks = []
-    for x in range(len(chunks)):
-        diff = chunks[x][1] - chunks[x][0]
-        if diff > max_chunk: 
-            nchunk = stride_chunk(max_chunk, stride, (chunks[x][1]-chunks[x][0])/1000, chunks[x][0], chunks[x][1])
-            nchunks += nchunk
-        else: 
-            nchunks += [[chunks[x][0], chunks[x][1], (0, 0)]]
-    os.remove(tempf)
-    return(nchunks)
+    """Uses speechbrain VAD to chunk audio, with fall-back stride chunking for segments that are too long"""
+    if VAD != None:
+        tempf = "./.temp_audio.wav"
+        soundfile.write(tempf, lib_aud, samplerate=sr)
+        #boundaries = VAD.get_speech_segments(tempf)
+        #print(boundaries)
+        prob_chunks = VAD.get_speech_prob_file(tempf, overlap_small_chunk=True)
+        prob_th = VAD.apply_threshold(prob_chunks).float()
+        boundaries = VAD.get_boundaries(prob_th)
+        boundaries = VAD.energy_VAD(tempf,boundaries, .1)
+        boundaries = VAD.merge_close_segments(boundaries, close_th=0.5)
+        boundaries = VAD.remove_short_segments(boundaries, len_th=0.1)
+        #boundaries = VAD.double_check_speech_segments(boundaries, tempf,  speech_th=0.5)
+        chunks = [[round(int(y*1000)) for y in x] for x in boundaries.numpy()]
+        nchunks = []
+        for x in range(len(chunks)):
+            diff = chunks[x][1] - chunks[x][0]
+            if diff > max_chunk: 
+                nchunk = stride_chunk(max_chunk, stride, (chunks[x][1]-chunks[x][0])/1000, chunks[x][0], chunks[x][1])
+                nchunks += nchunk
+            else: 
+                nchunks += [[chunks[x][0], chunks[x][1], (0, 0)]]
+        os.remove(tempf)
+        return(nchunks)
+    else: print("Speechbrain VAD disabled")
 
 def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
+    """Uses rVAD to chunk audio, with fall-back stride chunking for segments that are too long"""
     aud_mono = librosa.to_mono(lib_aud)
     soundfile.write("rvad_working_mono.wav", aud_mono, sr)
     segs = rvad_faster.rVAD_fast("rvad_working_mono.wav", ftThres = 0.4)
@@ -152,6 +164,7 @@ def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
     return(nchunks)
 
 def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
+    """Chunking method that uses praat pitch contours to chunk audio, with fall-back stride chunking"""
     rec = parselmouth.Sound(fullpath)
     pitch = rec.to_pitch()
     pitch_values = pitch.selected_array['frequency']    
@@ -192,14 +205,30 @@ def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
                 comb_chunk = None
     return(nnchunks)
 
-def chunk_audio(lib_aud=None, path=None, aud_ext=".wav", min_sil=1000, min_chunk=100, 
-                    max_chunk=10000, stride = 1000, method='stride_chunk', length = None, sr = 16000):
+def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=100, 
+                    max_chunk=10000, stride = 1000, method='stride_chunk', length = None, sr = 16000) -> list:
     """
     Function for chunking long audio into shorter chunks with a specified method
         Requires either audio array or path to audio file
+    Args:
+        lib_aud (ndarray) : audio array representing waveform, as loaded by librosa
+        path (str | pathlib.Path) : path to an audio file
+        aud_ext (str) : file extension of audio (wav or mp3)
+        min_sil (int) : minimum silence duration in milliseconds
+        min_chunk (int) : minimum chunk duration in milliseconds
+        max_chunk (int) : maximum chunk duration in milliseconds
+        stride (int) : length of stride for stride chunking and fallback chunking for other methods
+        method (str) : method used for chunking audio; can be silence_chunk, og_chunk, vad_chunk, rvad_chunk, pitch_chunk, or stride_chunk
+        length (int) : duration of audio file in seconds, calculated using librosa if not provided
+        sr (int) : sampling rate, 16000 by default
+    Returns:
+        list : chunks paired with ndarrays of audio 
+        [ [ (chunk1_start_ms, chunk1_end_ms, (front_stride_ms, back_stride_ms) ), chunk1_audio_ndarray], ... 
+          [(chunkN_start_ms, chunkN_end_ms, (front_stride_ms, back_stride_ms)), chunkN_audio_ndarray]]
     """
     if type(lib_aud) == type(None) and path != None:
-        if pathlib.Path(path).is_file():
+        if pathlib.Path(path).exists():
+            aud_ext = pathlib.Path(path).suffix
             lib_aud, sr = librosa.load(path, sr=16000)
     if length == None: length = librosa.get_duration(y=lib_aud, sr=sr)
     if method == 'silence_chunk': nchunks = silence_stride_chunk(path, aud_ext, max_chunk, 

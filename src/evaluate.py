@@ -21,8 +21,8 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import warnings
 warnings.simplefilter("ignore")
 
-from prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
-import orthography
+from src.prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
+from src import orthography
 #TODO: Actually implement the new orthography module's methods
 
 def main_program(home=None, 

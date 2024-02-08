@@ -2,11 +2,11 @@ import os
 import logging
 import re
 import pathlib
-import orthography as ort
+from src import orthography as ort
 
 from datasets import load_from_disk, Audio
-from prinmitext import chars_to_ignore_regex, tone_regex, nontone_regex, trips, doubs
-from prinmitext import rep_trips, rep_doubs, tones, rep_tones, rep_combs
+from src.prinmitext import chars_to_ignore_regex, tone_regex, nontone_regex, trips, doubs
+from src.prinmitext import rep_trips, rep_doubs, tones, rep_tones, rep_combs
 
 def process_data(
         home = None,

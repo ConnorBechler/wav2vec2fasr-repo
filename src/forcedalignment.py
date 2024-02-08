@@ -261,7 +261,7 @@ def correct_alignments(audio_path, corrected_doc, model_dir, cor_tier = "predict
                        word_tier="words", char_tier="chars"):
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
-    if Path(audio_path).is_file(): lib_aud, sr = librosa.load(audio, sr=16000)
+    if Path(audio_path).is_file(): lib_aud, sr = librosa.load(audio_path, sr=16000)
     # Check and load corrected transcription as appropriate pympi object
     cor_path = Path(corrected_doc)
     if cor_path.suffix == ".TextGrid" : ts = pympi.TextGrid(cor_path).to_eaf()
@@ -290,7 +290,7 @@ def correct_alignments(audio_path, corrected_doc, model_dir, cor_tier = "predict
             #TODO: Implement corrected word alignment, probably by taking either a set window of audio around
             # the word, or by taking the three words surrounding
             #Get audio chunk
-            strides = (30, 30)
+            strides = (20, 20)
             aud_chunk = lib_aud[librosa.time_to_samples((dat[0] - strides[0])/1000 , sr=sr): 
                                 librosa.time_to_samples((dat[1] + strides[1])/1000, sr=sr)]
         #Get alignments for corrected transcript    

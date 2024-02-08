@@ -8,13 +8,18 @@ import pathlib
 from pydub import AudioSegment, silence
 import librosa
 import pympi
-import rvad_faster
 import parselmouth
 from math import ceil
 import pathlib
-from speechbrain.pretrained import VAD
-VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty")
+try:
+    from speechbrain.pretrained import VAD
+    VAD = VAD.from_hparams(source="speechbrain/vad-crdnn-libriparty")
+except Exception as e:
+    print("Speechbrain VAD import failed: " + str(e) +"\nTry to enable admin privileges to activate. In the meantime, Speechbrain VAD chunking disabled")
+    VAD = None
 import soundfile
+from src import rvad_faster
+
 
 
 def stride_chunk(max_chunk, stride, length, start=0, end=None):
@@ -102,28 +107,30 @@ def og_silence_chunk(fullpath, aud_ext, min_sil, min_chunk, max_chunk, stride):
 
 def vad_chunk(lib_aud, max_chunk, sr, stride):
     """Uses speechbrain VAD to chunk audio, with fall-back stride chunking for segments that are too long"""
-    tempf = "./.temp_audio.wav"
-    soundfile.write(tempf, lib_aud, samplerate=sr)
-    #boundaries = VAD.get_speech_segments(tempf)
-    #print(boundaries)
-    prob_chunks = VAD.get_speech_prob_file(tempf, overlap_small_chunk=True)
-    prob_th = VAD.apply_threshold(prob_chunks).float()
-    boundaries = VAD.get_boundaries(prob_th)
-    boundaries = VAD.energy_VAD(tempf,boundaries, .1)
-    boundaries = VAD.merge_close_segments(boundaries, close_th=0.5)
-    boundaries = VAD.remove_short_segments(boundaries, len_th=0.1)
-    #boundaries = VAD.double_check_speech_segments(boundaries, tempf,  speech_th=0.5)
-    chunks = [[round(int(y*1000)) for y in x] for x in boundaries.numpy()]
-    nchunks = []
-    for x in range(len(chunks)):
-        diff = chunks[x][1] - chunks[x][0]
-        if diff > max_chunk: 
-            nchunk = stride_chunk(max_chunk, stride, (chunks[x][1]-chunks[x][0])/1000, chunks[x][0], chunks[x][1])
-            nchunks += nchunk
-        else: 
-            nchunks += [[chunks[x][0], chunks[x][1], (0, 0)]]
-    os.remove(tempf)
-    return(nchunks)
+    if VAD != None:
+        tempf = "./.temp_audio.wav"
+        soundfile.write(tempf, lib_aud, samplerate=sr)
+        #boundaries = VAD.get_speech_segments(tempf)
+        #print(boundaries)
+        prob_chunks = VAD.get_speech_prob_file(tempf, overlap_small_chunk=True)
+        prob_th = VAD.apply_threshold(prob_chunks).float()
+        boundaries = VAD.get_boundaries(prob_th)
+        boundaries = VAD.energy_VAD(tempf,boundaries, .1)
+        boundaries = VAD.merge_close_segments(boundaries, close_th=0.5)
+        boundaries = VAD.remove_short_segments(boundaries, len_th=0.1)
+        #boundaries = VAD.double_check_speech_segments(boundaries, tempf,  speech_th=0.5)
+        chunks = [[round(int(y*1000)) for y in x] for x in boundaries.numpy()]
+        nchunks = []
+        for x in range(len(chunks)):
+            diff = chunks[x][1] - chunks[x][0]
+            if diff > max_chunk: 
+                nchunk = stride_chunk(max_chunk, stride, (chunks[x][1]-chunks[x][0])/1000, chunks[x][0], chunks[x][1])
+                nchunks += nchunk
+            else: 
+                nchunks += [[chunks[x][0], chunks[x][1], (0, 0)]]
+        os.remove(tempf)
+        return(nchunks)
+    else: print("Speechbrain VAD disabled")
 
 def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
     """Uses rVAD to chunk audio, with fall-back stride chunking for segments that are too long"""

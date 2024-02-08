@@ -1,13 +1,12 @@
 [tool.poetry]
-name = "northern-prinmi-project-cluster"
+name = "wav2vec2faasr"
 version = "0.1.0"
 description = "Set of tools for fine-tuning wav2vec2 models for transcription and forced alignment, first developed specifically for application in language documentation of Northern Prinmi"
 authors = ["ConnorBechler <cbechler2@gmail.com>"]
 readme = "README.md"
-packages = [
-            {include = "application", from = "src"}, 
+packages = [ 
             {include = "tokenizations", from = "src"}, 
-            {include = "training", from = "src"}]
+            {include = "test_files", from = "tests"}]
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
@@ -26,7 +25,11 @@ torchaudio = "0.11.0"
 pydub = "^0.25.1"
 praat-parselmouth = "^0.4.3"
 speechbrain = "^0.5.16"
+click = "^8.1.7"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
 
 [build-system]
 requires = ["poetry-core"]

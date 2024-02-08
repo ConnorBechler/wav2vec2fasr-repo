@@ -7,14 +7,14 @@ built from (1) and (2)
 from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2CTCTokenizer
 import pympi
 import librosa
-import segment
 import torch
 from dataclasses import dataclass
 import re
 from pathlib import Path
-import orthography as ort
-from orthography import def_tok
 from numpy import ndarray
+from src import segment
+from src import orthography as ort
+from src.orthography import def_tok
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)
@@ -134,7 +134,7 @@ def align_audio(processor: Wav2Vec2Processor,
                 transcript : str = None, 
                 model : AutoModelForCTC =None, 
                 audio = None, 
-                strides = (0,0)) -> tuple[list, list, str]:
+                strides = (0,0)) -> tuple:
     """
     Returns millisecond character and word alignments relative to start of audio, as well as transcript if requested
     Structure largely adapted from https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py

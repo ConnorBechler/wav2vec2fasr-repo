@@ -8,8 +8,8 @@ import pathlib
 import os
 import re
 from pympi import Eaf, TextGrid
-import tokenizations
 from importlib import resources
+from src import tokenizations
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import warnings
@@ -173,7 +173,7 @@ Note: If you only want a rule to run on application and not on reversion, label 
                     
         
 #Load default tokenization scheme
-with resources.path("tokenizations", "default_tokenization.tsv") as def_path:
+with resources.path(tokenizations, "default_tokenization.tsv") as def_path:
     def_tok_path = str(def_path)
 def_tok = Tokenization_Scheme(def_tok_path)
 

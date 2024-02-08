@@ -2,10 +2,6 @@ slurm*
 data*
 pretrained_models/
 pretrained_model_checkpoints/
-*.eaf
 *.pfsx
-*.TextGrid
-*.wav
-*.mp3
 *.bak
 *.pyc

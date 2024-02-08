@@ -1,0 +1,2514 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ANNOTATION_DOCUMENT AUTHOR="" DATE="2019-02-05T14:44:13+08:00" FORMAT="2.8" VERSION="2.8" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/EAFv2.8.xsd">
+    <HEADER MEDIA_FILE="" TIME_UNITS="milliseconds">
+        <MEDIA_DESCRIPTOR MEDIA_URL="file:///Volumes/Seagate Backup Plus Drive/working folder_transcription_ELAN/05soul/td21-22_020/td21-24_020.mp4" MIME_TYPE="video/mp4" RELATIVE_MEDIA_URL="./td21-24_020.mp4"/>
+        <MEDIA_DESCRIPTOR EXTRACTED_FROM="file:///Volumes/Seagate Backup Plus Drive/working folder_transcription_ELAN/05soul/td21-22_020/td21-24_020.mp4" MEDIA_URL="file:///Volumes/Seagate Backup Plus Drive/working folder_transcription_ELAN/05soul/td21-22_020/td21-24_020.wav" MIME_TYPE="audio/x-wav" RELATIVE_MEDIA_URL="./td21-24_020.wav"/>
+        <PROPERTY NAME="URN">urn:nl-mpi-tools-elan-eaf:c0543310-56a8-4c97-8433-c3bea79d2cea</PROPERTY>
+        <PROPERTY NAME="lastUsedAnnotationId">457</PROPERTY>
+    </HEADER>
+    <TIME_ORDER>
+        <TIME_SLOT TIME_SLOT_ID="ts1" TIME_VALUE="48"/>
+        <TIME_SLOT TIME_SLOT_ID="ts2" TIME_VALUE="1608"/>
+        <TIME_SLOT TIME_SLOT_ID="ts3" TIME_VALUE="5328"/>
+        <TIME_SLOT TIME_SLOT_ID="ts4" TIME_VALUE="7188"/>
+        <TIME_SLOT TIME_SLOT_ID="ts5" TIME_VALUE="7388"/>
+        <TIME_SLOT TIME_SLOT_ID="ts6" TIME_VALUE="12608"/>
+        <TIME_SLOT TIME_SLOT_ID="ts7" TIME_VALUE="12879"/>
+        <TIME_SLOT TIME_SLOT_ID="ts8" TIME_VALUE="12919"/>
+        <TIME_SLOT TIME_SLOT_ID="ts9" TIME_VALUE="14039"/>
+        <TIME_SLOT TIME_SLOT_ID="ts10" TIME_VALUE="14106"/>
+        <TIME_SLOT TIME_SLOT_ID="ts11" TIME_VALUE="14694"/>
+        <TIME_SLOT TIME_SLOT_ID="ts12" TIME_VALUE="15007"/>
+        <TIME_SLOT TIME_SLOT_ID="ts13" TIME_VALUE="16479"/>
+        <TIME_SLOT TIME_SLOT_ID="ts14" TIME_VALUE="16861"/>
+        <TIME_SLOT TIME_SLOT_ID="ts15" TIME_VALUE="19161"/>
+        <TIME_SLOT TIME_SLOT_ID="ts16" TIME_VALUE="19403"/>
+        <TIME_SLOT TIME_SLOT_ID="ts17" TIME_VALUE="19997"/>
+        <TIME_SLOT TIME_SLOT_ID="ts18" TIME_VALUE="21137"/>
+        <TIME_SLOT TIME_SLOT_ID="ts19" TIME_VALUE="22180"/>
+        <TIME_SLOT TIME_SLOT_ID="ts20" TIME_VALUE="22940"/>
+        <TIME_SLOT TIME_SLOT_ID="ts21" TIME_VALUE="22940"/>
+        <TIME_SLOT TIME_SLOT_ID="ts22" TIME_VALUE="24045"/>
+        <TIME_SLOT TIME_SLOT_ID="ts23" TIME_VALUE="26920"/>
+        <TIME_SLOT TIME_SLOT_ID="ts24" TIME_VALUE="30540"/>
+        <TIME_SLOT TIME_SLOT_ID="ts25" TIME_VALUE="30650"/>
+        <TIME_SLOT TIME_SLOT_ID="ts26" TIME_VALUE="32075"/>
+        <TIME_SLOT TIME_SLOT_ID="ts27" TIME_VALUE="33748"/>
+        <TIME_SLOT TIME_SLOT_ID="ts28" TIME_VALUE="47024"/>
+        <TIME_SLOT TIME_SLOT_ID="ts29" TIME_VALUE="47078"/>
+        <TIME_SLOT TIME_SLOT_ID="ts30" TIME_VALUE="59156"/>
+        <TIME_SLOT TIME_SLOT_ID="ts31" TIME_VALUE="59456"/>
+        <TIME_SLOT TIME_SLOT_ID="ts32" TIME_VALUE="67450"/>
+        <TIME_SLOT TIME_SLOT_ID="ts33" TIME_VALUE="67712"/>
+        <TIME_SLOT TIME_SLOT_ID="ts34" TIME_VALUE="79805"/>
+        <TIME_SLOT TIME_SLOT_ID="ts35" TIME_VALUE="79905"/>
+        <TIME_SLOT TIME_SLOT_ID="ts36" TIME_VALUE="87999"/>
+        <TIME_SLOT TIME_SLOT_ID="ts37" TIME_VALUE="88219"/>
+        <TIME_SLOT TIME_SLOT_ID="ts38" TIME_VALUE="95183"/>
+        <TIME_SLOT TIME_SLOT_ID="ts39" TIME_VALUE="95263"/>
+        <TIME_SLOT TIME_SLOT_ID="ts40" TIME_VALUE="99700"/>
+        <TIME_SLOT TIME_SLOT_ID="ts41" TIME_VALUE="99920"/>
+        <TIME_SLOT TIME_SLOT_ID="ts42" TIME_VALUE="104403"/>
+        <TIME_SLOT TIME_SLOT_ID="ts43" TIME_VALUE="104623"/>
+        <TIME_SLOT TIME_SLOT_ID="ts44" TIME_VALUE="115265"/>
+        <TIME_SLOT TIME_SLOT_ID="ts45" TIME_VALUE="115325"/>
+        <TIME_SLOT TIME_SLOT_ID="ts46" TIME_VALUE="123272"/>
+        <TIME_SLOT TIME_SLOT_ID="ts47" TIME_VALUE="123432"/>
+        <TIME_SLOT TIME_SLOT_ID="ts48" TIME_VALUE="128473"/>
+        <TIME_SLOT TIME_SLOT_ID="ts49" TIME_VALUE="128713"/>
+        <TIME_SLOT TIME_SLOT_ID="ts50" TIME_VALUE="137675"/>
+        <TIME_SLOT TIME_SLOT_ID="ts51" TIME_VALUE="137875"/>
+        <TIME_SLOT TIME_SLOT_ID="ts52" TIME_VALUE="144714"/>
+        <TIME_SLOT TIME_SLOT_ID="ts53" TIME_VALUE="144774"/>
+        <TIME_SLOT TIME_SLOT_ID="ts54" TIME_VALUE="149329"/>
+        <TIME_SLOT TIME_SLOT_ID="ts55" TIME_VALUE="150388"/>
+        <TIME_SLOT TIME_SLOT_ID="ts56" TIME_VALUE="151028"/>
+    </TIME_ORDER>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="A_morph-type" PARTICIPANT="A" TIER_ID="A_morph-cf-pmi-Qaaa-fonipa-x-Pumi-etic"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="A_morph-type" PARTICIPANT="A" TIER_ID="A_morph-gls-en"/>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="A_morph-type" PARTICIPANT="A" TIER_ID="A_morph-gls-zh-CN"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="morph" PARENT_REF="A_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="A" TIER_ID="A_morph-type"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="A_phrase-segnum-en" PARTICIPANT="A" TIER_ID="A_phrase-gls-en">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a1" ANNOTATION_REF="a14">
+                <ANNOTATION_VALUE>Mentioning a person's name is not needed really, since the soul of the two of us is not really lost, right? 
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a2" ANNOTATION_REF="a15">
+                <ANNOTATION_VALUE>When mentioning a name...</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a3" ANNOTATION_REF="a16">
+                <ANNOTATION_VALUE>Okay, okay.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a4" ANNOTATION_REF="a17">
+                <ANNOTATION_VALUE>Okay, okay.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a5" ANNOTATION_REF="a18">
+                <ANNOTATION_VALUE>I have already forgotten the name for the calling of the soul. Haha!
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a6" ANNOTATION_REF="a19">
+                <ANNOTATION_VALUE>Oh, it is not me calling, oh, the lamas and yidams (=tutelary deities) are calling, the pawos (=heroes) and dakas (=sky-walkers) are calling, the dharma protectors and guardian deities are calling, the local gods and territorial deities are calling, the mountain gods and territorial deities are calling, oh.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a58" ANNOTATION_REF="a20">
+                <ANNOTATION_VALUE>Oh, Padma Tshering, oh, don't go soul-roaming and spirit-roaming, don't go east to the Tredza household, south to the Cindzyi household, north to the Mame household, don't go running to the eight classes of gods and demons of ?Ka?, to Detse Zenmin.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a59" ANNOTATION_REF="a21">
+                <ANNOTATION_VALUE>Oh, in the house father is calling, mother is calling, your older siblings are calling, your younger siblings are calling.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a62" ANNOTATION_REF="a22">
+                <ANNOTATION_VALUE>Oh, there is steamed rice and pork at home, there are also food and drinks at home, there are also beautiful clothes at home, there are also silk ?scarves? at home, there is also steamed rice and pork at home, there is also ale and liquor at home.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a63" ANNOTATION_REF="a23">
+                <ANNOTATION_VALUE>It's not me calling, oh, oh, the ?beautiful? Dzambhala (god of wealth) is calling, the mountain gods and territorial deities are calling, the tutelary deities and war gods are calling,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a64" ANNOTATION_REF="a24">
+                <ANNOTATION_VALUE>oh, come back home, oh, don't go roaming about, oh, come back to the house.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a65" ANNOTATION_REF="a25">
+                <ANNOTATION_VALUE>Your father is calling, your mother is calling, your brothers and sisters are calling,
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a66" ANNOTATION_REF="a26">
+                <ANNOTATION_VALUE>come back home, oh, don't go roaming about.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a67" ANNOTATION_REF="a27">
+                <ANNOTATION_VALUE>Uhm, in your house there are food and drinks at home, there are beautiful clothes at home, there are also silk ?scarves? at home, there is also steamed rice and pork at home, there is also ale and liquor at home.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a68" ANNOTATION_REF="a28">
+                <ANNOTATION_VALUE>Oh, come back home, oh, uhm, come back home, don't go roaming about, come back to the house,
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a69" ANNOTATION_REF="a29">
+                <ANNOTATION_VALUE>?beautiful? Dzambhala (god of wealth) is calling, you, however, don't go roaming about.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a70" ANNOTATION_REF="a30">
+                <ANNOTATION_VALUE>Up in the forest, up on the mountain, there are leopards, there are tigers, there are muntjacs and bears, there are toads and snakes.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a71" ANNOTATION_REF="a31">
+                <ANNOTATION_VALUE>Oh, come back, there won't be any ?dzyabudzyi? and cold water to drink, come back home, oh, come back home,
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a72" ANNOTATION_REF="a32">
+                <ANNOTATION_VALUE>Padma Tshering, oh, Padma Tshering, come back home.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a73" ANNOTATION_REF="a33">
+                <ANNOTATION_VALUE>This is all.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="A_phrase-segnum-en" PARTICIPANT="A" TIER_ID="A_phrase-gls-zh-CN">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a7" ANNOTATION_REF="a14">
+                <ANNOTATION_VALUE>不用叫一个人的名字吧，咱俩没有人丢了魂的，对吧？ 
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a8" ANNOTATION_REF="a15">
+                <ANNOTATION_VALUE>叫名字时，……</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a9" ANNOTATION_REF="a16">
+                <ANNOTATION_VALUE>好，好。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a10" ANNOTATION_REF="a17">
+                <ANNOTATION_VALUE>好，好。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a11" ANNOTATION_REF="a18">
+                <ANNOTATION_VALUE>我这喊魂和喊名字也忘记了。哈哈！
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a12" ANNOTATION_REF="a19">
+                <ANNOTATION_VALUE>喔，不是我在喊（你），喔，是喇嘛和本尊在喊（你），是英雄和空行在喊（你），是护法神和守护神（你），本地神和土地神在喊（你），山神和土地神在喊（你），喔。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a60" ANNOTATION_REF="a20">
+                <ANNOTATION_VALUE>喔，兵马次仁，不可以吓到魂和灵？，东边 纸扎？家里也不可以去，南边 新及？家里，北边玛目？家里，嘎一？八部众，德子？然明？那里也不可去跑。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a74" ANNOTATION_REF="a21">
+                <ANNOTATION_VALUE>喔，房子里父亲在喊，母亲在喊，哥哥/姐姐在喊，弟弟/妹妹在喊。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a75" ANNOTATION_REF="a22">
+                <ANNOTATION_VALUE>喔，蒸米饭和猪肉也在家里，吃的喝的也在家里，漂亮的穿衣也在家里，丝绸和 不热？也在家里，蒸米饭和猪肉也在家里，黄酒和白酒也在家里。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a76" ANNOTATION_REF="a23">
+                <ANNOTATION_VALUE>不是我在喊，喔，是啊呀？宗巴拉在喊，山神和土地神在喊，监护神和战神在喊，
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a77" ANNOTATION_REF="a24">
+                <ANNOTATION_VALUE>喔，回来房子里，喔，不可以去流浪，喔，回来房子里。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a78" ANNOTATION_REF="a25">
+                <ANNOTATION_VALUE>你的母亲在喊，你的哥哥/姐姐、弟弟/妹妹们在喊，
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a79" ANNOTATION_REF="a26">
+                <ANNOTATION_VALUE>回来家里，喔，不可以去流浪。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a80" ANNOTATION_REF="a27">
+                <ANNOTATION_VALUE>嗯， 在你的房子里，吃的喝的在家里，漂亮的穿衣也在家里，丝绸和 不热？也在家里，蒸米饭和猪肉也在家里，黄酒和白酒也在家里。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a81" ANNOTATION_REF="a28">
+                <ANNOTATION_VALUE>喔，回来家里， 喔，回来家里，不可以去流浪，回来房子里，
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a82" ANNOTATION_REF="a29">
+                <ANNOTATION_VALUE>向阿呀宗巴拉在喊，你呢，不可以去流浪。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a83" ANNOTATION_REF="a30">
+                <ANNOTATION_VALUE>在上面的树林里呢，在上面的山上呢，是有豹子的，是有老虎的，是有獐子和熊的，是有蟾蜍和蛇的。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a84" ANNOTATION_REF="a31">
+                <ANNOTATION_VALUE>喔，回来，？ 和冷水都不会有喝的，回来家里，喔，回来家里，
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a85" ANNOTATION_REF="a32">
+                <ANNOTATION_VALUE>兵马次仁，喔，兵马次仁回来家里。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a86" ANNOTATION_REF="a33">
+                <ANNOTATION_VALUE>只是这些。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="A_phrase-segnum-en" PARTICIPANT="A" TIER_ID="A_phrase-note-pmi-Qaaa-fonipa-x-Pumi-etic">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a13" ANNOTATION_REF="a19">
+                <ANNOTATION_VALUE>WT: bla.ma, yi.dam,dpa.'bo, mkra'.'gro, chos.skyong, srung.ma, yul.lha, gzhi.bdag, gzhi.btsan, gzhi.bdag.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a61" ANNOTATION_REF="a20">
+                <ANNOTATION_VALUE>WT: lha.srin.sde.brgyad.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a87" ANNOTATION_REF="a29">
+                <ANNOTATION_VALUE>The use of the dative bi is a mistake here, it should be an agentive marker instead.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="phrase" PARTICIPANT="A" TIER_ID="A_phrase-segnum-en">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a14" TIME_SLOT_REF1="ts5" TIME_SLOT_REF2="ts6">
+                <ANNOTATION_VALUE>tʌ⁵⁵ tsɨ²² ɡæ²² mæ̃⁵⁵ tsi²², mæ̃⁵⁵ tsi⁵⁵ mɑ²² qʰu³⁵ bɑ³⁵, ĩ²²dzæ̃⁵⁵ dʑɯ²² nʌ²²-nʲæ⁵⁵ mə²² ni²² mɑ³⁵ ʑi²² kʰi²², ə⁵⁵sə̃²²?
+
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a15" TIME_SLOT_REF1="ts8" TIME_SLOT_REF2="ts10">
+                <ANNOTATION_VALUE>mæ̃⁵⁵ tsi⁵⁵ kʰi²²....
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a16" TIME_SLOT_REF1="ts12" TIME_SLOT_REF2="ts16">
+                <ANNOTATION_VALUE>ə̃³⁵, ə̃³⁵.
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a17" TIME_SLOT_REF1="ts21" TIME_SLOT_REF2="ts22">
+                <ANNOTATION_VALUE>ə̃³⁵, ə̃³⁵.
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a18" TIME_SLOT_REF1="ts23" TIME_SLOT_REF2="ts24">
+                <ANNOTATION_VALUE>ʌ⁵⁵ tɨ⁵⁵ dʑɯ²²rɛi²² mæ̃⁵⁵rɛi⁵⁵ lɑ²² tɨ⁵⁵ ə²²pu⁵⁵ də²²-mæ̃⁵⁵ si²², xɑ⁵⁵xɑ⁵⁵!
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a19" TIME_SLOT_REF1="ts27" TIME_SLOT_REF2="ts28">
+                <ANNOTATION_VALUE>ɦɑu³⁵ ʌ²²ni⁵⁵ qʷʌ⁵⁵rɛi⁵⁵ mɑ²² ɖõ⁵¹, ɦɑu³⁵ lɑ⁵⁵mɑ⁵⁵ ji²²dõ⁵⁵ ɦõ⁵⁵ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², pʌ⁵⁵wu⁵⁵ kʰæ̃²²ɖu⁵⁵ ɦõ⁵⁵ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², tɕɨ²²ɕõ⁵⁵ sõ⁵⁵mɑ⁵⁵ ɦõ²²ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², ju²²ɬɑ⁵⁵ ʑɨ²²dɑ⁵⁵ ɦõ⁵⁵ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², ʑɨ²²tsə̃⁵⁵ ʑɨ²²dɑ⁵⁵ ɦõ⁵⁵ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²² ɦɑu⁵¹. 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a20" TIME_SLOT_REF1="ts29" TIME_SLOT_REF2="ts30">
+                <ANNOTATION_VALUE>ɦɑu³⁵ pĩ⁵⁵mɑ⁵⁵tsʰɨ²²ri²² ɦɑu³⁵, dʑɯ²² tɕʰĩ⁵⁵ ræ̃⁵⁵ tɕʰĩ⁵⁵ ɕɨ²² lɑ²² mʌ⁵⁵ xɑ²², ɕʌ⁵⁵ ʈɨ²²dzɑ⁵⁵ bɑ⁵⁵ wu²² lɑ²² ʂɨ⁵⁵ mʌ⁵⁵ xɑ²², xu⁵⁵ ɕĩ⁵⁵dʑi⁵⁵ bɑ²² wu²², ʈʂõ³⁵ mɑ²²mə⁵⁵ bɑ⁵⁵ wu²², kʌ⁵⁵ji²² ɬɑ⁵⁵sɨ⁵⁵dʌ²²dʑæ²², də⁵⁵tsɨ²² zə̃⁵⁵mĩ⁵⁵ wu²² lɑ²² ɖæ̃⁵⁵ ʂɨ²² mʌ⁵⁵ xɑ²²。 
+
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a21" TIME_SLOT_REF1="ts31" TIME_SLOT_REF2="ts32">
+                <ANNOTATION_VALUE>ɦɑu³⁵ tɕi⁵⁵ wu²² bu²² ʌ²²sʷæ̃⁵⁵ ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², ʌ²²mɑ⁵⁵ ɕi²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², pɛi²² rɨ⁵⁵ ni⁵⁵ qʷʌ⁵⁵rɛi⁵⁵ ɖu²², kʷə̃²² rɨ⁵⁵ ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²².
+
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a22" TIME_SLOT_REF1="ts33" TIME_SLOT_REF2="ts34">
+                <ANNOTATION_VALUE>ɦɑu³⁵ su⁵⁵pu⁵⁵ tɕʰʷæ²²tsɑ⁵⁵ lɑ²² tɕĩ⁵⁵mĩ⁵⁵ tɛi²², dzɨ⁵⁵ ji²² tʰĩ²² ji⁵⁵ lɑ²² tɕĩ⁵⁵mĩ⁵⁵ tɛi²², tɕõ²²ɡʷi⁵⁵ ɡæ⁵⁵ mi⁵⁵ lɑ²² tɕĩ⁵⁵mĩ⁵⁵ tɛi²², tʰi³⁵ bɯ²²ri³⁵ lɑ²² tɕĩ⁵⁵mĩ⁵⁵ tɛi²², su⁵⁵pu⁵⁵ tɕʰʷæ²²tsɑ⁵⁵ lɑ²² tɕĩ⁵⁵mĩ⁵⁵ tɛi²², ʈʰʷi⁵⁵ nõ²² rʌ²²dʑɨ³⁵ lɑ²² tɕĩ⁵⁵mĩ⁵⁵ tɛi²². 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a23" TIME_SLOT_REF1="ts35" TIME_SLOT_REF2="ts36">
+                <ANNOTATION_VALUE>ʌ²²ni⁵⁵ qʷʌ⁵⁵rɛi⁵⁵ mɑ²² ɖõ⁵⁵ ɦɑu⁵¹, ɦɑu³⁵ ʌ⁵⁵jæ⁵⁵ dzõ²²bɑ⁵⁵lɑ²² ɕi²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², ʑɨ²²tsə̃⁵⁵ ʑɨ²²dɑ⁵⁵ ɦõ⁵⁵ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², pʰɑ⁵⁵ɬɑ⁵⁵ ɖæ²²ɬɑ⁵⁵ ɦõ⁵⁵ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a24" TIME_SLOT_REF1="ts37" TIME_SLOT_REF2="ts38">
+                <ANNOTATION_VALUE>ɦɑu⁵⁵ tɕĩ⁵⁵mĩ⁵⁵ ʌ²²-ju⁵¹, ɦɑu⁵⁵ ɡæ²²ɡæ⁵⁵lʲæ⁵⁵lʲæ⁵⁵ ʂɨ²² lɑ²² mʌ⁵⁵ xɑ²², ɦɑu³⁵ tɕi⁵⁵ wu²² ʌ²²-ju⁵¹.
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a25" TIME_SLOT_REF1="ts39" TIME_SLOT_REF2="ts40">
+                <ANNOTATION_VALUE>nʲæ⁵⁵ ʌ²²sʷæ̃⁵⁵ ɕi²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², ʌ²²mɑ⁵⁵ ɕi²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², pɛi²²pɛi⁵⁵ kʷə̃²²kʷə̃⁵⁵ rɨ²² ni²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a26" TIME_SLOT_REF1="ts41" TIME_SLOT_REF2="ts42">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵ ʌ²²-ju⁵⁵ ɦɑu³⁵ ɡæ²²ɡæ⁵⁵lʲæ⁵⁵lʲæ⁵⁵ ʂɨ²² mʌ⁵⁵ xɑ²². 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a27" TIME_SLOT_REF1="ts43" TIME_SLOT_REF2="ts44">
+                <ANNOTATION_VALUE>ə̃³⁵ nʲæ⁵⁵ tɕõ⁵⁵ wu²², dzɨ⁵⁵ ji²² tʰĩ²² ji³⁵ tɕĩ⁵⁵mĩ⁵⁵ tɛi²², tɕõ²²ɡʷi⁵⁵ ɡæ⁵⁵ mi⁵⁵ tɕĩ⁵⁵mĩ⁵⁵ tɛi²², tʰi³⁵ bɯ²²rɛi³⁵ lɑ²² tɕĩ⁵⁵mĩ⁵⁵ tɛi²², su⁵⁵pu⁵⁵ tɕʰʷæ²²tsɑ⁵⁵ lɑ²² tɕĩ⁵⁵mĩ⁵⁵ tɛi²², ʈʰʷi⁵⁵ rʌ²²dʑɨ³⁵ lɑ²² tɕĩ⁵⁵mĩ⁵⁵ tɛi²².
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a28" TIME_SLOT_REF1="ts45" TIME_SLOT_REF2="ts46">
+                <ANNOTATION_VALUE>ɦɑu³⁵ tɕĩ⁵⁵mĩ⁵⁵ ʌ²²-ju⁵⁵ ɦɑu³⁵, ə̃⁵⁵, tɕĩ⁵⁵mĩ⁵⁵ ʌ²²-ju⁵¹, ɡæ²²ɡæ⁵⁵lʲæ⁵⁵lʲæ⁵⁵ ʂɨ²² mʌ⁵⁵ xɑ²², tɕõ⁵⁵ wu²² ʌ²²-ju⁵¹, 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a29" TIME_SLOT_REF1="ts47" TIME_SLOT_REF2="ts48">
+                <ANNOTATION_VALUE>ʌ⁵⁵jæ⁵⁵ dzõ²²bɑ⁵⁵lɑ²² bi²² qʷʌ⁵⁵rɛi⁵⁵ ɖu²², nʲõ⁵⁵ ni⁵⁵ bu²², ɡæ²²ɡæ⁵⁵lʲæ⁵⁵lʲæ⁵⁵ ʂɨ²² lɑ²² mʌ⁵⁵ xɑ²².
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a30" TIME_SLOT_REF1="ts49" TIME_SLOT_REF2="ts50">
+                <ANNOTATION_VALUE>ti⁵⁵pɑ⁵⁵ pĩ³⁵ wu²² bu²², ti⁵⁵pɑ⁵⁵ dʑĩ³⁵ qʰu²² bu²², ɕtʷi⁵⁵/sʷi⁵⁵ ʑi²² mə²² dʌ²², wo²² ʑi²² mə⁵⁵ dʌ⁵¹, lʲɯ⁵⁵ ʑi²² ɡʷə̃⁵⁵ ʑi⁵⁵ mə²² dʌ²², pʌ⁵⁵ bɯ²²rɛi⁵⁵ ʑi⁵⁵ mə²² dʌ²². 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a31" TIME_SLOT_REF1="ts51" TIME_SLOT_REF2="ts52">
+                <ANNOTATION_VALUE>ɦɑu³⁵ ʌ²²-ju⁵¹, dʑʌ²²bɯ²²dʑi⁵⁵ nõ²² tɕɨ²²bõ⁵⁵nʲæ⁵⁵ lɑ²² tʰĩ²² ji²² ɕi⁵⁵ mɑ²² qɛi⁵¹, tɕĩ⁵⁵mĩ⁵⁵ ʌ²²-ju⁵⁵ ɦɑu³⁵ tɕĩ⁵⁵mĩ⁵⁵ ʌ²²-ju⁵¹, 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a32" TIME_SLOT_REF1="ts53" TIME_SLOT_REF2="ts54">
+                <ANNOTATION_VALUE>pĩ⁵⁵mɑ⁵⁵tsʰɨ²²ri²², ɦɑu³⁵, pĩ⁵⁵mɑ⁵⁵tsʰɨ²²ri²², tɕĩ⁵⁵mĩ⁵⁵ ʌ²²-ju⁵¹.
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a33" TIME_SLOT_REF1="ts55" TIME_SLOT_REF2="ts56">
+                <ANNOTATION_VALUE>ə⁵⁵tɑ²² dʌ⁵¹.
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="word-item" PARENT_REF="A_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="A" TIER_ID="A_word-gls-en"/>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="word-item" PARENT_REF="A_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="A" TIER_ID="A_word-gls-zh-CN"/>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="word" PARENT_REF="A_phrase-segnum-en" PARTICIPANT="A" TIER_ID="A_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a88" ANNOTATION_REF="a14">
+                <ANNOTATION_VALUE>tʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a89" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a88">
+                <ANNOTATION_VALUE>tsɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a90" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a89">
+                <ANNOTATION_VALUE>ɡæ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a91" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a90">
+                <ANNOTATION_VALUE>mæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a92" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a91">
+                <ANNOTATION_VALUE>tsi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a93" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a92">
+                <ANNOTATION_VALUE>mæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a94" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a93">
+                <ANNOTATION_VALUE>tsi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a95" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a94">
+                <ANNOTATION_VALUE>mɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a96" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a95">
+                <ANNOTATION_VALUE>qʰu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a97" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a96">
+                <ANNOTATION_VALUE>bɑ³⁵,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a98" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a97">
+                <ANNOTATION_VALUE>ĩ²²dzæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a99" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a98">
+                <ANNOTATION_VALUE>dʑɯ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a100" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a99">
+                <ANNOTATION_VALUE>nʌ²²-nʲæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a101" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a100">
+                <ANNOTATION_VALUE>mə²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a102" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a101">
+                <ANNOTATION_VALUE>ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a103" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a102">
+                <ANNOTATION_VALUE>mɑ³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a104" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a103">
+                <ANNOTATION_VALUE>ʑi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a105" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a104">
+                <ANNOTATION_VALUE>kʰi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a106" ANNOTATION_REF="a14" PREVIOUS_ANNOTATION="a105">
+                <ANNOTATION_VALUE>ə⁵⁵sə̃²²?</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a107" ANNOTATION_REF="a15">
+                <ANNOTATION_VALUE>mæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a108" ANNOTATION_REF="a15" PREVIOUS_ANNOTATION="a107">
+                <ANNOTATION_VALUE>tsi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a109" ANNOTATION_REF="a15" PREVIOUS_ANNOTATION="a108">
+                <ANNOTATION_VALUE>kʰi²²....</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a110" ANNOTATION_REF="a16">
+                <ANNOTATION_VALUE>ə̃³⁵,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a111" ANNOTATION_REF="a16" PREVIOUS_ANNOTATION="a110">
+                <ANNOTATION_VALUE>ə̃³⁵.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a112" ANNOTATION_REF="a17">
+                <ANNOTATION_VALUE>ə̃³⁵,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a113" ANNOTATION_REF="a17" PREVIOUS_ANNOTATION="a112">
+                <ANNOTATION_VALUE>ə̃³⁵.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a114" ANNOTATION_REF="a18">
+                <ANNOTATION_VALUE>ʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a115" ANNOTATION_REF="a18" PREVIOUS_ANNOTATION="a114">
+                <ANNOTATION_VALUE>tɨ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a116" ANNOTATION_REF="a18" PREVIOUS_ANNOTATION="a115">
+                <ANNOTATION_VALUE>dʑɯ²²rɛi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a117" ANNOTATION_REF="a18" PREVIOUS_ANNOTATION="a116">
+                <ANNOTATION_VALUE>mæ̃⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a118" ANNOTATION_REF="a18" PREVIOUS_ANNOTATION="a117">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a119" ANNOTATION_REF="a18" PREVIOUS_ANNOTATION="a118">
+                <ANNOTATION_VALUE>tɨ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a120" ANNOTATION_REF="a18" PREVIOUS_ANNOTATION="a119">
+                <ANNOTATION_VALUE>ə²²pu⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a121" ANNOTATION_REF="a18" PREVIOUS_ANNOTATION="a120">
+                <ANNOTATION_VALUE>də²²-mæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a122" ANNOTATION_REF="a18" PREVIOUS_ANNOTATION="a121">
+                <ANNOTATION_VALUE>si²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a123" ANNOTATION_REF="a18" PREVIOUS_ANNOTATION="a122">
+                <ANNOTATION_VALUE>xɑ⁵⁵xɑ⁵⁵!</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a124" ANNOTATION_REF="a19">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a125" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a124">
+                <ANNOTATION_VALUE>ʌ²²ni⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a126" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a125">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a127" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a126">
+                <ANNOTATION_VALUE>mɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a128" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a127">
+                <ANNOTATION_VALUE>ɖõ⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a129" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a128">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a130" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a129">
+                <ANNOTATION_VALUE>lɑ⁵⁵mɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a131" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a130">
+                <ANNOTATION_VALUE>ji²²dõ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a132" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a131">
+                <ANNOTATION_VALUE>ɦõ⁵⁵ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a133" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a132">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a134" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a133">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a135" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a134">
+                <ANNOTATION_VALUE>pʌ⁵⁵wu⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a136" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a135">
+                <ANNOTATION_VALUE>kʰæ̃²²ɖu⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a137" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a136">
+                <ANNOTATION_VALUE>ɦõ⁵⁵ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a138" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a137">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a139" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a138">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a140" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a139">
+                <ANNOTATION_VALUE>tɕɨ²²ɕõ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a141" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a140">
+                <ANNOTATION_VALUE>sõ⁵⁵mɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a142" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a141">
+                <ANNOTATION_VALUE>ɦõ²²ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a143" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a142">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a144" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a143">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a145" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a144">
+                <ANNOTATION_VALUE>ju²²ɬɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a146" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a145">
+                <ANNOTATION_VALUE>ʑɨ²²dɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a147" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a146">
+                <ANNOTATION_VALUE>ɦõ⁵⁵ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a148" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a147">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a149" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a148">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a150" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a149">
+                <ANNOTATION_VALUE>ʑɨ²²tsə̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a151" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a150">
+                <ANNOTATION_VALUE>ʑɨ²²dɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a152" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a151">
+                <ANNOTATION_VALUE>ɦõ⁵⁵ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a153" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a152">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a154" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a153">
+                <ANNOTATION_VALUE>ɖu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a155" ANNOTATION_REF="a19" PREVIOUS_ANNOTATION="a154">
+                <ANNOTATION_VALUE>ɦɑu⁵¹.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a156" ANNOTATION_REF="a20">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a157" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a156">
+                <ANNOTATION_VALUE>pĩ⁵⁵mɑ⁵⁵tsʰɨ²²ri²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a158" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a157">
+                <ANNOTATION_VALUE>ɦɑu³⁵,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a159" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a158">
+                <ANNOTATION_VALUE>dʑɯ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a160" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a159">
+                <ANNOTATION_VALUE>tɕʰĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a161" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a160">
+                <ANNOTATION_VALUE>ræ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a162" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a161">
+                <ANNOTATION_VALUE>tɕʰĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a163" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a162">
+                <ANNOTATION_VALUE>ɕɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a164" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a163">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a165" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a164">
+                <ANNOTATION_VALUE>mʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a166" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a165">
+                <ANNOTATION_VALUE>xɑ²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a167" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a166">
+                <ANNOTATION_VALUE>ɕʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a168" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a167">
+                <ANNOTATION_VALUE>ʈɨ²²dzɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a169" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a168">
+                <ANNOTATION_VALUE>bɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a170" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a169">
+                <ANNOTATION_VALUE>wu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a171" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a170">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a172" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a171">
+                <ANNOTATION_VALUE>ʂɨ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a173" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a172">
+                <ANNOTATION_VALUE>mʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a174" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a173">
+                <ANNOTATION_VALUE>xɑ²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a175" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a174">
+                <ANNOTATION_VALUE>xu⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a176" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a175">
+                <ANNOTATION_VALUE>ɕĩ⁵⁵dʑi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a177" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a176">
+                <ANNOTATION_VALUE>bɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a178" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a177">
+                <ANNOTATION_VALUE>wu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a179" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a178">
+                <ANNOTATION_VALUE>ʈʂõ³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a180" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a179">
+                <ANNOTATION_VALUE>mɑ²²mə⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a181" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a180">
+                <ANNOTATION_VALUE>bɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a182" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a181">
+                <ANNOTATION_VALUE>wu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a183" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a182">
+                <ANNOTATION_VALUE>kʌ⁵⁵ji²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a184" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a183">
+                <ANNOTATION_VALUE>ɬɑ⁵⁵sɨ⁵⁵dʌ²²dʑæ²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a185" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a184">
+                <ANNOTATION_VALUE>də⁵⁵tsɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a186" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a185">
+                <ANNOTATION_VALUE>zə̃⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a187" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a186">
+                <ANNOTATION_VALUE>wu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a188" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a187">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a189" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a188">
+                <ANNOTATION_VALUE>ɖæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a190" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a189">
+                <ANNOTATION_VALUE>ʂɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a191" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a190">
+                <ANNOTATION_VALUE>mʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a192" ANNOTATION_REF="a20" PREVIOUS_ANNOTATION="a191">
+                <ANNOTATION_VALUE>xɑ²²。</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a193" ANNOTATION_REF="a21">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a194" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a193">
+                <ANNOTATION_VALUE>tɕi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a195" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a194">
+                <ANNOTATION_VALUE>wu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a196" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a195">
+                <ANNOTATION_VALUE>bu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a197" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a196">
+                <ANNOTATION_VALUE>ʌ²²sʷæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a198" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a197">
+                <ANNOTATION_VALUE>ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a199" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a198">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a200" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a199">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a201" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a200">
+                <ANNOTATION_VALUE>ʌ²²mɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a202" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a201">
+                <ANNOTATION_VALUE>ɕi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a203" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a202">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a204" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a203">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a205" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a204">
+                <ANNOTATION_VALUE>pɛi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a206" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a205">
+                <ANNOTATION_VALUE>rɨ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a207" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a206">
+                <ANNOTATION_VALUE>ni⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a208" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a207">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a209" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a208">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a210" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a209">
+                <ANNOTATION_VALUE>kʷə̃²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a211" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a210">
+                <ANNOTATION_VALUE>rɨ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a212" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a211">
+                <ANNOTATION_VALUE>ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a213" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a212">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a214" ANNOTATION_REF="a21" PREVIOUS_ANNOTATION="a213">
+                <ANNOTATION_VALUE>ɖu²².</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a215" ANNOTATION_REF="a22">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a216" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a215">
+                <ANNOTATION_VALUE>su⁵⁵pu⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a217" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a216">
+                <ANNOTATION_VALUE>tɕʰʷæ²²tsɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a218" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a217">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a219" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a218">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a220" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a219">
+                <ANNOTATION_VALUE>tɛi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a221" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a220">
+                <ANNOTATION_VALUE>dzɨ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a222" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a221">
+                <ANNOTATION_VALUE>ji²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a223" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a222">
+                <ANNOTATION_VALUE>tʰĩ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a224" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a223">
+                <ANNOTATION_VALUE>ji⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a225" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a224">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a226" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a225">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a227" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a226">
+                <ANNOTATION_VALUE>tɛi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a228" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a227">
+                <ANNOTATION_VALUE>tɕõ²²ɡʷi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a229" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a228">
+                <ANNOTATION_VALUE>ɡæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a230" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a229">
+                <ANNOTATION_VALUE>mi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a231" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a230">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a232" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a231">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a233" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a232">
+                <ANNOTATION_VALUE>tɛi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a234" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a233">
+                <ANNOTATION_VALUE>tʰi³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a235" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a234">
+                <ANNOTATION_VALUE>bɯ²²ri³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a236" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a235">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a237" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a236">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a238" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a237">
+                <ANNOTATION_VALUE>tɛi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a239" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a238">
+                <ANNOTATION_VALUE>su⁵⁵pu⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a240" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a239">
+                <ANNOTATION_VALUE>tɕʰʷæ²²tsɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a241" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a240">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a242" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a241">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a243" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a242">
+                <ANNOTATION_VALUE>tɛi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a244" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a243">
+                <ANNOTATION_VALUE>ʈʰʷi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a245" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a244">
+                <ANNOTATION_VALUE>nõ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a246" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a245">
+                <ANNOTATION_VALUE>rʌ²²dʑɨ³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a247" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a246">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a248" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a247">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a249" ANNOTATION_REF="a22" PREVIOUS_ANNOTATION="a248">
+                <ANNOTATION_VALUE>tɛi²².</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a250" ANNOTATION_REF="a23">
+                <ANNOTATION_VALUE>ʌ²²ni⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a251" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a250">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a252" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a251">
+                <ANNOTATION_VALUE>mɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a253" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a252">
+                <ANNOTATION_VALUE>ɖõ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a254" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a253">
+                <ANNOTATION_VALUE>ɦɑu⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a255" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a254">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a256" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a255">
+                <ANNOTATION_VALUE>ʌ⁵⁵jæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a257" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a256">
+                <ANNOTATION_VALUE>dzõ²²bɑ⁵⁵lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a258" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a257">
+                <ANNOTATION_VALUE>ɕi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a259" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a258">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a260" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a259">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a261" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a260">
+                <ANNOTATION_VALUE>ʑɨ²²tsə̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a262" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a261">
+                <ANNOTATION_VALUE>ʑɨ²²dɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a263" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a262">
+                <ANNOTATION_VALUE>ɦõ⁵⁵ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a264" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a263">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a265" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a264">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a266" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a265">
+                <ANNOTATION_VALUE>pʰɑ⁵⁵ɬɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a267" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a266">
+                <ANNOTATION_VALUE>ɖæ²²ɬɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a268" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a267">
+                <ANNOTATION_VALUE>ɦõ⁵⁵ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a269" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a268">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a270" ANNOTATION_REF="a23" PREVIOUS_ANNOTATION="a269">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a271" ANNOTATION_REF="a24">
+                <ANNOTATION_VALUE>ɦɑu⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a272" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a271">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a273" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a272">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a274" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a273">
+                <ANNOTATION_VALUE>ɦɑu⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a275" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a274">
+                <ANNOTATION_VALUE>ɡæ²²ɡæ⁵⁵lʲæ⁵⁵lʲæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a276" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a275">
+                <ANNOTATION_VALUE>ʂɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a277" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a276">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a278" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a277">
+                <ANNOTATION_VALUE>mʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a279" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a278">
+                <ANNOTATION_VALUE>xɑ²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a280" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a279">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a281" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a280">
+                <ANNOTATION_VALUE>tɕi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a282" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a281">
+                <ANNOTATION_VALUE>wu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a283" ANNOTATION_REF="a24" PREVIOUS_ANNOTATION="a282">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵¹.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a284" ANNOTATION_REF="a25">
+                <ANNOTATION_VALUE>nʲæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a285" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a284">
+                <ANNOTATION_VALUE>ʌ²²sʷæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a286" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a285">
+                <ANNOTATION_VALUE>ɕi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a287" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a286">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a288" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a287">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a289" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a288">
+                <ANNOTATION_VALUE>ʌ²²mɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a290" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a289">
+                <ANNOTATION_VALUE>ɕi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a291" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a290">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a292" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a291">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a293" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a292">
+                <ANNOTATION_VALUE>pɛi²²pɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a294" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a293">
+                <ANNOTATION_VALUE>kʷə̃²²kʷə̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a295" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a294">
+                <ANNOTATION_VALUE>rɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a296" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a295">
+                <ANNOTATION_VALUE>ni²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a297" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a296">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a298" ANNOTATION_REF="a25" PREVIOUS_ANNOTATION="a297">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a299" ANNOTATION_REF="a26">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a300" ANNOTATION_REF="a26" PREVIOUS_ANNOTATION="a299">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a301" ANNOTATION_REF="a26" PREVIOUS_ANNOTATION="a300">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a302" ANNOTATION_REF="a26" PREVIOUS_ANNOTATION="a301">
+                <ANNOTATION_VALUE>ɡæ²²ɡæ⁵⁵lʲæ⁵⁵lʲæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a303" ANNOTATION_REF="a26" PREVIOUS_ANNOTATION="a302">
+                <ANNOTATION_VALUE>ʂɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a304" ANNOTATION_REF="a26" PREVIOUS_ANNOTATION="a303">
+                <ANNOTATION_VALUE>mʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a305" ANNOTATION_REF="a26" PREVIOUS_ANNOTATION="a304">
+                <ANNOTATION_VALUE>xɑ²².</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a306" ANNOTATION_REF="a27">
+                <ANNOTATION_VALUE>ə̃³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a307" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a306">
+                <ANNOTATION_VALUE>nʲæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a308" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a307">
+                <ANNOTATION_VALUE>tɕõ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a309" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a308">
+                <ANNOTATION_VALUE>wu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a310" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a309">
+                <ANNOTATION_VALUE>dzɨ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a311" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a310">
+                <ANNOTATION_VALUE>ji²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a312" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a311">
+                <ANNOTATION_VALUE>tʰĩ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a313" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a312">
+                <ANNOTATION_VALUE>ji³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a314" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a313">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a315" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a314">
+                <ANNOTATION_VALUE>tɛi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a316" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a315">
+                <ANNOTATION_VALUE>tɕõ²²ɡʷi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a317" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a316">
+                <ANNOTATION_VALUE>ɡæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a318" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a317">
+                <ANNOTATION_VALUE>mi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a319" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a318">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a320" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a319">
+                <ANNOTATION_VALUE>tɛi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a321" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a320">
+                <ANNOTATION_VALUE>tʰi³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a322" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a321">
+                <ANNOTATION_VALUE>bɯ²²rɛi³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a323" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a322">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a324" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a323">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a325" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a324">
+                <ANNOTATION_VALUE>tɛi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a326" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a325">
+                <ANNOTATION_VALUE>su⁵⁵pu⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a327" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a326">
+                <ANNOTATION_VALUE>tɕʰʷæ²²tsɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a328" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a327">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a329" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a328">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a330" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a329">
+                <ANNOTATION_VALUE>tɛi²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a331" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a330">
+                <ANNOTATION_VALUE>ʈʰʷi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a332" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a331">
+                <ANNOTATION_VALUE>rʌ²²dʑɨ³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a333" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a332">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a334" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a333">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a335" ANNOTATION_REF="a27" PREVIOUS_ANNOTATION="a334">
+                <ANNOTATION_VALUE>tɛi²².</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a336" ANNOTATION_REF="a28">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a337" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a336">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a338" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a337">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a339" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a338">
+                <ANNOTATION_VALUE>ɦɑu³⁵,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a340" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a339">
+                <ANNOTATION_VALUE>ə̃⁵⁵,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a341" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a340">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a342" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a341">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a343" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a342">
+                <ANNOTATION_VALUE>ɡæ²²ɡæ⁵⁵lʲæ⁵⁵lʲæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a344" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a343">
+                <ANNOTATION_VALUE>ʂɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a345" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a344">
+                <ANNOTATION_VALUE>mʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a346" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a345">
+                <ANNOTATION_VALUE>xɑ²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a347" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a346">
+                <ANNOTATION_VALUE>tɕõ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a348" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a347">
+                <ANNOTATION_VALUE>wu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a349" ANNOTATION_REF="a28" PREVIOUS_ANNOTATION="a348">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a350" ANNOTATION_REF="a29">
+                <ANNOTATION_VALUE>ʌ⁵⁵jæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a351" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a350">
+                <ANNOTATION_VALUE>dzõ²²bɑ⁵⁵lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a352" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a351">
+                <ANNOTATION_VALUE>bi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a353" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a352">
+                <ANNOTATION_VALUE>qʷʌ⁵⁵rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a354" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a353">
+                <ANNOTATION_VALUE>ɖu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a355" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a354">
+                <ANNOTATION_VALUE>nʲõ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a356" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a355">
+                <ANNOTATION_VALUE>ni⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a357" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a356">
+                <ANNOTATION_VALUE>bu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a358" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a357">
+                <ANNOTATION_VALUE>ɡæ²²ɡæ⁵⁵lʲæ⁵⁵lʲæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a359" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a358">
+                <ANNOTATION_VALUE>ʂɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a360" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a359">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a361" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a360">
+                <ANNOTATION_VALUE>mʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a362" ANNOTATION_REF="a29" PREVIOUS_ANNOTATION="a361">
+                <ANNOTATION_VALUE>xɑ²².</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a363" ANNOTATION_REF="a30">
+                <ANNOTATION_VALUE>ti⁵⁵pɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a364" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a363">
+                <ANNOTATION_VALUE>pĩ³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a365" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a364">
+                <ANNOTATION_VALUE>wu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a366" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a365">
+                <ANNOTATION_VALUE>bu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a367" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a366">
+                <ANNOTATION_VALUE>ti⁵⁵pɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a368" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a367">
+                <ANNOTATION_VALUE>dʑĩ³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a369" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a368">
+                <ANNOTATION_VALUE>qʰu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a370" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a369">
+                <ANNOTATION_VALUE>bu²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a371" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a370">
+                <ANNOTATION_VALUE>ɕtʷi⁵⁵/sʷi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a372" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a371">
+                <ANNOTATION_VALUE>ʑi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a373" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a372">
+                <ANNOTATION_VALUE>mə²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a374" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a373">
+                <ANNOTATION_VALUE>dʌ²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a375" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a374">
+                <ANNOTATION_VALUE>wo²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a376" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a375">
+                <ANNOTATION_VALUE>ʑi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a377" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a376">
+                <ANNOTATION_VALUE>mə⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a378" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a377">
+                <ANNOTATION_VALUE>dʌ⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a379" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a378">
+                <ANNOTATION_VALUE>lʲɯ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a380" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a379">
+                <ANNOTATION_VALUE>ʑi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a381" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a380">
+                <ANNOTATION_VALUE>ɡʷə̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a382" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a381">
+                <ANNOTATION_VALUE>ʑi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a383" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a382">
+                <ANNOTATION_VALUE>mə²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a384" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a383">
+                <ANNOTATION_VALUE>dʌ²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a385" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a384">
+                <ANNOTATION_VALUE>pʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a386" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a385">
+                <ANNOTATION_VALUE>bɯ²²rɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a387" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a386">
+                <ANNOTATION_VALUE>ʑi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a388" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a387">
+                <ANNOTATION_VALUE>mə²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a389" ANNOTATION_REF="a30" PREVIOUS_ANNOTATION="a388">
+                <ANNOTATION_VALUE>dʌ²².</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a390" ANNOTATION_REF="a31">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a391" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a390">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a392" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a391">
+                <ANNOTATION_VALUE>dʑʌ²²bɯ²²dʑi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a393" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a392">
+                <ANNOTATION_VALUE>nõ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a394" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a393">
+                <ANNOTATION_VALUE>tɕɨ²²bõ⁵⁵nʲæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a395" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a394">
+                <ANNOTATION_VALUE>lɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a396" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a395">
+                <ANNOTATION_VALUE>tʰĩ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a397" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a396">
+                <ANNOTATION_VALUE>ji²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a398" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a397">
+                <ANNOTATION_VALUE>ɕi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a399" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a398">
+                <ANNOTATION_VALUE>mɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a400" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a399">
+                <ANNOTATION_VALUE>qɛi⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a401" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a400">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a402" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a401">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a403" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a402">
+                <ANNOTATION_VALUE>ɦɑu³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a404" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a403">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a405" ANNOTATION_REF="a31" PREVIOUS_ANNOTATION="a404">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a406" ANNOTATION_REF="a32">
+                <ANNOTATION_VALUE>pĩ⁵⁵mɑ⁵⁵tsʰɨ²²ri²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a407" ANNOTATION_REF="a32" PREVIOUS_ANNOTATION="a406">
+                <ANNOTATION_VALUE>ɦɑu³⁵,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a408" ANNOTATION_REF="a32" PREVIOUS_ANNOTATION="a407">
+                <ANNOTATION_VALUE>pĩ⁵⁵mɑ⁵⁵tsʰɨ²²ri²²,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a409" ANNOTATION_REF="a32" PREVIOUS_ANNOTATION="a408">
+                <ANNOTATION_VALUE>tɕĩ⁵⁵mĩ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a410" ANNOTATION_REF="a32" PREVIOUS_ANNOTATION="a409">
+                <ANNOTATION_VALUE>ʌ²²-ju⁵¹.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a411" ANNOTATION_REF="a33">
+                <ANNOTATION_VALUE>ə⁵⁵tɑ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a412" ANNOTATION_REF="a33" PREVIOUS_ANNOTATION="a411">
+                <ANNOTATION_VALUE>dʌ⁵¹.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="txt" TIER_ID="interlinear-text-title-en"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="phrase" PARTICIPANT="B" TIER_ID="B_phrase-segnum-en">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a34" TIME_SLOT_REF1="ts1" TIME_SLOT_REF2="ts2">
+                <ANNOTATION_VALUE>ʑæ³⁵ qʰu²² də²²-ʐɑ⁵⁵ tɨ²² pɯ²² ʌ⁵⁵ ʂu²²? 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a35" TIME_SLOT_REF1="ts3" TIME_SLOT_REF2="ts4">
+                <ANNOTATION_VALUE>mæ̃⁵⁵ ti⁵⁵ tsi²² qʰu²² qɛi⁵⁵ bɑ³⁵, tʌ⁵⁵ tsɨ²² ɡæ²²?
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a36" TIME_SLOT_REF1="ts7" TIME_SLOT_REF2="ts11">
+                <ANNOTATION_VALUE>mæ̃⁵⁵ pĩ⁵⁵mɑ⁵⁵ tɕɨ²² rɛi³⁵ tɑ⁵¹. 
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="B_phrase-segnum-en" PARTICIPANT="B" TIER_ID="B_phrase-gls-en">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a37" ANNOTATION_REF="a34">
+                <ANNOTATION_VALUE>Can you carry it in your hand?
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a38" ANNOTATION_REF="a35">
+                <ANNOTATION_VALUE>We should mention a person's name, right?
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a39" ANNOTATION_REF="a36">
+                <ANNOTATION_VALUE>For a name, you can call Padma.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="B_phrase-segnum-en" PARTICIPANT="B" TIER_ID="B_phrase-gls-zh-CN">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a40" ANNOTATION_REF="a34">
+                <ANNOTATION_VALUE>可以拿在手上吗？
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a41" ANNOTATION_REF="a35">
+                <ANNOTATION_VALUE>需要叫一个人的名字吧？
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a42" ANNOTATION_REF="a36">
+                <ANNOTATION_VALUE>名字可以喊兵马。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="B_phrase-segnum-en" PARTICIPANT="B" TIER_ID="B_phrase-note-pmi-Qaaa-fonipa-x-Pumi-etic">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a413" ANNOTATION_REF="a34">
+                <ANNOTATION_VALUE></ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="word" PARENT_REF="B_phrase-segnum-en" PARTICIPANT="B" TIER_ID="B_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a414" ANNOTATION_REF="a34">
+                <ANNOTATION_VALUE>ʑæ³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a415" ANNOTATION_REF="a34" PREVIOUS_ANNOTATION="a414">
+                <ANNOTATION_VALUE>qʰu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a416" ANNOTATION_REF="a34" PREVIOUS_ANNOTATION="a415">
+                <ANNOTATION_VALUE>də²²-ʐɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a417" ANNOTATION_REF="a34" PREVIOUS_ANNOTATION="a416">
+                <ANNOTATION_VALUE>tɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a418" ANNOTATION_REF="a34" PREVIOUS_ANNOTATION="a417">
+                <ANNOTATION_VALUE>pɯ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a419" ANNOTATION_REF="a34" PREVIOUS_ANNOTATION="a418">
+                <ANNOTATION_VALUE>ʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a420" ANNOTATION_REF="a34" PREVIOUS_ANNOTATION="a419">
+                <ANNOTATION_VALUE>ʂu²²?</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a421" ANNOTATION_REF="a35">
+                <ANNOTATION_VALUE>mæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a422" ANNOTATION_REF="a35" PREVIOUS_ANNOTATION="a421">
+                <ANNOTATION_VALUE>ti⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a423" ANNOTATION_REF="a35" PREVIOUS_ANNOTATION="a422">
+                <ANNOTATION_VALUE>tsi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a424" ANNOTATION_REF="a35" PREVIOUS_ANNOTATION="a423">
+                <ANNOTATION_VALUE>qʰu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a425" ANNOTATION_REF="a35" PREVIOUS_ANNOTATION="a424">
+                <ANNOTATION_VALUE>qɛi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a426" ANNOTATION_REF="a35" PREVIOUS_ANNOTATION="a425">
+                <ANNOTATION_VALUE>bɑ³⁵,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a427" ANNOTATION_REF="a35" PREVIOUS_ANNOTATION="a426">
+                <ANNOTATION_VALUE>tʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a428" ANNOTATION_REF="a35" PREVIOUS_ANNOTATION="a427">
+                <ANNOTATION_VALUE>tsɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a429" ANNOTATION_REF="a35" PREVIOUS_ANNOTATION="a428">
+                <ANNOTATION_VALUE>ɡæ²²?</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a430" ANNOTATION_REF="a36">
+                <ANNOTATION_VALUE>mæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a431" ANNOTATION_REF="a36" PREVIOUS_ANNOTATION="a430">
+                <ANNOTATION_VALUE>pĩ⁵⁵mɑ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a432" ANNOTATION_REF="a36" PREVIOUS_ANNOTATION="a431">
+                <ANNOTATION_VALUE>tɕɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a433" ANNOTATION_REF="a36" PREVIOUS_ANNOTATION="a432">
+                <ANNOTATION_VALUE>rɛi³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a434" ANNOTATION_REF="a36" PREVIOUS_ANNOTATION="a433">
+                <ANNOTATION_VALUE>tɑ⁵¹.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="morph" PARENT_REF="B_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="B" TIER_ID="B_morph-type"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="word-item" PARENT_REF="B_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="B" TIER_ID="B_word-gls-en"/>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="word-item" PARENT_REF="B_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="B" TIER_ID="B_word-gls-zh-CN"/>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="B_morph-type" PARTICIPANT="B" TIER_ID="B_morph-cf-pmi-Qaaa-fonipa-x-Pumi-etic"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="B_morph-type" PARTICIPANT="B" TIER_ID="B_morph-gls-en"/>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="B_morph-type" PARTICIPANT="B" TIER_ID="B_morph-gls-zh-CN"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="phrase" PARTICIPANT="C" TIER_ID="C_phrase-segnum-en">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a43" TIME_SLOT_REF1="ts9" TIME_SLOT_REF2="ts13">
+                <ANNOTATION_VALUE>ʌ⁵⁵ ɡæ⁵⁵ mæ̃⁵⁵ ʌ²²-tsi⁵⁵ rɛi³⁵ tɑ⁵¹, pĩ⁵⁵mɑ⁵⁵dʑæ²²tsʰĩ²² mæ̃²².
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a44" TIME_SLOT_REF1="ts14" TIME_SLOT_REF2="ts15">
+                <ANNOTATION_VALUE>pĩ⁵⁵mɑ⁵⁵dʑæ²²tsʰĩ²² mæ̃²².</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a45" TIME_SLOT_REF1="ts19" TIME_SLOT_REF2="ts20">
+                <ANNOTATION_VALUE>ʌ⁵⁵ ɡæ⁵⁵ mæ̃⁵⁵ tsi⁵⁵ kʷæ³⁵.
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a46" TIME_SLOT_REF1="ts25" TIME_SLOT_REF2="ts26">
+                <ANNOTATION_VALUE>nʌ²²-sɑu⁵⁵dʲɑu²² ti²² sɨ²² pɯ⁵⁵ tɑ²².
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="C_phrase-segnum-en" PARTICIPANT="C" TIER_ID="C_phrase-gls-en">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a47" ANNOTATION_REF="a43">
+                <ANNOTATION_VALUE>You can mention my name, I'm called Padma Rgyalmsthan.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a48" ANNOTATION_REF="a44">
+                <ANNOTATION_VALUE>I'm called Padma Rgyalmsthan.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a49" ANNOTATION_REF="a45">
+                <ANNOTATION_VALUE>You can mention my name.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a50" ANNOTATION_REF="a46">
+                <ANNOTATION_VALUE>You can think a bit first.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="C_phrase-segnum-en" PARTICIPANT="C" TIER_ID="C_phrase-gls-zh-CN">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a51" ANNOTATION_REF="a43">
+                <ANNOTATION_VALUE>可以叫我的名字，我叫兵马加泽。
+
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a52" ANNOTATION_REF="a44">
+                <ANNOTATION_VALUE>我叫兵马加泽。</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a53" ANNOTATION_REF="a45">
+                <ANNOTATION_VALUE>可以叫我的名字。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a54" ANNOTATION_REF="a46">
+                <ANNOTATION_VALUE>可以先想一下。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="C_phrase-segnum-en" PARTICIPANT="C" TIER_ID="C_phrase-note-pmi-Qaaa-fonipa-x-Pumi-etic"/>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="word" PARENT_REF="C_phrase-segnum-en" PARTICIPANT="C" TIER_ID="C_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a435" ANNOTATION_REF="a43">
+                <ANNOTATION_VALUE>ʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a436" ANNOTATION_REF="a43" PREVIOUS_ANNOTATION="a435">
+                <ANNOTATION_VALUE>ɡæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a437" ANNOTATION_REF="a43" PREVIOUS_ANNOTATION="a436">
+                <ANNOTATION_VALUE>mæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a438" ANNOTATION_REF="a43" PREVIOUS_ANNOTATION="a437">
+                <ANNOTATION_VALUE>ʌ²²-tsi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a439" ANNOTATION_REF="a43" PREVIOUS_ANNOTATION="a438">
+                <ANNOTATION_VALUE>rɛi³⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a440" ANNOTATION_REF="a43" PREVIOUS_ANNOTATION="a439">
+                <ANNOTATION_VALUE>tɑ⁵¹,</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a441" ANNOTATION_REF="a43" PREVIOUS_ANNOTATION="a440">
+                <ANNOTATION_VALUE>pĩ⁵⁵mɑ⁵⁵dʑæ²²tsʰĩ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a442" ANNOTATION_REF="a43" PREVIOUS_ANNOTATION="a441">
+                <ANNOTATION_VALUE>mæ̃²².</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a443" ANNOTATION_REF="a44">
+                <ANNOTATION_VALUE>pĩ⁵⁵mɑ⁵⁵dʑæ²²tsʰĩ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a444" ANNOTATION_REF="a44" PREVIOUS_ANNOTATION="a443">
+                <ANNOTATION_VALUE>mæ̃²².</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a445" ANNOTATION_REF="a45">
+                <ANNOTATION_VALUE>ʌ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a446" ANNOTATION_REF="a45" PREVIOUS_ANNOTATION="a445">
+                <ANNOTATION_VALUE>ɡæ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a447" ANNOTATION_REF="a45" PREVIOUS_ANNOTATION="a446">
+                <ANNOTATION_VALUE>mæ̃⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a448" ANNOTATION_REF="a45" PREVIOUS_ANNOTATION="a447">
+                <ANNOTATION_VALUE>tsi⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a449" ANNOTATION_REF="a45" PREVIOUS_ANNOTATION="a448">
+                <ANNOTATION_VALUE>kʷæ³⁵.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a450" ANNOTATION_REF="a46">
+                <ANNOTATION_VALUE>nʌ²²-sɑu⁵⁵dʲɑu²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a451" ANNOTATION_REF="a46" PREVIOUS_ANNOTATION="a450">
+                <ANNOTATION_VALUE>ti²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a452" ANNOTATION_REF="a46" PREVIOUS_ANNOTATION="a451">
+                <ANNOTATION_VALUE>sɨ²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a453" ANNOTATION_REF="a46" PREVIOUS_ANNOTATION="a452">
+                <ANNOTATION_VALUE>pɯ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a454" ANNOTATION_REF="a46" PREVIOUS_ANNOTATION="a453">
+                <ANNOTATION_VALUE>tɑ²².</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="morph" PARENT_REF="C_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="C" TIER_ID="C_morph-type"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="word-item" PARENT_REF="C_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="C" TIER_ID="C_word-gls-en"/>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="word-item" PARENT_REF="C_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="C" TIER_ID="C_word-gls-zh-CN"/>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="C_morph-type" PARTICIPANT="C" TIER_ID="C_morph-cf-pmi-Qaaa-fonipa-x-Pumi-etic"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="C_morph-type" PARTICIPANT="C" TIER_ID="C_morph-gls-en"/>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="C_morph-type" PARTICIPANT="C" TIER_ID="C_morph-gls-zh-CN"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="phrase" PARTICIPANT="D" TIER_ID="D_phrase-segnum-en">
+        <ANNOTATION>
+            <ALIGNABLE_ANNOTATION ANNOTATION_ID="a55" TIME_SLOT_REF1="ts17" TIME_SLOT_REF2="ts18">
+                <ANNOTATION_VALUE>ə⁵⁵dʑi²² nʌ²²-dzõ⁵⁵ ɕõ⁵¹.
+</ANNOTATION_VALUE>
+            </ALIGNABLE_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="D_phrase-segnum-en" PARTICIPANT="D" TIER_ID="D_phrase-gls-en">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a56" ANNOTATION_REF="a55">
+                <ANNOTATION_VALUE>Go sit down there.
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="D_phrase-segnum-en" PARTICIPANT="D" TIER_ID="D_phrase-gls-zh-CN">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a57" ANNOTATION_REF="a55">
+                <ANNOTATION_VALUE>去坐那里。
+</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="phrase-item" PARENT_REF="D_phrase-segnum-en" PARTICIPANT="D" TIER_ID="D_phrase-note-pmi-Qaaa-fonipa-x-Pumi-etic"/>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="word" PARENT_REF="D_phrase-segnum-en" PARTICIPANT="D" TIER_ID="D_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic">
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a455" ANNOTATION_REF="a55">
+                <ANNOTATION_VALUE>ə⁵⁵dʑi²²</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a456" ANNOTATION_REF="a55" PREVIOUS_ANNOTATION="a455">
+                <ANNOTATION_VALUE>nʌ²²-dzõ⁵⁵</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+        <ANNOTATION>
+            <REF_ANNOTATION ANNOTATION_ID="a457" ANNOTATION_REF="a55" PREVIOUS_ANNOTATION="a456">
+                <ANNOTATION_VALUE>ɕõ⁵¹.</ANNOTATION_VALUE>
+            </REF_ANNOTATION>
+        </ANNOTATION>
+    </TIER>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="morph" PARENT_REF="D_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="D" TIER_ID="D_morph-type"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="word-item" PARENT_REF="D_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="D" TIER_ID="D_word-gls-en"/>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="word-item" PARENT_REF="D_word-txt-pmi-Qaaa-fonipa-x-Pumi-etic" PARTICIPANT="D" TIER_ID="D_word-gls-zh-CN"/>
+    <TIER DEFAULT_LOCALE="pmi-qaaa-fonipa-x-pumi-etic" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="D_morph-type" PARTICIPANT="D" TIER_ID="D_morph-cf-pmi-Qaaa-fonipa-x-Pumi-etic"/>
+    <TIER DEFAULT_LOCALE="en" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="D_morph-type" PARTICIPANT="D" TIER_ID="D_morph-gls-en"/>
+    <TIER DEFAULT_LOCALE="zh-cn" LINGUISTIC_TYPE_REF="morph-item" PARENT_REF="D_morph-type" PARTICIPANT="D" TIER_ID="D_morph-gls-zh-CN"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Symbolic_Association" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="word-item" TIME_ALIGNABLE="false"/>
+    <LINGUISTIC_TYPE GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="phrase" TIME_ALIGNABLE="true"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Symbolic_Subdivision" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="word" TIME_ALIGNABLE="false"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Symbolic_Association" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="phrase-item" TIME_ALIGNABLE="false"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Symbolic_Association" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="morph-item" TIME_ALIGNABLE="false"/>
+    <LINGUISTIC_TYPE CONSTRAINTS="Symbolic_Subdivision" GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="morph" TIME_ALIGNABLE="false"/>
+    <LINGUISTIC_TYPE GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="txt" TIME_ALIGNABLE="true"/>
+    <LINGUISTIC_TYPE GRAPHIC_REFERENCES="false" LINGUISTIC_TYPE_ID="split-type" TIME_ALIGNABLE="true"/>
+    <LOCALE LANGUAGE_CODE="pmi-qaaa-fonipa-x-pumi-etic"/>
+    <LOCALE LANGUAGE_CODE="en"/>
+    <LOCALE LANGUAGE_CODE="zh-cn"/>
+    <CONSTRAINT DESCRIPTION="Time subdivision of parent annotation's time interval, no time gaps allowed within this interval" STEREOTYPE="Time_Subdivision"/>
+    <CONSTRAINT DESCRIPTION="Symbolic subdivision of a parent annotation. Annotations refering to the same parent are ordered" STEREOTYPE="Symbolic_Subdivision"/>
+    <CONSTRAINT DESCRIPTION="1-1 association with a parent annotation" STEREOTYPE="Symbolic_Association"/>
+    <CONSTRAINT DESCRIPTION="Time alignable annotations within the parent annotation's time interval, gaps are allowed" STEREOTYPE="Included_In"/>
+</ANNOTATION_DOCUMENT>

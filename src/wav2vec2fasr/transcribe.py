@@ -5,9 +5,9 @@ import pympi
 #import numpy
 import os
 
-from src.prinmitext import phone_revert, tone_revert, rep_tones, chars_to_ignore_regex, tone_regex
-from src.segment import chunk_audio
-from src.forcedalignment import align_audio
+from wav2vec2fasr.prinmitext import phone_revert, tone_revert, rep_tones, chars_to_ignore_regex, tone_regex
+from wav2vec2fasr.segment import chunk_audio
+from wav2vec2fasr.forcedalignment import align_audio
 
 #from datasets import Dataset
 #from pandas import DataFrame

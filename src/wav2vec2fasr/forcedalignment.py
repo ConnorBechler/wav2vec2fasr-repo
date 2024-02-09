@@ -12,9 +12,9 @@ from dataclasses import dataclass
 import re
 from pathlib import Path
 from numpy import ndarray
-from src import segment
-from src import orthography as ort
-from src.orthography import def_tok
+from wav2vec2fasr import segment
+from wav2vec2fasr import orthography as ort
+from wav2vec2fasr.orthography import def_tok
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)

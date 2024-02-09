@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "wav2vec2faasr"
+name = "wav2vec2fasr"
 version = "0.1.0"
 description = "Set of tools for fine-tuning wav2vec2 models for transcription and forced alignment, first developed specifically for application in language documentation of Northern Prinmi"
 authors = ["ConnorBechler <cbechler2@gmail.com>"]
 readme = "README.md"
 packages = [ 
-            {include = "tokenizations", from = "src"}, 
+            {include = "wav2vec2fasr", from = "src"}, 
             {include = "test_files", from = "tests"}]
 
 [tool.poetry.dependencies]

@@ -6,8 +6,8 @@
 #The below line therefore fails (if testing.py is in the tests directory) as the module is not recognized
 from importlib.resources import path as import_path
 import pathlib
-from src import forcedalignment
-from src import orthography as ort
+from wav2vec2fasr import forcedalignment
+from wav2vec2fasr import orthography as ort
 import tests.test_files as testingfiles
 
 with import_path(testingfiles, "td21-22_020.wav") as test_path:

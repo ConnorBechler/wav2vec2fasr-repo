@@ -6,7 +6,7 @@ authors = ["ConnorBechler <cbechler2@gmail.com>"]
 readme = "README.md"
 packages = [{include = "wav2vec2fasr", from = "src"}]
 [tool.poetry.dependencies]
-python = "3.8.*"
+python = ">=3.8,<3.9.dev0"
 jiwer = "^3.0.3"
 levenshtein = "^0.24.0"
 librosa = "^0.10.1"

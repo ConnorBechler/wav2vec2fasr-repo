@@ -12,9 +12,9 @@ from dataclasses import dataclass
 import re
 from pathlib import Path
 from numpy import ndarray
-from src import segment
-from src import orthography as ort
-from src.orthography import def_tok
+from wav2vec2fasr import segment
+from wav2vec2fasr import orthography as ort
+from wav2vec2fasr.orthography import def_tok
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)
@@ -171,6 +171,9 @@ def align_audio(processor: Wav2Vec2Processor,
         transcript = processor.batch_decode(torch.argmax(logits, dim=-1))[0]
     align_dictionary = {char: code for char,code in processor.tokenizer.get_vocab().items()}
     emission = logits[0].cpu().detach()
+    #DEBUG: Print transcription predictions by frame
+    #pred_ids = torch.argmax(torch.tensor(logits[0]), dim=-1)
+    #print(" ".join(processor.tokenizer.convert_ids_to_tokens(pred_ids)))
     # Replace spaces with vertical pipes symbolizing word boundaries/gaps
     clean_transcript = transcript.replace(' ', '|')
     # Combine multiple adjacent pipes into single pipe
@@ -243,6 +246,8 @@ def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output=
     ts.add_tier('chars')
     for chunk in chunks:
         pred_st, pred_end = chunk[0] + chunk[2][0], chunk[1] - chunk[2][1]
+        #DEBUG: Print start of phrase, end of phrase
+        print(pred_st, pred_end)
         calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], strides=chunk[2])
         ts.add_annotation('prediction', pred_st, pred_end, def_tok.revert(pred))
         if calign != None and walign != None:
@@ -315,21 +320,4 @@ def correct_alignments(audio_path, corrected_doc, model_dir, cor_tier = "predict
 
 
 if __name__ == "__main__":
-    
-    #On home computer
-    """
-    model_dir = "../models/model_6-8-23_xlsr53_nt_nh/"
-    audio = "../wav-eaf-meta/wq10_011.wav"
-    #chunk_and_align(audio, model_dir, output='.TextGrid')
-    correct_alignments(audio, "../wq10_011_nt_nh_cor.TextGrid", model_dir)
-    """
-    
-    #Laptop
-    #ort.load_tokenization("pumi_cb.tsv")
-    model_dir = "../models/model_6-3-23_xls-r_cb_nh/"
-    audio = "../td21-22_020/td21-22_020.wav"
-    #chunk_and_align(audio, model_dir, output=".eaf")
-    correct_alignments(audio, "../td21-22_020/td21-22_020_preds_cor_ac_cor.eaf", model_dir, cor_tier="words")
-    #ort.load_tokenization("backup_toks.tsv")
-    
-    #align_audio(processor, model=model, audio=audio)
+    pass

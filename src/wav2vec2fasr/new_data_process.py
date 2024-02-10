@@ -5,8 +5,8 @@ import pathlib
 from src import orthography as ort
 
 from datasets import load_from_disk, Audio
-from src.prinmitext import chars_to_ignore_regex, tone_regex, nontone_regex, trips, doubs
-from src.prinmitext import rep_trips, rep_doubs, tones, rep_tones, rep_combs
+from wav2vec2fasr.prinmitext import chars_to_ignore_regex, tone_regex, nontone_regex, trips, doubs
+from wav2vec2fasr.prinmitext import rep_trips, rep_doubs, tones, rep_tones, rep_combs
 
 def process_data(
         home = None,

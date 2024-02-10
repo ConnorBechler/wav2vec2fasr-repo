@@ -9,7 +9,7 @@ import os
 import re
 from pympi import Eaf, TextGrid
 from importlib import resources
-from src import tokenizations
+from wav2vec2fasr import tokenizations
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import warnings

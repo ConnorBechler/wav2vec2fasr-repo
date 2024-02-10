@@ -18,7 +18,7 @@ except Exception as e:
     print("Speechbrain VAD import failed: " + str(e) +"\nTry to enable admin privileges to activate. In the meantime, Speechbrain VAD chunking disabled")
     VAD = None
 import soundfile
-from src import rvad_faster
+from wav2vec2fasr import rvad_faster
 
 
 

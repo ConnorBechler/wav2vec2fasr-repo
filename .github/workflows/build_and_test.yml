@@ -1,0 +1,32 @@
+name: Build and Test
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    build-and-test:
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@v2
+        - name: Set up Python
+          uses: actions/setup-python@v2
+          with:
+            python-version: 3.8
+
+        - name: Install Poetry
+          run: |
+            curl -sSL https://install.python-poetry.org | python3 -
+            export PATH="$HOME/.poetry/bin:$PATH"
+
+        - name: Install dependencies
+          run: poetry install
+
+        - name: Run pytest
+          run: poetry run pytest

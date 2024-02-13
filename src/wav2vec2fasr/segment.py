@@ -160,7 +160,6 @@ def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
                 elif diff > min_chunk:
                     nchunks.append([win_st, win_end, (0, 0)])
                 win_st, win_end = None, None
-    print(nchunks)
     return(nchunks)
 
 def pitch_chunk(fullpath, min_chunk, max_chunk, stride):

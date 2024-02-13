@@ -18,10 +18,10 @@ cor_phrase_eaf = test_dir.joinpath("td21-22_020_preds_wt_cor_phrase.eaf")
 #Loads model from folder above location of wav2vec2faasr, negative indexes are not allowed with path parents for some reason
 # BE SURE TO HAVE A MODEL IN THIS DIRECTORY FOR THIS TEST TO WORK (TODO: Place model directory in package)
 host_dir = test_dir.parents[2]
-model = "model_6-8-23_xlsr53_nt_nh"
+model = "model_1-11-24_xls-r_ct_nh_1e-4_12e_fsd"
 model_dir = host_dir.joinpath("models/"+model)
 
 print(f"Testing alignment of {str(test_rec)} using the {str(model_dir)} model")
 
 ort.load_tokenization("pumi_nt.tsv")
-forcedalignment.chunk_and_align(test_rec, model_dir)
+forcedalignment.chunk_and_align(test_rec, model_dir, output=".eaf")

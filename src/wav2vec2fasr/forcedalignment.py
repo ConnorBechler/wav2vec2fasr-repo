@@ -147,7 +147,7 @@ def align_audio(processor: Wav2Vec2Processor,
         audio (str or Path or ndarray) : Either the path to an audio file or the audio as an ndarray
     
     Returns:
-        tuple[list, list, str] : 
+        tuple[list, list, str] : character, word, and phrase alignments, respectively
     """
     # If logits are not provided, generate them using the model
     if logits == None:
@@ -166,6 +166,9 @@ def align_audio(processor: Wav2Vec2Processor,
         logits = model(input_values.to('cpu')).logits
         # Line below slices tensor to only include predictions for window within strides
         logits = torch.tensor([logits[0][round(strides[0]/20): len(logits[0])-round(strides[1]/20)].detach().numpy()]) 
+    #Normalize logits into log domain to avoid "numerical instability" 
+    # (https://pytorch.org/audio/stable/tutorials/forced_alignment_tutorial.html#generate-frame-wise-label-probability)????
+    logits = torch.log_softmax(logits, dim=-1)
     # If transcript is not provided, also generate transcript
     if transcript == None : 
         transcript = processor.batch_decode(torch.argmax(logits, dim=-1))[0]
@@ -173,7 +176,6 @@ def align_audio(processor: Wav2Vec2Processor,
     emission = logits[0].cpu().detach()
     #DEBUG: Print transcription predictions by frame
     #pred_ids = torch.argmax(torch.tensor(logits[0]), dim=-1)
-    #print(" ".join(processor.tokenizer.convert_ids_to_tokens(pred_ids)))
     # Replace spaces with vertical pipes symbolizing word boundaries/gaps
     clean_transcript = transcript.replace(' ', '|')
     # Combine multiple adjacent pipes into single pipe
@@ -181,14 +183,12 @@ def align_audio(processor: Wav2Vec2Processor,
     tokens = [align_dictionary[c] for c in clean_transcript]
     blank_id = 0
     for char, code in align_dictionary.items():
-        if char == '[pad]' or char == '<pad>':
+        if char.lower() == '[pad]' or char.lower() == '<pad>':
             blank_id = code
-
     trellis = get_trellis(emission, tokens, blank_id)
     path = backtrack(trellis, emission, tokens, blank_id)
     if path != None:
         char_segments = merge_repeats(path, clean_transcript)
-
         char_alignments = []
         word_alignments = []
         word_idx = 0
@@ -229,10 +229,24 @@ def align_audio(processor: Wav2Vec2Processor,
         return(char_alignments, word_alignments, transcript)
     else: return(None, None, transcript)
 
-def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output='.eaf'):
+def chunk_and_align(audio_path : any, 
+                    model_dir : any, 
+                    chunking_method='rvad_chunk', 
+                    output='.eaf') -> dict:
     """
     Function for (1) chunking a specified audio file by a specified method and
      (2) transcribing and aligning it using a given wav2vec 2.0 model
+    Args:
+        audio_path (str | pathlib.Path) : path to wav or mp3 file
+        model_dir (str | pathlib.Path) : path to a wav2vec 2.0 model
+        chunking_method (str) : chunking method name from segment.chunk_audio function (check there for options)
+        output (str) : either .TextGrid or .eaf for praat TextGrids or ELAN eaf files, respectively
+            TODO: add .txt output
+    Returns:
+        dict of annotations, with the lists of tuples for keys 'prediction' (referencing phrases), 'words', and 'chars'
+            each tuple contains a prediction entry with start time and end time in milliseconds and the prediction as a string
+    Output:
+        if output is not None, then returns either a TextGrid or eaf file
     """
     name = Path(audio_path).name[:-len(Path(audio_path).suffix)]
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
@@ -244,23 +258,28 @@ def chunk_and_align(audio_path, model_dir, chunking_method='rvad_chunk', output=
     ts.add_tier('prediction')
     ts.add_tier('words')
     ts.add_tier('chars')
+    annotations = {'prediction' : [], 'words' : [], 'chars' : []}
     for chunk in chunks:
         pred_st, pred_end = chunk[0] + chunk[2][0], chunk[1] - chunk[2][1]
         #DEBUG: Print start of phrase, end of phrase
-        print(pred_st, pred_end)
+        #print(pred_st, pred_end, pred_end-pred_st)
         calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], strides=chunk[2])
         ts.add_annotation('prediction', pred_st, pred_end, def_tok.revert(pred))
+        annotations['prediction'].append((pred_st, pred_end, def_tok.revert(pred)))
         if calign != None and walign != None:
             for word in walign:
-                ts.add_annotation('words', 
-                word['start']+chunk[0], 
-                word['end']+chunk[0], 
+                ts.add_annotation('words', word['start']+chunk[0], word['end']+chunk[0], 
                 def_tok.revert(word['word']))
+                annotations['words'].append((word['start']+chunk[0], word['end']+chunk[0], def_tok.revert(word['word'])))
             for char in calign:
                 ts.add_annotation('chars', char['start']+chunk[0], char['end']+chunk[0], 
                 def_tok.revert(char['char']))
-    if output == '.TextGrid': ts = ts.to_textgrid()
-    ts.to_file(name+"_preds"+output)
+                annotations['chars'].append((char['start']+chunk[0], char['end']+chunk[0], def_tok.revert(char['char'])))
+    if output != None: 
+        if output == '.TextGrid': ts = ts.to_textgrid()
+        ts.to_file(name+"_preds"+output)
+    return(annotations)
+
 
 def correct_alignments(audio_path, corrected_doc, model_dir, cor_tier = "prediction", 
                        word_tier="words", char_tier="chars"):

@@ -1,6 +1,12 @@
 CLEAN	repl	⁵⁵⁵	⁵⁵
 CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵][ ]	 
-CLEAN	repl	[¹|²|³|⁵][¹|²|³|⁵]	
 CLEAN	repl	-	
 nasals	repl	õ	õ
 nasals	repl	ĩ	ĩ
+tone	repl	²¹	1
+tone	repl	²²	2
+tone	repl	³²	3
+tone	repl	³⁵	4
+tone	repl	⁵⁵	5
+tone	repl	⁵²	6
+tone	repl	⁵¹	7

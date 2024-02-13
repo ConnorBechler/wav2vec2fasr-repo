@@ -164,7 +164,7 @@ def align_audio(processor: Wav2Vec2Processor,
             pad = [-500 for x in range(round(diff /2))]
             input_values =  torch.tensor([pad + list(input_values[0]) + pad])
         logits = model(input_values.to('cpu')).logits
-        # Line below slices tensor to only include predictions for window within strides
+        # Line below slices logit tensor to only include predictions for window within strides
         logits = torch.tensor([logits[0][round(strides[0]/20): len(logits[0])-round(strides[1]/20)].detach().numpy()]) 
     #Normalize logits into log domain to avoid "numerical instability" 
     # (https://pytorch.org/audio/stable/tutorials/forced_alignment_tutorial.html#generate-frame-wise-label-probability)????
@@ -174,8 +174,6 @@ def align_audio(processor: Wav2Vec2Processor,
         transcript = processor.batch_decode(torch.argmax(logits, dim=-1))[0]
     align_dictionary = {char: code for char,code in processor.tokenizer.get_vocab().items()}
     emission = logits[0].cpu().detach()
-    #DEBUG: Print transcription predictions by frame
-    #pred_ids = torch.argmax(torch.tensor(logits[0]), dim=-1)
     # Replace spaces with vertical pipes symbolizing word boundaries/gaps
     clean_transcript = transcript.replace(' ', '|')
     # Combine multiple adjacent pipes into single pipe
@@ -199,10 +197,10 @@ def align_audio(processor: Wav2Vec2Processor,
             start, end, score = None, None, None
             if char != "|":
                 char_seg = char_segments[cdx]
-                start = int(char_seg.start*20) + strides[0]#round(char_seg.start * ratio, 3)
+                start = int(char_seg.start*20) + strides[0]
                 if word_start == None:
                     word_start = start
-                end = int(char_seg.end*20) + strides[0]#round(char_seg.end * ratio, 3)
+                end = int(char_seg.end*20) + strides[0]
                 word_end = end
                 score = round(char_seg.score, 3)
                 word += char
@@ -280,12 +278,73 @@ def chunk_and_align(audio_path : any,
         ts.to_file(name+"_preds"+output)
     return(annotations)
 
+def generate_alignments_for_phrases(audio_path, src_path, model_dir, src_tier = "prediction",
+                            word_tier="words", char_tier="chars", copy_existing=False, output_name=None):
+    """
+    This function generates word and character transcriptions from an existing transcription file
+    Args:
+        audio_path : path to audio file (wav or mp3)
+        src_path : path to source transcription file (either Praat TextGrid or ELAN eaf)
+        model_dir : path to wav2vec 2.0 model
+        src_tier (str) : source tier for phrasal transcriptions from source file
+        word_tier (str) : name of tier to clear and add word alignments
+        char_tier (Str) : name of tier to clear and add character alignments
+        copy_existing (bool) : if true, makes output of function a copy of the src_file with the new tiers
+            If false, creates entirely new transcript file with only src_tier, word_tier, and char_tier
+        output_name (str) : name for the resulting file, defaults to f"{src_path.stem}_realigned" if None
+    Outputs:
+        Transcript file, either an EAF or TextGrid based on the src_file
+    """
+    model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    audio_path = Path(audio_path)
+    src_path = Path(src_path)
+    if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
+    if src_path.suffix == ".TextGrid" : src_file = pympi.TextGrid(src_path).to_eaf()
+    elif src_path.suffix == ".eaf" : src_file = pympi.Eaf(src_path)
+    if copy_existing: out_file = src_file
+    else: 
+        out_file = pympi.Eaf()
+        out_file.add_tier(src_tier)
+    out_file.add_tier(src_tier+"_tokenized")
+    out_file.add_linked_file(file_path=audio_path, mimetype=audio_path.suffix[1:])
+    # Get annotation data from the source tier and remove tiers being replaced
+    src_tier_annotations = src_file.get_annotation_data_for_tier(src_tier)
+    if word_tier in out_file.get_tier_names(): 
+        out_file.remove_all_annotations_from_tier(word_tier)
+    else: out_file.add_tier(word_tier)
+    if char_tier in out_file.get_tier_names():
+        out_file.remove_all_annotations_from_tier(char_tier)
+    else: out_file.add_tier(char_tier)
+    for ann in src_tier_annotations:
+        # Each corrected transcript entry has to be retokenized using the current tokenization scheme
+        transcript = def_tok.apply(ort.remove_special_chars(ann[2]))
+        aud_chunk = lib_aud[librosa.time_to_samples(ann[0]/1000, sr=sr): librosa.time_to_samples(ann[1]/1000, sr=sr)]
+        calign, walign, tokenized_transcript = align_audio(processor, transcript=transcript, model=model, audio=aud_chunk)
+        #Add tokenized phrasal transcripts
+        out_file.add_annotation(src_tier, ann[0], ann[1], ann[2])
+        out_file.add_annotation(src_tier+"_tokenized", ann[0], ann[1], 
+                                def_tok.revert(tokenized_transcript))
+        #If character and word alignments were generated, add annotations for both
+        if calign != None and walign != None:
+            #Add new word alignments
+            for word in walign:
+                out_file.add_annotation(word_tier, word['start']+ann[0], word['end']+ann[0], 
+                    def_tok.revert(word['word']))
+            #Add new character alignment annotations
+            for char in calign:
+                out_file.add_annotation(char_tier, char['start']+ann[0], char['end']+ann[0], 
+                    def_tok.revert(char['char']))
+        if src_path.suffix == '.TextGrid': out_file = out_file.to_textgrid()
+    if output_name==None: output_name = f"{src_path.stem}_realigned"
+    out_file.to_file(f"{output_name}{src_path.suffix}")
 
 def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier = "prediction", 
                        word_tier="words", char_tier="chars"):
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
-    if Path(audio_path).is_file(): lib_aud, sr = librosa.load(audio_path, sr=16000)
+    audio_path = Path(audio_path)
+    if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
     audio_length = librosa.get_duration(y=lib_aud, sr=sr)*1000
     # Check and load corrected transcription as appropriate pympi object
     cor_path = Path(corrected_doc)
@@ -296,7 +355,7 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
         if old_path.suffix == ".TextGrid" : tso = pympi.TextGrid(old_path).to_eaf()
         elif old_path.suffix == ".eaf" : tso = pympi.Eaf(old_path)
         old_an_dat = tso.get_annotation_data_for_tier(cor_tier)
-    ts.add_linked_file(file_path=audio_path, mimetype='wav')
+    ts.add_linked_file(file_path=audio_path, mimetype=audio_path[1:])
     # Get annotation data for corrected tier and remove tiers being replaced
     cor_an_dat = ts.get_annotation_data_for_tier(cor_tier)
     if old_doc != None:
@@ -309,8 +368,9 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
     for d, dat in enumerate(cor_an_dat):
         run = False
         if old_doc != None:
-            if dat != old_an_dat[d] : 
-                print(d, dat, old_an_dat[d])
+            old_an = tso.get_annotation_data_between_times(cor_tier, dat[0], dat[1])
+            if old_an[-1] != dat:
+                print(d, dat, old_an[-1])
                 run = True
         else: run = True
         if run:
@@ -326,11 +386,9 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
                 #TODO: Implement corrected word alignment, probably by taking either a set window of audio around
                 # the word, or by taking the three words surrounding
                 #Get audio chunk
-                strides = (40, 40)
+                strides = (80, 80)
                 if d == 0 : strides = ((dat[0]-strides[0])*((dat[0]-strides[0])>0) + ((dat[0]-1)*((dat[0]-strides[0])<=0)), strides[1])
                 elif d == last_index: strides = (strides[0], (dat[1]+strides[1])*((dat[1]+strides[1])<audio_length) + ((audio_length-(dat[1]+1))*((dat[1]+strides[1])>=audio_length)))
-                #start_stride = (dat[0]-stride)*((dat[0]-stride)>0) + ((dat[0]-1)*((dat[0]-stride)<=0))
-                #end_stride = (dat[1]+stride)*((dat[1]+stride)<audio_length) + ((audio_length-(dat[1]+1))*((dat[1]+stride)>=audio_length))
                 aud_chunk = lib_aud[librosa.time_to_samples((dat[0] - strides[0])/1000 , sr=sr): 
                                     librosa.time_to_samples((dat[1] + strides[1])/1000, sr=sr)]
             #Get alignments for corrected transcript    
@@ -353,16 +411,19 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
                 else:
                     ts.add_tier("new_words")
                     for word in walign:
+                        print((word['start']+dat[0], word['end']+dat[0], def_tok.revert(word['word'])))
                         ts.add_annotation("new_words", word['start']+dat[0], word['end']+dat[0], 
                             def_tok.revert(word['word']))
                 #Clear previous character annotations
                 if char_tier in ts.get_tier_names(): 
                     char_del = ts.get_annotation_data_between_times(char_tier, dat[0], dat[1])
+                    [print("removing ", char) for char in char_del]
                     [ts.remove_annotation(char_tier, char[0]+1) for char in char_del]
                 else:
                     ts.add_tier(char_tier)
                 #Add new character alignment annotations
                 for char in calign:
+                    print("adding", (char['start']+dat[0], char['end']+dat[0], def_tok.revert(char['char'])))
                     ts.add_annotation(char_tier, char['start']+dat[0]+strides[0], char['end']+dat[0]+strides[0], 
                         def_tok.revert(char['char']))
         if cor_path.suffix == '.TextGrid': ts = ts.to_textgrid()

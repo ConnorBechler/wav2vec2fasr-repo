@@ -167,49 +167,6 @@ def return_alignments(trellis, path, transcript, separator="|"):
             i2 += 1
     return(chars, words, char_alignments, word_alignments)
 
-def old_return_alignments(path, clean_transcript):
-    char_segments = merge_repeats(path, clean_transcript)
-    char_alignments = []
-    word_alignments = []
-    word_idx = 0
-    word_start = None
-    word_end = None
-    word = ""
-    for cdx, char in enumerate(clean_transcript):
-        start, end, score = None, None, None
-        if char != "|":
-            char_seg = char_segments[cdx]
-            start = int(char_seg.start*20) + strides[0]
-            #Added the line below because of bizarre error with 
-            if start < 0 : start = 1
-            if word_start == None:
-                word_start = start
-            end = int(char_seg.end*20) + strides[0]
-            word_end = end
-            score = round(char_seg.score, 3)
-            word += char
-            char_alignments.append(
-                {
-                    "char": char,
-                    "start": start,
-                    "end": end,
-                    "score": score,
-                    "word-idx": word_idx,
-                }
-            )
-        if cdx == len(clean_transcript)-1 or char == "|":
-            word_alignments.append(
-                {
-                    "word" : word,
-                    "start" : word_start,
-                    "end": word_end,
-                    "word-idx": word_idx,
-                }
-            )
-            word_start, word = None, ""
-            word_idx += 1
-    return(char_alignments, word_alignments)
-
 def align_audio(processor: Wav2Vec2Processor, 
                 logits = None, 
                 transcript : str = None, 
@@ -266,38 +223,6 @@ def align_audio(processor: Wav2Vec2Processor,
             blank_id = code
     trellis = get_trellis(emission, tokens, blank_id)
     path = backtrack(trellis, emission, tokens, blank_id)
-    #char_alignments, word_alignments, word_idx = return_alignments(trellis, path, clean_transcript)
-    #char_alignments = [{'char':char.label, 'start': int(char.start*20), 'end':int(char.end*20), 'word-idx': word_idx[c]} 
-    #                    for c, char in enumerate(char_alignments)]
-    #word_alignments = [{'word':word.label, 'start':int(word.start*20), 'end':int(word.end*20), 'word-idx':w} 
-    #                    for w, word in enumerate(word_alignments)]
-    """
-    char_segments = merge_repeats(path, clean_transcript)
-    char_alignments, word_alignments = [], []
-    word, word_start, word_idx = "", None, 0
-    for i, segment in enumerate(char_segments):
-        if i < len(char_segments)-1 and segment.label != "|":
-            start, end, label = segment.start, segment.end, segment.label
-            if word_start == None: word_start = start
-            if char_segments[i+1].label == "|":
-                end = char_segments[i+1].end
-            char_alignments.append({"start" : int(start*20),"end":  int(end*20), "char" : label, 
-                                    "score": segment.score, "word-idx": word_idx})
-            word += label
-        elif i == len(char_segments)-1:
-            if segment.label != "|":
-                char_alignments.append({"start": int(segment.start*20), "end":int((len(trellis))*20), 
-                                        "char":segment.label, "score":segment.score, "word-idx": word_idx})
-                word += segment.label
-            else: char_alignments[-1]['end'] = int(segment.end*20)
-            word_alignments.append({"start" : int(word_start*20), "end" : int((len(trellis))*20), 
-                                    "word":word, "word-idx": word_idx})
-        elif segment.label =="|": 
-            word_alignments.append({"start" : int(word_start*20), "end" : int(segment.end*20), 
-                                    "word":word, "word-idx": word_idx})
-            word_idx +=1
-            word, word_start = "", None
-    """
     chars, words, char_alignments, word_alignments = return_alignments(trellis, path, clean_transcript)
     return(char_alignments, word_alignments, transcript)
 

@@ -15,13 +15,13 @@ cor_words_eaf = test_dir.joinpath("td21-22_020_preds_pm_ac_wm.eaf")
 #Loads model from folder above location of wav2vec2faasr
 # BE SURE TO HAVE A MODEL IN THIS DIRECTORY FOR THIS TEST TO WORK (TODO: Place model directory in package)
 host_dir = test_dir.parents[2]
-model = "model_6-3-23_xls-r_cb_nh"
+model = "model_6-8-23_xlsr53_nt_nh"
 model_dir = host_dir.joinpath("models/"+model)
 
 print(f"Testing alignment of {str(test_rec)} using the {str(model_dir)} model")
 
-ort.load_tokenization("pumi_cb.tsv")
+ort.load_tokenization("pumi_nt.tsv")
 forcedalignment.generate_alignments_for_phrases(test_rec, orig_eaf, model_dir, src_tier="A_phrase-segnum-en")
 #forcedalignment.chunk_and_align(test_rec, model_dir, output=".eaf")
 #forcedalignment.correct_alignments(test_rec, base_eaf, cor_phrase_eaf, model_dir, cor_tier="prediction")
-#forcedalignment.correct_alignments(test_rec, cor_phrase_ac_eaf, cor_words_eaf, model_dir, cor_tier="words")
+#forcedalignment.correct_alignments(test_rec, old_doc=None, corrected_doc=cor_words_eaf, model_dir=model_dir, cor_tier="words")

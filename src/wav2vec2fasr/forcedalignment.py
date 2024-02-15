@@ -170,7 +170,7 @@ def align_audio(processor: Wav2Vec2Processor,
     # (https://pytorch.org/audio/stable/tutorials/forced_alignment_tutorial.html#generate-frame-wise-label-probability)????
     logits = torch.log_softmax(logits, dim=-1)
     # If transcript is not provided, also generate transcript
-    if transcript == None : 
+    if transcript == None: 
         transcript = processor.batch_decode(torch.argmax(logits, dim=-1))[0]
     align_dictionary = {char: code for char,code in processor.tokenizer.get_vocab().items()}
     emission = logits[0].cpu().detach()
@@ -198,6 +198,8 @@ def align_audio(processor: Wav2Vec2Processor,
             if char != "|":
                 char_seg = char_segments[cdx]
                 start = int(char_seg.start*20) + strides[0]
+                #Added the line below because of bizarre error with 
+                if start < 0 : start = 1
                 if word_start == None:
                     word_start = start
                 end = int(char_seg.end*20) + strides[0]
@@ -355,7 +357,7 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
         if old_path.suffix == ".TextGrid" : tso = pympi.TextGrid(old_path).to_eaf()
         elif old_path.suffix == ".eaf" : tso = pympi.Eaf(old_path)
         old_an_dat = tso.get_annotation_data_for_tier(cor_tier)
-    ts.add_linked_file(file_path=audio_path, mimetype=audio_path[1:])
+    ts.add_linked_file(file_path=audio_path, mimetype=audio_path.suffix[1:])
     # Get annotation data for corrected tier and remove tiers being replaced
     cor_an_dat = ts.get_annotation_data_for_tier(cor_tier)
     if old_doc != None:
@@ -370,62 +372,67 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
         if old_doc != None:
             old_an = tso.get_annotation_data_between_times(cor_tier, dat[0], dat[1])
             if old_an[-1] != dat:
-                print(d, dat, old_an[-1])
+                old_diff = old_an[-1][1]-old_an[-1][0]
+                new_diff = dat[1]-dat[0]
+                st_diff = new_diff - old_diff
+                print(d, dat, old_an[-1], end_diff)
                 run = True
         else: run = True
         if run:
             print(dat[0], dat[1], dat[2])
             # Each corrected transcript entry has to be retokenized using the current tokenization scheme
             transcript = def_tok.apply(ort.remove_special_chars(dat[2]))
-            print(transcript)
-            if cor_tier != word_tier:
-                #Get audio chunk
-                aud_chunk = lib_aud[librosa.time_to_samples(dat[0]/1000, sr=sr): librosa.time_to_samples(dat[1]/1000, sr=sr)]
-                strides = (0, 0)
-            else:
-                #TODO: Implement corrected word alignment, probably by taking either a set window of audio around
-                # the word, or by taking the three words surrounding
-                #Get audio chunk
-                strides = (80, 80)
-                if d == 0 : strides = ((dat[0]-strides[0])*((dat[0]-strides[0])>0) + ((dat[0]-1)*((dat[0]-strides[0])<=0)), strides[1])
-                elif d == last_index: strides = (strides[0], (dat[1]+strides[1])*((dat[1]+strides[1])<audio_length) + ((audio_length-(dat[1]+1))*((dat[1]+strides[1])>=audio_length)))
-                aud_chunk = lib_aud[librosa.time_to_samples((dat[0] - strides[0])/1000 , sr=sr): 
-                                    librosa.time_to_samples((dat[1] + strides[1])/1000, sr=sr)]
-            #Get alignments for corrected transcript    
-            calign, walign, trash = align_audio(processor, transcript=transcript, model=model, audio=aud_chunk,
-                                                    strides=strides)
-            #If character and word alignments were generated, add annotations for both
-            if calign != None and walign != None:
-                #Check if corrected tier is the word tier; if not, clear word annotations from slot and add new annotations
+            if transcript != '':
+                print("Aligning |"+transcript+"|")
                 if cor_tier != word_tier:
-                    #Clear previous word annotations
-                    if word_tier in ts.get_tier_names(): 
-                        wan_del = ts.get_annotation_data_between_times(word_tier, dat[0], dat[1])
-                        [ts.remove_annotation(word_tier, wan[0]+1) for wan in wan_del]
-                    else: ts.add_tier(word_tier)
-                    #Add new alignments
-                    for word in walign:
-                        ts.add_annotation(word_tier, word['start']+dat[0], word['end']+dat[0], 
-                            def_tok.revert(word['word']))
-                #DEBUG: If the corrected tier is the word tier, for debugging add a new_words tier
+                    #Get audio chunk
+                    aud_chunk = lib_aud[librosa.time_to_samples(dat[0]/1000, sr=sr): librosa.time_to_samples(dat[1]/1000, sr=sr)]
+                    strides = (0, 0)
                 else:
-                    ts.add_tier("new_words")
-                    for word in walign:
-                        print((word['start']+dat[0], word['end']+dat[0], def_tok.revert(word['word'])))
-                        ts.add_annotation("new_words", word['start']+dat[0], word['end']+dat[0], 
-                            def_tok.revert(word['word']))
-                #Clear previous character annotations
-                if char_tier in ts.get_tier_names(): 
-                    char_del = ts.get_annotation_data_between_times(char_tier, dat[0], dat[1])
-                    [print("removing ", char) for char in char_del]
-                    [ts.remove_annotation(char_tier, char[0]+1) for char in char_del]
-                else:
-                    ts.add_tier(char_tier)
-                #Add new character alignment annotations
-                for char in calign:
-                    print("adding", (char['start']+dat[0], char['end']+dat[0], def_tok.revert(char['char'])))
-                    ts.add_annotation(char_tier, char['start']+dat[0]+strides[0], char['end']+dat[0]+strides[0], 
-                        def_tok.revert(char['char']))
+                    #TODO: Implement corrected word alignment, probably by taking either a set window of audio around
+                    # the word, or by taking the three words surrounding
+                    #Get audio chunk
+                    strides = (0, 0)
+                    if d == 0 : strides = ((dat[0]-strides[0])*((dat[0]-strides[0])>0) + ((dat[0]-1)*((dat[0]-strides[0])<=0)), strides[1])
+                    elif d == last_index: strides = (strides[0], (dat[1]+strides[1])*((dat[1]+strides[1])<audio_length) + ((audio_length-(dat[1]+1))*((dat[1]+strides[1])>=audio_length)))
+                    aud_chunk = lib_aud[librosa.time_to_samples((dat[0] - strides[0])/1000 , sr=sr): 
+                                        librosa.time_to_samples((dat[1] + strides[1])/1000, sr=sr)]
+                #Get alignments for corrected transcript    
+                calign, walign, trash = align_audio(processor, transcript=transcript, model=model, audio=aud_chunk,
+                                                        strides=strides)
+                #If character and word alignments were generated, add annotations for both
+                if calign != None and walign != None:
+                    #Check if corrected tier is the word tier; if not, clear word annotations from slot and add new annotations
+                    if cor_tier != word_tier:
+                        #Clear previous word annotations
+                        if word_tier in ts.get_tier_names(): 
+                            wan_del = ts.get_annotation_data_between_times(word_tier, dat[0], dat[1])
+                            [ts.remove_annotation(word_tier, wan[0]+1) for wan in wan_del]
+                        else: ts.add_tier(word_tier)
+                        #Add new alignments
+                        for word in walign:
+                            ts.add_annotation(word_tier, word['start']+dat[0], word['end']+dat[0], 
+                                def_tok.revert(word['word']))
+                    #DEBUG: If the corrected tier is the word tier, for debugging add a new_words tier
+                    else:
+                        if "new_words" not in ts.get_tier_names(): ts.add_tier("new_words")
+                        for word in walign:
+                            print((word['start']+dat[0], word['end']+dat[0], def_tok.revert(word['word'])))
+                            ts.add_annotation("new_words", word['start']+dat[0], word['end']+dat[0], 
+                                def_tok.revert(word['word']))
+                    #Clear previous character annotations
+                    if char_tier in ts.get_tier_names(): 
+                        char_del = ts.get_annotation_data_between_times(char_tier, dat[0], dat[1])
+                        [print("removing ", char) for char in char_del]
+                        [ts.remove_annotation(char_tier, char[0]+1) for char in char_del]
+                    else:
+                        ts.add_tier(char_tier)
+                    #Add new character alignment annotations
+                    for char in calign:
+                        print("adding", (char['start']+dat[0], char['end']+dat[0], def_tok.revert(char['char'])))
+                        ts.add_annotation(char_tier, char['start']+dat[0]+strides[0], char['end']+dat[0]+strides[0], 
+                            def_tok.revert(char['char']))
+            else: print("Cannot align blank segment")
         if cor_path.suffix == '.TextGrid': ts = ts.to_textgrid()
     ts.to_file(f"{cor_path.stem}_ac{cor_path.suffix}")
 

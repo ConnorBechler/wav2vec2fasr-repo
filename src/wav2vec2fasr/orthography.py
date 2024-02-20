@@ -16,7 +16,7 @@ import warnings
 warnings.simplefilter("ignore")
 
 rep_chrs = [chr(x) for x in list(range(9312, 9912))]
-chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，]'
+chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，\？'+"\']"
 
 def remove_special_chars(text):
     text = re.sub(chars_to_ignore_regex, '', text.lower())

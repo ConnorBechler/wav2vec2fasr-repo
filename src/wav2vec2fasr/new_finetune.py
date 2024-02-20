@@ -47,7 +47,10 @@ def main_program(home = None,
     else:
         logging.debug(f"Creating output directory {mod_dir}")
         os.mkdir(mod_dir)
-
+    if w2v2_model == "facebook/mms-1b-all":
+        just_adapter = True
+    else:
+        just_adapter = False
 
     logging.debug(f"Loading training data from {data_train}")
     np_train_ds = load_from_disk(data_train)
@@ -185,8 +188,19 @@ def main_program(home = None,
         vocab_size=len(processor.tokenizer)
     )
 
-    logging.debug("freezing extractor")
-    model.freeze_feature_extractor()
+    if just_adapter:
+        logging.debug("initializing adapter")
+        #Initialize adapter layers
+        model.init_adapter_layers()
+        logging.debug("freezing model besides adapter layers")
+        #Freeze all model layers besides adapter layers
+        model.freeze_base_model()
+        adapter_weights = model._get_adapters()
+        for param in adapter_weights.values():
+            param.requires_grad = True
+    else:
+        logging.debug("freezing extractor")
+        model.freeze_feature_extractor()
 
     logging.debug("gradient checkpointing")
     model.gradient_checkpointing_enable()

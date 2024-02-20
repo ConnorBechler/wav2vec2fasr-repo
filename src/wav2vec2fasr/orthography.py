@@ -214,11 +214,15 @@ if __name__ == "__main__":
         load_tokenization(args['tokenization'])
 
     if TESTING:
-        load_tokenization("pumi_cb.tsv")
+        #load_tokenization("pumi_cb.tsv")
         #txts = load_directory("C:/Users/cbech/Desktop/Northern Prinmi Project/wq12_017/", ".eaf", "phrase-seg", report=False)
-        #txt = remove_special_chars(txts[0][1])
-        #txt = def_tok.apply(remove_special_chars(txts[0][1]), only_rule="CLEAN")
-        #print(def_tok.apply(txt)[:100])
+        txts = load_directory("D:/Northern Prinmi Data/wav-eaf-meta/testing/", ".eaf", "phrase-seg")
+        corp = "\n".join([remove_special_chars(txt[1]) for txt in txts])
+        load_tokenization("pumi_phons.tsv")
+        txt = def_tok.apply(corp)
+        print(txt)
+        print(set(txt))
+        #print(set(list(re.findall("..", txt))))
         #new = def_tok.revert(def_tok.apply(txt))
         #if new != txt : raise Exception("TEST FAILED")
 

@@ -37,23 +37,6 @@ def get_dominant_tier(eaf, tier_type='phrase'):
     if len(item[1]) > len(longest_tier[-1][1]): longest_tier.append(item)
   return(longest_tier[-1])
 
-def chunk_audio_by_eaf_into_data(filename, path, aud_ext=".mp3"):
-    """Function for chunking an audio file by eaf time stamp values from a given annotation tier into a list of numpy arrays"""
-    if pathlib.Path(path+filename+aud_ext).is_file() and pathlib.Path(f"{path}{filename}.eaf").is_file():
-        audio, sr = librosa.load(path+filename+aud_ext, sr=16000)
-        eaf = pympi.Elan.Eaf(f"{path}{filename}.eaf")
-        an_dat = get_dominant_tier(eaf)[1]
-        data = []
-        for x in range(len(an_dat)):
-            start = librosa.time_to_samples(an_dat[x][0]/1000, sr=sr)
-            end = librosa.time_to_samples(an_dat[x][1]/1000, sr=sr)
-            data.append({'from_file' : filename, 'segment' : x, 'transcript' : an_dat[x][2], 
-                'audio' : {'array': audio[start:end], 'sampling_rate' : sr}})
-        print(f"{filename} chunked successfully")
-        return(data)
-    else: 
-        print(f"Audio or eaf files not found for {filename}, chunking not possible")
-
 class prediction:
     def __init__(self, logit, char, start, end):
         self.logit = logit
@@ -190,6 +173,63 @@ def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
     if char_align: predlst_chars = rem_breaks(predlst_ctwv)
     else: predlst_chars = None
     return(predlst_words, predlst_chars)#predlst_js)
+
+def get_logits(processor, model, audio):
+    """
+    Returns logits for likelihood of each character at each time step (typically 20 ms)
+    
+    Args:
+        processor (Wav2Vec2Processor) : Required wav2vec2 processor used for processing the audio
+        model (AutoModelForCTC) : Necessary if you do not provide the logits, wav2vec2 model for generating logits
+        audio (str or Path or ndarray) : Either the path to an audio file or the audio as an ndarray
+    """
+    if type(audio) == type("string") or type(audio) == type(Path("/")):
+            lib_aud, sr = librosa.load(audio, sr=16000)
+    else: 
+        lib_aud = audio
+    # Process audio and generate logits
+    input_values = processor(lib_aud, return_tensors="pt", padding=True, sampling_rate=16000).input_values
+    #TODO: Decide if the following padding function is necessary
+    diff = 1200 - len(input_values[0])
+    if  diff > 0 :
+        pad = [-500 for x in range(round(diff /2))]
+        input_values =  torch.tensor([pad + list(input_values[0]) + pad])
+    logits = model(input_values.to('cpu')).logits
+    # Line below slices logit tensor to only include predictions for window within strides
+    logits = torch.tensor([logits[0][round(strides[0]/20): len(logits[0])-round(strides[1]/20)].detach().numpy()])
+    #Normalize logits into log domain to avoid "numerical instability" 
+    # (https://pytorch.org/audio/stable/tutorials/forced_alignment_tutorial.html#generate-frame-wise-label-probability)????
+    logits = torch.log_softmax(logits, dim=-1)
+    return(logits)
+
+def build_lm_decoder(model_dir, lm_dir):
+    """
+    Returns kenlm language model ctc decoder
+
+    Args:
+        model_dir (path or str) : directory of wav2vec2 model
+        lm_dir (path or str) : directory of kenlm model
+    """
+    tokenizer = Wav2Vec2CTCTokenizer(model_dir+"vocab.json", bos_token=None, eos_token=None)
+    vocab_dict = tokenizer.get_vocab()
+    sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
+    decoder = build_ctcdecoder(labels=list(sorted_vocab_dict.keys()), kenlm_model_path=lm_dir)
+    return(decoder)
+
+def transcribe_segment(processor, logits, decoder=None):
+    """
+    Returns character string representing the orthographic transcription of audio segment
+
+    Args:
+        processor (Wav2Vec2Processor) : required wav2vec2 processor used for processing the audio
+        logits : logit predictions for an audio segment
+        decoder (BeamSearchDecoderCTC) : optional kenlm beam search ctc decoder
+    """
+    if decoder == None:
+        transcript = processor.batch_decode(torch.argmax(logits, dim=-1))[0]
+    else:
+        transcript = decoder.decode_beams(logits.detach().numpy(), prune_history=True)[0][0]
+    return(transcript)
 
 def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/", 
                      has_eaf=False, format=".eaf", chunk_method='stride_chunk', min_sil=1000, min_chunk=100, max_chunk=10000, 

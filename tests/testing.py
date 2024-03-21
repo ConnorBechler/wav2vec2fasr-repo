@@ -17,11 +17,13 @@ cor_words_eaf = test_dir.joinpath("td21-22_020_preds_pm_ac_wm.eaf")
 host_dir = test_dir.parents[2]
 model = "model_6-8-23_xlsr53_nt_nh"
 model_dir = host_dir.joinpath("models/"+model)
+lm_model = "c_npplm_nh_nt_5g.binary"
+lm_dir = host_dir.joinpath("models/kenlm_models/"+lm_model)
 
 print(f"Testing alignment of {str(test_rec)} using the {str(model_dir)} model")
 
 ort.load_tokenization("pumi_nt.tsv")
-forcedalignment.generate_alignments_for_phrases(test_rec, orig_eaf, model_dir, src_tier="A_phrase-segnum-en")
-#forcedalignment.chunk_and_align(test_rec, model_dir, output=".eaf")
+#forcedalignment.generate_alignments_for_phrases(test_rec, orig_eaf, model_dir, src_tier="A_phrase-segnum-en")
+forcedalignment.chunk_and_align(test_rec, model_dir, output=".eaf", lm_dir=lm_dir)
 #forcedalignment.correct_alignments(test_rec, base_eaf, cor_phrase_eaf, model_dir, cor_tier="prediction")
 #forcedalignment.correct_alignments(test_rec, old_doc=cor_phrase_ac_eaf, corrected_doc=cor_words_eaf, model_dir=model_dir, cor_tier="words")

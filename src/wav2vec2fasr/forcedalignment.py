@@ -11,7 +11,6 @@ import torch
 from dataclasses import dataclass
 import re
 from pathlib import Path
-from numpy import ndarray
 from wav2vec2fasr import segment
 from wav2vec2fasr import orthography as ort
 from wav2vec2fasr.orthography import def_tok

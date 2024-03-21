@@ -7,7 +7,6 @@ import os
 
 from wav2vec2fasr.prinmitext import phone_revert, tone_revert, rep_tones, chars_to_ignore_regex, tone_regex
 from wav2vec2fasr.segment import chunk_audio
-from wav2vec2fasr.forcedalignment import align_audio
 
 #from datasets import Dataset
 #from pandas import DataFrame
@@ -210,7 +209,8 @@ def build_lm_decoder(model_dir, lm_dir):
         model_dir (path or str) : directory of wav2vec2 model
         lm_dir (path or str) : directory of kenlm model
     """
-    tokenizer = Wav2Vec2CTCTokenizer(model_dir+"vocab.json", bos_token=None, eos_token=None)
+    model_dir = pathlib.Path(model_dir)
+    tokenizer = Wav2Vec2CTCTokenizer(model_dir.joinpath("vocab.json"), bos_token=None, eos_token=None)
     vocab_dict = tokenizer.get_vocab()
     sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
     decoder = build_ctcdecoder(labels=list(sorted_vocab_dict.keys()), kenlm_model_path=lm_dir)

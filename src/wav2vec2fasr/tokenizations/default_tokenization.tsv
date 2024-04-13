@@ -1,7 +1,40 @@
 CLEAN	repl	⁵⁵⁵	⁵⁵
 CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵][ ]	 
-CLEAN	repl	[¹|²|³|⁵][¹|²|³|⁵]	
-CLEAN	repl	[¹|²|³|⁵]	
+CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵](?!¹|²|³|⁵)	
 CLEAN	repl	-	
 CLEAN	repl	õ	õ
 CLEAN	repl	ĩ	ĩ
+tone	repl	²¹	1
+tone	repl	²²	2
+tone	repl	³²	3
+tone	repl	³⁵	4
+tone	repl	⁵⁵	5
+tone	repl	⁵²	6
+tone	repl	⁵¹	7
+aff_asp	comb	tsʰ
+aff_asp	comb	ʈʂʰ
+aff_asp	comb	tɕʰ
+hig_nas	comb	ĩ
+hig_nas	comb	ɨ̃
+mid_nas	comb	ə̃
+mid_nas	comb	õ
+low_nas	comb	æ̃
+low_nas	comb	ɑ̃
+dip	comb	ei
+dip	comb	ɛi
+dip	comb	əu
+dip	comb	ɑu
+liq_vls	comb	r̥
+liq_nas	comb	m̥
+liq_nas	comb	n̥
+stp_asp	comb	pʰ
+stp_asp	comb	tʰ
+stp_asp	comb	ʈʰ
+stp_asp	comb	kʰ
+stp_asp	comb	qʰ
+aff	comb	ts
+aff	comb	dz
+aff	comb	ʈʂ
+aff	comb	ɖʐ
+aff	comb	tɕ
+aff	comb	dʑ

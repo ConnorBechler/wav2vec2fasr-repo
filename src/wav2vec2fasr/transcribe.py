@@ -173,7 +173,7 @@ def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
     else: predlst_chars = None
     return(predlst_words, predlst_chars)#predlst_js)
 
-def get_logits(processor, model, audio):
+def get_logits(processor, model, audio, strides=(0,0)):
     """
     Returns logits for likelihood of each character at each time step (typically 20 ms)
     
@@ -181,8 +181,9 @@ def get_logits(processor, model, audio):
         processor (Wav2Vec2Processor) : Required wav2vec2 processor used for processing the audio
         model (AutoModelForCTC) : Necessary if you do not provide the logits, wav2vec2 model for generating logits
         audio (str or Path or ndarray) : Either the path to an audio file or the audio as an ndarray
+        strides (tuple) : Strides on either side of each segment to provide context for prediction
     """
-    if type(audio) == type("string") or type(audio) == type(Path("/")):
+    if type(audio) == type("string") or type(audio) == type(pathlib.Path("/")):
             lib_aud, sr = librosa.load(audio, sr=16000)
     else: 
         lib_aud = audio
@@ -201,20 +202,24 @@ def get_logits(processor, model, audio):
     logits = torch.log_softmax(logits, dim=-1)
     return(logits)
 
-def build_lm_decoder(model_dir, lm_dir):
+def build_lm_decoder(model_dir, lm_dir, processor=None):
     """
-    Returns kenlm language model ctc decoder
+    Returns kenlm language model ctc decoder and audio processor
 
     Args:
         model_dir (path or str) : directory of wav2vec2 model
         lm_dir (path or str) : directory of kenlm model
+        processor (Wav2Vec2Processor) : wav2vec2 processor used for processing the audio
     """
     model_dir = pathlib.Path(model_dir)
-    tokenizer = Wav2Vec2CTCTokenizer(model_dir.joinpath("vocab.json"), bos_token=None, eos_token=None)
+    if processor==None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    tokenizer = Wav2Vec2CTCTokenizer(model_dir.joinpath("vocab.json"), bos_token=None, eos_token=None, 
+                                    unk_token="[UNK]", pad_token="[PAD]")
     vocab_dict = tokenizer.get_vocab()
     sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
-    decoder = build_ctcdecoder(labels=list(sorted_vocab_dict.keys()), kenlm_model_path=lm_dir)
-    return(decoder)
+    decoder = build_ctcdecoder(labels=list(sorted_vocab_dict.keys()), kenlm_model_path=str(lm_dir))
+    processor = Wav2Vec2Processor(feature_extractor=processor.feature_extractor, tokenizer=tokenizer)
+    return(decoder, processor)
 
 def transcribe_segment(processor, logits, decoder=None):
     """
@@ -228,7 +233,8 @@ def transcribe_segment(processor, logits, decoder=None):
     if decoder == None:
         transcript = processor.batch_decode(torch.argmax(logits, dim=-1))[0]
     else:
-        transcript = decoder.decode_beams(logits.detach().numpy(), prune_history=True)[0][0]
+        transcript = decoder.decode_beams(logits.detach().numpy()[0], prune_history=True)[0][0]
+        if transcript == "": transcript = processor.batch_decode(torch.argmax(logits, dim=-1))[0]
     return(transcript)
 
 def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/", 

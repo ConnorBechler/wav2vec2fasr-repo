@@ -54,7 +54,6 @@ def backtrack(trellis, emission, tokens, blank_id=0):
     # the corresponding index in transcript is `J-1`.
     j = trellis.size(1) - 1
     t_start = torch.argmax(trellis[:, j]).item()
-
     path = []
     for t in range(t_start, 0, -1):
         # 1. Figure out if the current position was stay or change
@@ -193,10 +192,11 @@ def align_audio(processor: Wav2Vec2Processor,
         tuple[list, list, str] : character, word, and phrase alignments, respectively
     """
     #If logits are not provided, generate them using the model
-    if logits == None: logits = get_logits(processor, model, audio)
+    if logits == None: logits = get_logits(processor, model, audio, strides)
     #If transcript is not provided, also generate transcript
     if transcript == None: transcript = transcribe_segment(processor, logits, decoder=decoder)
     align_dictionary = {char: code for char,code in processor.tokenizer.get_vocab().items()}
+    #print(logits)
     emission = logits[0].cpu().detach()
     #Replace spaces with vertical pipes symbolizing word boundaries/gaps
     clean_transcript = transcript.replace(' ', '|')
@@ -209,8 +209,12 @@ def align_audio(processor: Wav2Vec2Processor,
             blank_id = code
     trellis = get_trellis(emission, tokens, blank_id)
     path = backtrack(trellis, emission, tokens, blank_id)
-    chars, words, char_alignments, word_alignments = return_alignments(trellis, path, clean_transcript)
-    return(char_alignments, word_alignments, transcript)
+    try:
+        chars, words, char_alignments, word_alignments = return_alignments(trellis, path, clean_transcript)
+        return(char_alignments, word_alignments, transcript)
+    except Exception: 
+        return(None, None, transcript)
+    
 
 def chunk_and_align(audio_path : any, 
                     model_dir : any, 
@@ -238,7 +242,8 @@ def chunk_and_align(audio_path : any,
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     chunks = segment.chunk_audio(path=audio_path, method=chunking_method)
     #If language model directory provided, build lm decoder
-    if lm_dir != None: decoder = build_lm_decoder(model_dir, lm_dir)
+    if lm_dir != None: decoder, processor = build_lm_decoder(model_dir, lm_dir, processor)
+    else: decoder = None
     ts = pympi.Eaf()
     ts.add_linked_file(file_path=audio_path, mimetype='wav')
     ts.remove_tier('default')
@@ -295,7 +300,7 @@ def generate_alignments_for_phrases(audio_path,
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     #If language model directory provided, build lm decoder
-    if lm_dir != None: decoder = build_lm_decoder(model_dir, lm_dir)
+    if lm_dir != None: decoder, processor = build_lm_decoder(model_dir, lm_dir, processor)
     audio_path = Path(audio_path)
     src_path = Path(src_path)
     if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
@@ -344,7 +349,7 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     #If language model directory provided, build lm decoder
-    if lm_dir != None: decoder = build_lm_decoder(model_dir, lm_dir)
+    if lm_dir != None: decoder, processor = build_lm_decoder(model_dir, lm_dir, processor)
     audio_path = Path(audio_path)
     if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
     audio_length = librosa.get_duration(y=lib_aud, sr=sr)*1000

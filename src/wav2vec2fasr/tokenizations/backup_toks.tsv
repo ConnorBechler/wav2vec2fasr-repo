@@ -4,6 +4,63 @@ CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵](?!¹|²|³|⁵)
 CLEAN	repl	-	
 CLEAN	repl	õ	õ
 CLEAN	repl	ĩ	ĩ
+tri	repl	sʰʷ	①
+tri	repl	ʈʰʷ	②
+tri	repl	ʂʰʷ	③
+tri	repl	tʰʷ	④
+tri	repl	qʰʷ	⑤
+tri	repl	nʲʷ	⑥
+tri	repl	kʰʷ	⑦
+tri	repl	lʲʷ	⑧
+tri	repl	ɕʰʷ	⑨
+tri	repl	tʲʷ	⑩
+di	repl	ɕʰ	ⓐ
+di	repl	n̥	ⓑ
+di	repl	qʷ	ⓒ
+di	repl	ɬʷ	ⓓ
+di	repl	qʰ	ⓔ
+di	repl	xʲ	ⓕ
+di	repl	xʷ	ⓖ
+di	repl	ɨ̃	ⓗ
+di	repl	ʈʷ	ⓘ
+di	repl	ʈʰ	ⓙ
+di	repl	ŋʷ	ⓚ
+di	repl	ʑʷ	ⓛ
+di	repl	mʲ	ⓜ
+di	repl	dʷ	ⓝ
+di	repl	ĩ	ⓞ
+di	repl	pʰ	ⓟ
+di	repl	ɕʷ	ⓠ
+di	repl	tʷ	ⓡ
+di	repl	rʷ	ⓢ
+di	repl	lʲ	ⓣ
+di	repl	ɡʷ	ⓤ
+di	repl	bʲ	ⓥ
+di	repl	pʲ	ⓦ
+di	repl	tʲ	ⓧ
+di	repl	zʷ	ⓨ
+di	repl	ɬʲ	ⓩ
+di	repl	ʐʷ	Ⓐ
+di	repl	dʲ	Ⓑ
+di	repl	ɑ̃	Ⓒ
+di	repl	lʷ	Ⓓ
+di	repl	sʷ	Ⓔ
+di	repl	ə̃	Ⓕ
+di	repl	kʷ	Ⓖ
+di	repl	æ̃	Ⓗ
+di	repl	ɖʷ	Ⓘ
+di	repl	m̥	Ⓙ
+di	repl	kʰ	Ⓚ
+di	repl	ʂʷ	Ⓛ
+di	repl	õ	Ⓜ
+di	repl	ʂʰ	Ⓝ
+di	repl	sʰ	Ⓞ
+di	repl	r̥	Ⓟ
+di	repl	nʲ	Ⓠ
+di	repl	tʰ	Ⓡ
+di	repl	jʷ	Ⓢ
+di	repl	õ	Ⓣ
+di	repl	ĩ	Ⓤ
 tone	repl	²¹	1
 tone	repl	²²	2
 tone	repl	³²	3
@@ -11,30 +68,3 @@ tone	repl	³⁵	4
 tone	repl	⁵⁵	5
 tone	repl	⁵²	6
 tone	repl	⁵¹	7
-aff_asp	comb	tsʰ
-aff_asp	comb	ʈʂʰ
-aff_asp	comb	tɕʰ
-hig_nas	comb	ĩ
-hig_nas	comb	ɨ̃
-mid_nas	comb	ə̃
-mid_nas	comb	õ
-low_nas	comb	æ̃
-low_nas	comb	ɑ̃
-dip	comb	ei
-dip	comb	ɛi
-dip	comb	əu
-dip	comb	ɑu
-liq_vls	comb	r̥
-liq_nas	comb	m̥
-liq_nas	comb	n̥
-stp_asp	comb	pʰ
-stp_asp	comb	tʰ
-stp_asp	comb	ʈʰ
-stp_asp	comb	kʰ
-stp_asp	comb	qʰ
-aff	comb	ts
-aff	comb	dz
-aff	comb	ʈʂ
-aff	comb	ɖʐ
-aff	comb	tɕ
-aff	comb	dʑ

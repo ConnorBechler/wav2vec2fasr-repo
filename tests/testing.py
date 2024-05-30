@@ -2,6 +2,7 @@ import inspect
 import pathlib
 from wav2vec2fasr import forcedalignment
 from wav2vec2fasr import orthography as ort
+from wav2vec2fasr import segment
 import tests
 
 test_path = pathlib.Path(inspect.getabsfile(inspect.currentframe()))
@@ -20,7 +21,10 @@ model_dir = host_dir.joinpath("models/"+model)
 lm_model = "c_npplm_nh_cb_5g.binary"
 lm_dir = host_dir.joinpath("models/kenlm_models/"+lm_model)
 
-print(f"Testing alignment of {str(test_rec)} using the {str(model_dir)} model")
+#print(f"Testing alignment of {str(test_rec)} using the {str(model_dir)} model")
+
+#methods = ["rvad_chunk", "rvad_chunk_faster", "pitch_chunk"]
+#segment.create_chunked_annotation(test_rec, methods)
 
 ort.load_tokenization("pumi_phons.tsv")
 #forcedalignment.generate_alignments_for_phrases(test_rec, orig_eaf, model_dir, src_tier="A_phrase-segnum-en")

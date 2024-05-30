@@ -9,6 +9,8 @@ from pydub import AudioSegment, silence
 import librosa
 import pympi
 import parselmouth
+from rVADfast import rVADfast
+import time
 from math import ceil
 import pathlib
 try:
@@ -132,8 +134,40 @@ def vad_chunk(lib_aud, max_chunk, sr, stride):
         return(nchunks)
     else: print("Speechbrain VAD disabled")
 
-def rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride):
-    """Uses rVAD to chunk audio, with fall-back stride chunking for segments that are too long"""
+def rvad_chunk_base(audio, sr=None, vad=rVADfast()):
+    """Uses rVAD to segment audio in a single pass"""
+    vad_labels, vad_timestamps = vad(audio, sr)
+    segments = []
+    start, end = None, None
+    for i, speech in enumerate(vad_labels):
+        if speech == 1:
+            if start == None: start = i
+        else:
+            if end == None and start != None:
+                end = i
+                segments.append([int(vad_timestamps[start]*1000), int(vad_timestamps[end]*1000), (0, 0)])
+                start, end = None, None
+    return(segments)
+
+def rvad_chunk(audio, min_chunk, max_chunk, sr, vad=rVADfast()):
+    """Uses rvad to segment audio recursively"""
+    run = True
+    segs = rvad_chunk_base(audio, sr, vad)
+    while run:
+        problems = [i for i in range(len(segs)) if segs[i][1]-segs[i][0]>max_chunk or segs[i][1]-segs[i][0]<min_chunk]
+        if problems != []:
+            for p in problems:
+                st_ind = librosa.time_to_samples(int(segs[p][0]/1000), sr=sr)
+                end_ind = librosa.time_to_samples(int(segs[p][1]/1000), sr=sr)
+                new_segs = rvad_chunk_base(audio[st_ind:end_ind], sr, vad)
+                new_segs = [[seg[0]+segs[p][0], seg[1]+segs[p][0], (0, 0)] for seg in new_segs]
+                segs = segs[:p] + new_segs + segs[p+1:]
+        else:
+            run = False
+    return(segs)
+
+def rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride):
+    """Uses rvad_faster to chunk audio, with fall-back stride chunking for segments that are too long"""
     aud_mono = librosa.to_mono(lib_aud)
     soundfile.write("rvad_working_mono.wav", aud_mono, sr)
     segs = rvad_faster.rVAD_fast("rvad_working_mono.wav", ftThres = 0.4)
@@ -234,7 +268,8 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=1
                                                                    min_chunk, stride, min_sil)
     elif method == 'og_chunk': nchunks = og_silence_chunk(path, aud_ext, min_sil, min_chunk, max_chunk, stride)
     elif method == 'vad_chunk': nchunks = vad_chunk(lib_aud, max_chunk, sr, stride)
-    elif method == 'rvad_chunk': nchunks = rvad_chunk(lib_aud, min_chunk, max_chunk, sr, stride)
+    elif method == 'rvad_chunk_faster': nchunks = rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride)
+    elif method == 'rvad_chunk': nchunks = rvad_chunk(lib_aud, min_chunk, max_chunk, sr)
     elif method == 'pitch_chunk': nchunks = pitch_chunk(path, min_chunk, max_chunk, stride)
     else: 
         method = 'stride_chunk'
@@ -261,7 +296,9 @@ def create_chunked_annotation(filepath : str, methods, format=".eaf"):
     ts.remove_tier('default')
     for method in methods:
         ts.add_tier(method)
+        tastt = time.time()
         chunks = chunk_audio(None, str(filepath), method=method)
+        print(f"{method} took {time.time()-tastt} to chunk")
         print(len(chunks))
         for chunk in chunks:
             ts.add_annotation(method, chunk[0]+chunk[2][0], chunk[1]-chunk[2][1], 'CHUNK')
@@ -271,6 +308,6 @@ def create_chunked_annotation(filepath : str, methods, format=".eaf"):
 if __name__ == "__main__":
     
     #filepath = "../wav-eaf-meta/td21-22_020.wav"
-    filepath = "../td21-22_020/td21-22_020.wav"
-    methods = ["rvad_chunk", "pitch_chunk"]
+    filepath = "../../tests/test_files/td21-22_020.wav"
+    methods = ["rvad_chunk", "rvad_chunk_faster", "pitch_chunk"]
     create_chunked_annotation(filepath, methods)

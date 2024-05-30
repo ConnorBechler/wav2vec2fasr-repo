@@ -24,6 +24,7 @@ praat-parselmouth = "^0.4.3"
 speechbrain = "^0.5.16"
 click = "^8.1.7"
 kenlm = {url = "https://github.com/kpu/kenlm/archive/master.zip"}
+rvadfast = "^0.0.3"
 
 
 [tool.poetry.group.dev.dependencies]

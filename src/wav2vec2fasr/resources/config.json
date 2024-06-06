@@ -1,0 +1,4 @@
+{
+    "tokenization" : "pumi_base.tsv",
+    "evaluation_set" : "old_eval_sets.json"
+}

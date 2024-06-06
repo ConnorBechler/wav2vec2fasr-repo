@@ -30,10 +30,9 @@ def main_program(home = None,
         w2v2_model="facebook/wav2vec2-large-xlsr-53"):
 
     if home == None: home = os.environ["HOME"]
-    project_dir = project_dir#"npp_asr"
     full_project = os.path.join(home, project_dir)
     if output_dir == "": 
-        output_dir = os.path.join(full_project, "output/" + output_dir)
+        output_dir = os.path.join(full_project, "output/")
     if data_dir == None: 
         data_dir = output_dir+"/data"
     data_dir = os.path.join(full_project, data_dir)

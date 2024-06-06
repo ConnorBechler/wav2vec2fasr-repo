@@ -8,8 +8,13 @@ import pathlib
 import os
 import re
 from pympi import Eaf, TextGrid
-from importlib import resources
-from wav2vec2fasr import tokenizations
+from importlib import resources as il_resources
+from wav2vec2fasr import resources
+import json
+
+with il_resources.path(resources, "config.json") as config_path:
+    with open(str(config_path), "r") as f:
+        config = json.loads(f.read())
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import warnings
@@ -173,14 +178,14 @@ Note: If you only want a rule to run on application and not on reversion, label 
                     
         
 #Load default tokenization scheme
-with resources.path(tokenizations, "default_tokenization.tsv") as def_path:
+with il_resources.path(resources, "default_tokenization.tsv") as def_path:
     def_tok_path = str(def_path)
 def_tok = Tokenization_Scheme(def_tok_path)
 
 def load_tokenization(path, backup=True):
     """Copy contents of new tsv into default tokenization tsv
     Args:
-        path (str | pathlib.Path) : path to a tokenization tsv, either full path or tsv must be in tokenizations folder
+        path (str | pathlib.Path) : path to a tokenization tsv, either full path or tsv must be in resources folder
         backup (bool) : if true, copy previous tokenization scheme to backup_toks.tsv
     """
     path = pathlib.Path(path)

@@ -3,7 +3,7 @@ from datasets import load_from_disk#, load_metric, Audio
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-import re
+import pathlib
 import torch
 #from dataclasses import dataclass, field
 #from typing import Any, Dict, List, Optional, Union
@@ -23,25 +23,26 @@ warnings.simplefilter("ignore")
 
 from wav2vec2fasr.prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
 from wav2vec2fasr import orthography
+from importlib import resources as il_resources
+from wav2vec2fasr import resources
+import json
+
 #TODO: Actually implement the new orthography module's methods
 
 def main_program(home=None, 
+                project_dir = "npp_asr",
                 eval_dir="output", 
                 data_dir=None, 
                 checkpoint=None, 
                 cpu=False, 
-                lm=None,
-                rules_tsv=None):
+                lm=None):
     """Function for evaluating the performance of a wav2vec2 model on a dataset
     Generates a multitude of outputs, printing most to the console but also creating
     error tables and replacement tables as csvs"""
 
     if home == None: home = os.environ["HOME"]
-    project_dir = "npp_asr"
-    output_dir = "output"
     full_project = os.path.join(home, project_dir)
-    output_path = os.path.join(full_project, output_dir)
-    eval_dir = os.path.join(output_path, eval_dir)
+    eval_dir = os.path.join(full_project, eval_dir)
     if data_dir == None:
         data_dir = os.path.join(eval_dir, "data/")
     data_train = os.path.join(data_dir, "training/")
@@ -59,6 +60,7 @@ def main_program(home=None,
         device = 'cuda'
     if lm== None: eval_name = eval_dir.split('/')[-1]
     else: eval_name = eval_dir.split('/')[-1]+"_w_"+lm.split("/")[-1].split(".")[0]
+
     print("Evaluating", eval_name)
 
     logging.debug(f"Loading training data from {data_train}")
@@ -98,24 +100,29 @@ def main_program(home=None,
     logging.debug("Loading finetuned model")
     model = AutoModelForCTC.from_pretrained(model_dir).to(device)
     
-    full = list(range(len(np_test_ds["transcript"])))
-    #Genre
-    songs = list(range(0,5+1))+ list(range(76, 97+1)) + list(range(170,202+1))
-    rituals = list(range(6, 75+1)) + list(range(98, 169+1)) + list(range(203, 278+1))
-    #Location
-    sichuan = list(range(0,5+1)) + list(range(217,278+1))
-    yunnan = list(range(6, 216+1))
-    #Recording names
-    recordings = {
-        "sl05_000": list(range(0,6)),
-        "td21-22_020": list(range(6,26)),
-        "wq09_075": list(range(26, 76)),
-        "wq10_11": list(range(76, 98)),
-        "wq12_017": list(range(98, 170)),
-        "wq14_42": list(range(170, 203)),
-        "wq15_069": list(range(203, 217)),
-        "yy29_000": list(range(217, 278))
-    }
+    #Load in evaluation set
+    # Get path for config and load json
+    with il_resources.path(resources, "config.json") as config_path:
+        config_path = pathlib.Path(config_path)
+        with open(config_path, "r") as f:
+            config = json.loads(f.read())
+            # Get path for evaluation_set
+            eval_set_path = pathlib.Path(config["evaluation_set"])
+    # Check if evaluation_set is just name of file in resources or an outside file path
+    # If it is just a file name and is present in resources, reassign as a full path to file in resources
+    print(eval_set_path.parent)
+    print(config_path.parent.joinpath(eval_set_path))
+    if len(str(eval_set_path.parent)) < 2 and pathlib.Path(config_path.parent.joinpath(eval_set_path)).exists():
+        eval_set_path = config_path.parent.joinpath(eval_set_path)
+    # Load evaluation set
+    with open(eval_set_path, "r") as f:
+        ev_set = json.loads(f.read())
+        rec_inds = {r : list(range(ev_set["indexes"][r][0], ev_set["indexes"][r][1])) for r in ev_set["indexes"]}
+        sub_inds = {}
+        for s in ev_set["subsets"]:
+            sub_inds[s] = []
+            for r in ev_set["subsets"][s]:
+                sub_inds[s] += rec_inds[r]
     
     def get_predictions(ind, return_comb=False):
         input_dict = processor(np_test_ds[ind]["audio"]['array'], return_tensors="pt", padding=True, sampling_rate=16000)
@@ -150,27 +157,6 @@ def main_program(home=None,
             labels.append(label)
             preds.append(pred)
         return(cer(labels, preds))
-    
-    #Function to count the number of substitutions per expected character 
-    def count_replacements(ind_list):
-        replacements = []
-        for ind in ind_list:
-            label, pred = get_predictions(ind)
-            edits = editops(label, pred)
-            replacements += [(label[x[1]], pred[x[2]]) for x in edits if x[0] == 'replace']
-        rep_counts = {}
-        rep_types = {}
-        for x in replacements:
-          if x[0] in rep_types:
-            rep_counts[x[0]] += 1
-            if x[1] in rep_types[x[0]]:
-              rep_types[x[0]][x[1]] += 1
-            else:
-              rep_types[x[0]][x[1]] = 1
-          else:
-            rep_counts[x[0]] = 1
-            rep_types[x[0]] = {x[1]: 1}
-        return rep_counts, rep_types
     
     def save_replacements_table(name, ind_list, in_preds=None):
         replacements = []
@@ -249,7 +235,7 @@ def main_program(home=None,
     
     logging.debug("Loading logits for test values")
     labels, preds, comb_labels, comb_preds = [], [], [], []
-    for ind in full:
+    for ind in rec_inds["full"]:
         label, pred, comb_label, comb_pred = get_predictions(ind, return_comb=True)
         labels.append(label), preds.append(pred)
         comb_labels.append(comb_label), comb_preds.append(comb_pred)
@@ -287,42 +273,45 @@ def main_program(home=None,
             else: d_vocab_count[char] = 1
     print("Decoded testing vocab: ", d_vocab_count)
     
-    text = [phone_revert(tone_revert(np_test_ds[ind]["transcript"])) for ind in range(279)]
+    #Output original transcript for comparison
+    text = [phone_revert(tone_revert(np_test_ds[ind]["transcript"])) for ind in rec_inds["full"]]
     with open(eval_name+'_transcript.txt', 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
     
+    #Output predicted transcript for comparison
+    text = [phone_revert(tone_revert(labels[ind])) for ind in rec_inds["full"]]
+    with open(eval_name+'_prediction.txt', 'w', encoding='utf-8') as f:
+        f.write("\n".join(text))
+
+    #Set in_preds tuples of already generated transcriptions/predictions to avoid recomputing them
     in_preds = (labels, preds)
-    #Block used to calculate WER on each subsection of the testing set
-    print(f"{eval_name} WER on full testing set: {compute_wer(full, in_preds)}")
-    print(f"{eval_name} WER on songs: {compute_wer(songs, in_preds)}")
-    print(f"{eval_name} WER on rituals: {compute_wer(rituals, in_preds)}")
-    print(f"{eval_name} WER on Sichuan recordings: {compute_wer(sichuan, in_preds)}")
-    print(f"{eval_name} WER on Yunnan recordings: {compute_wer(yunnan, in_preds)}")
-    for key in list(recordings):
-        print(f"{eval_name} WER on {key}: {compute_wer(recordings[key], in_preds)}")
-    
-    #Block used to calculate CER on each subsection of the testing set
-    print(f"{eval_name} CER on full testing set: {compute_cer(full, in_preds)}")
-    print(f"{eval_name} CER on songs: {compute_cer(songs, in_preds)}")
-    print(f"{eval_name} CER on rituals: {compute_cer(rituals, in_preds)}")
-    print(f"{eval_name} CER on Sichuan recordings: {compute_cer(sichuan, in_preds)}")
-    print(f"{eval_name} CER on Yunnan recordings: {compute_cer(yunnan, in_preds)}")
-    for key in list(recordings):
-        print(f"{eval_name} CER on {key}: {compute_cer(recordings[key], in_preds)}")
-    
+    #Calculate WER for each subsection and then each recording
+    print(f"{eval_name} WER on full testing set: {compute_wer(rec_inds["full"], in_preds)}")
+    for subset in sub_inds:
+        print(f"{eval_name} WER on {subset} set: {compute_wer(sub_inds[subset], in_preds)}")
+    for recording in rec_inds:
+        if recording != "full": print(f"{eval_name} WER on {recording}: {compute_wer(rec_inds[recording], in_preds)}")
+
+    #Calculate CER for each subsection and then each recording
+    print(f"{eval_name} CER on full testing set: {compute_cer(rec_inds["full"], in_preds)}")
+    for subset in sub_inds:
+        print(f"{eval_name} CER on {subset} set: {compute_cer(sub_inds[subset], in_preds)}")
+    for recording in rec_inds:
+        if recording != "full": print(f"{eval_name} CER on {recording}: {compute_cer(rec_inds[recording], in_preds)}")
+
     in_preds = (labels, preds, comb_labels, comb_preds)
     #Save error and replacements tables to eval directory
-    err_table, comb_err_table = save_error_table(eval_name+'_errors', full, in_preds)
+    err_table, comb_err_table = save_error_table(eval_name+'_errors', rec_inds["full"], in_preds)
     print("Error Table: \n" + err_table)
     print("Combined Error Table: \n" + comb_err_table)
-    rep_table, comb_rep_table = save_replacements_table(eval_name+'_replacements', full, in_preds)
+    rep_table, comb_rep_table = save_replacements_table(eval_name+'_replacements', rec_inds["full"], in_preds)
     print("Replacements Table: \n" + rep_table)
     print("Combined Replacements Table: \n" + comb_rep_table)
 
     #Block which prints out random sample predictions
     logging.debug("Sample Predictions")
     random.seed("test")
-    inds = list(range(0,279))
+    inds = rec_inds["full"]
     random.shuffle(inds)
     ex_inds = inds[:20]
     #ex_inds = list(range(0, 279, 4))

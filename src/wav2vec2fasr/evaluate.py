@@ -2,6 +2,8 @@ from datasets import load_from_disk#, load_metric, Audio
 #import numpy as np
 import logging
 logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('numba').setLevel(logging.WARNING)
+
 
 import pathlib
 import torch
@@ -21,11 +23,12 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import warnings
 warnings.simplefilter("ignore")
 
-from wav2vec2fasr.prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
+#from wav2vec2fasr.prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
 from wav2vec2fasr import orthography
 from importlib import resources as il_resources
 from wav2vec2fasr import resources
 import json
+import time
 
 #TODO: Actually implement the new orthography module's methods
 
@@ -100,20 +103,8 @@ def main_program(home=None,
     logging.debug("Loading finetuned model")
     model = AutoModelForCTC.from_pretrained(model_dir).to(device)
     
-    #Load in evaluation set
-    # Get path for config and load json
-    with il_resources.path(resources, "config.json") as config_path:
-        config_path = pathlib.Path(config_path)
-        with open(config_path, "r") as f:
-            config = json.loads(f.read())
-            # Get path for evaluation_set
-            eval_set_path = pathlib.Path(config["evaluation_set"])
-    # Check if evaluation_set is just name of file in resources or an outside file path
-    # If it is just a file name and is present in resources, reassign as a full path to file in resources
-    print(eval_set_path.parent)
-    print(config_path.parent.joinpath(eval_set_path))
-    if len(str(eval_set_path.parent)) < 2 and pathlib.Path(config_path.parent.joinpath(eval_set_path)).exists():
-        eval_set_path = config_path.parent.joinpath(eval_set_path)
+    #Load in evaluation set and tokenization scheme
+    ort_tokenizer, eval_set_path = orthography.load_config()
     # Load evaluation set
     with open(eval_set_path, "r") as f:
         ev_set = json.loads(f.read())
@@ -124,20 +115,24 @@ def main_program(home=None,
             for r in ev_set["subsets"][s]:
                 sub_inds[s] += rec_inds[r]
     
+    vocab_set = {ort_tokenizer.apply(char) for char in processor.tokenizer.get_vocab()} | {" "}
+    print(vocab_set)
+
     def get_predictions(ind, return_comb=False):
-        input_dict = processor(np_test_ds[ind]["audio"]['array'], return_tensors="pt", padding=True, sampling_rate=16000)
-        logits = model(input_dict.input_values.to(device)).logits
+        input_values = processor(np_test_ds[ind]["audio"]['array'], return_tensors="pt", padding=True, sampling_rate=16000).input_values
+        logits = model(input_values.to(device)).logits
         if lm == None: 
             pred_ids = torch.argmax(logits, dim=-1)[0]
-            if return_comb: comb_pred = phone_convert(tone_convert(processor.decode(pred_ids)))
-            pred = phone_revert(tone_revert(processor.decode(pred_ids)))
+            comb_pred = processor.decode(pred_ids)
+            pred = ort_tokenizer.revert(comb_pred)
         else: 
-            if return_comb: comb_pred = phone_convert(tone_convert(decoder.decode(logits[0].detach().cpu().numpy())))
-            pred = phone_revert(tone_revert(decoder.decode(logits[0].detach().cpu().numpy())))
-        if return_comb: comb_label = phone_convert(tone_convert(np_test_ds[ind]["transcript"]))
-        label = phone_revert(tone_revert(np_test_ds[ind]["transcript"]))
-        if return_comb:
-            return(label, pred, comb_label, comb_pred)
+            comb_pred = decoder.decode(logits[0].detach().cpu().numpy())
+            pred = ort_tokenizer.revert(comb_pred)
+        comb_label = ort_tokenizer.apply(orthography.remove_special_chars(np_test_ds[ind]["transcript"]))
+        label = ort_tokenizer.revert(comb_label)
+        missing = set(comb_label) - vocab_set
+        if missing != set(): print(missing)
+        if return_comb: return(label, pred, comb_label, comb_pred)
         else: return(label, pred)
 
     def compute_wer(ind_list, in_preds=None):
@@ -234,11 +229,13 @@ def main_program(home=None,
         return csv, comb_csv
     
     logging.debug("Loading logits for test values")
+    stt = time.time()
     labels, preds, comb_labels, comb_preds = [], [], [], []
     for ind in rec_inds["full"]:
         label, pred, comb_label, comb_pred = get_predictions(ind, return_comb=True)
         labels.append(label), preds.append(pred)
         comb_labels.append(comb_label), comb_preds.append(comb_pred)
+    print(time.time()-stt)
 
     print('Printing vocab of', eval_name)
     #Lines that collect and print the encoded vocab (preprocessed prediction labels) of the training dataset
@@ -252,7 +249,7 @@ def main_program(home=None,
     #Lines that collect and print the reconverted vocab (expected output) of the training dataset
     d_vocab_count = {}
     for entry in np_train_ds:
-        for char in phone_revert(tone_revert(entry["transcript"])):
+        for char in ort_tokenizer.revert(entry["transcript"]):
             if char in d_vocab_count: d_vocab_count[char] += 1
             else: d_vocab_count[char] = 1
     print("Decoded training vocab: ", d_vocab_count)
@@ -268,32 +265,32 @@ def main_program(home=None,
     #Lines that collect and print the reconverted vocab (expected output) of the testing dataset
     d_vocab_count = {}
     for entry in np_test_ds:
-        for char in phone_revert(tone_revert(entry["transcript"])):
+        for char in ort_tokenizer.revert((entry["transcript"])):
             if char in d_vocab_count: d_vocab_count[char] += 1
             else: d_vocab_count[char] = 1
     print("Decoded testing vocab: ", d_vocab_count)
     
     #Output original transcript for comparison
-    text = [phone_revert(tone_revert(np_test_ds[ind]["transcript"])) for ind in rec_inds["full"]]
+    text = [ort_tokenizer.revert(np_test_ds[ind]["transcript"]) for ind in rec_inds["full"]]
     with open(eval_name+'_transcript.txt', 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
     
     #Output predicted transcript for comparison
-    text = [phone_revert(tone_revert(labels[ind])) for ind in rec_inds["full"]]
+    text = [ort_tokenizer.revert(comb_preds[ind]) for ind in rec_inds["full"]]
     with open(eval_name+'_prediction.txt', 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
 
     #Set in_preds tuples of already generated transcriptions/predictions to avoid recomputing them
     in_preds = (labels, preds)
     #Calculate WER for each subsection and then each recording
-    print(f"{eval_name} WER on full testing set: {compute_wer(rec_inds["full"], in_preds)}")
+    print(f"{eval_name} WER on full testing set: {compute_wer(rec_inds['full'], in_preds)}")
     for subset in sub_inds:
         print(f"{eval_name} WER on {subset} set: {compute_wer(sub_inds[subset], in_preds)}")
     for recording in rec_inds:
         if recording != "full": print(f"{eval_name} WER on {recording}: {compute_wer(rec_inds[recording], in_preds)}")
 
     #Calculate CER for each subsection and then each recording
-    print(f"{eval_name} CER on full testing set: {compute_cer(rec_inds["full"], in_preds)}")
+    print(f"{eval_name} CER on full testing set: {compute_cer(rec_inds['full'], in_preds)}")
     for subset in sub_inds:
         print(f"{eval_name} CER on {subset} set: {compute_cer(sub_inds[subset], in_preds)}")
     for recording in rec_inds:

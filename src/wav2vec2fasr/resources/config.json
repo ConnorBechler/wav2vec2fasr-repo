@@ -1,4 +1,4 @@
 {
-    "tokenization" : "pumi_base.tsv",
-    "evaluation_set" : "old_eval_sets.json"
+    "tokenization" : "pumi_phons.tsv",
+    "evaluation_set" : "fsd_eval_sets.json"
 }

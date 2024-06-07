@@ -2,7 +2,7 @@ import os
 import logging
 import re
 import pathlib
-from src import orthography as ort
+from wav2vec2fasr import orthography as ort
 
 from datasets import load_from_disk, Audio
 from wav2vec2fasr.prinmitext import chars_to_ignore_regex, tone_regex, nontone_regex, trips, doubs
@@ -54,9 +54,12 @@ def process_data(
     logging.debug(f"Loading test data from {data_test}")
     np_test_full_ds = load_from_disk(data_test)
     
-    selector = [i for i in range(len(np_train_full_ds['segment'])) if i != 243]
-    
-    np_train_full_ds = np_train_full_ds.select(selector)
+    #Remove pinyin line from FSD if doing the data processing, should really just screen it during generation
+    #TODO: Reprocess the full speaker dataset to exclude the single pinyin line
+    selector = None
+    if len(np_train_full_ds) == 1317: 
+        selector = [i for i in range(len(np_train_full_ds['segment'])) if i != 1146]
+        np_train_full_ds = np_train_full_ds.select(selector)
     
     np_train_full_ds = np_train_full_ds.remove_columns(["from_file", "segment"])
     np_test_full_ds = np_test_full_ds.remove_columns(["from_file", "segment"])

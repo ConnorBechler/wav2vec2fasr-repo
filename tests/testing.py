@@ -28,8 +28,8 @@ lm_dir = host_dir.joinpath("models/kenlm_models/"+lm_model)
 #methods = ["rvad_chunk", "rvad_chunk_faster", "pitch_chunk"]
 #segment.create_chunked_annotation(test_rec, methods)
 
-evaluate.main_program(home=str(host_dir.drive), project_dir=str(host_dir), eval_dir="models/"+model2, 
-                      data_dir=str(host_dir)+"/hf_datasets/", cpu=True)
+evaluate.main_program(home=str(host_dir.drive), project_dir=str(host_dir), eval_dir="models/"+model, 
+                      data_dir=str(host_dir)+"/hf_datasets/data_all_speakers/", cpu=True)
 
 #ort.load_tokenization("pumi_phons.tsv")
 #forcedalignment.generate_alignments_for_phrases(test_rec, orig_eaf, model_dir, src_tier="A_phrase-segnum-en")

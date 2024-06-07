@@ -176,7 +176,6 @@ Note: If you only want a rule to run on application and not on reversion, label 
             if new_name == None : new_name = name + "_" + self.name + operation
             ts.to_file(os.path.join(path.parent, new_name+path.suffix))
                     
-        
 #Load default tokenization scheme
 with il_resources.path(resources, "default_tokenization.tsv") as def_path:
     def_tok_path = str(def_path)
@@ -208,6 +207,28 @@ def load_tokenization(path, backup=True):
     global def_tok
     def_tok = Tokenization_Scheme(def_tok_path) 
 
+def load_config():
+    """Function for loading tokenizer and path to evaluation set from config
+    Returns:
+        tokenizer (Tokenization_Scheme) : loaded from the tsv pathed to in the config file
+        eval_set_path (pathlib.Path) : path to evaluation settings json provided in the config file
+    """
+    with il_resources.path(resources, "config.json") as config_path:
+        config_path = pathlib.Path(config_path)
+        with open(config_path, "r") as f:
+            config = json.loads(f.read())
+            eval_set_path = pathlib.Path(config["evaluation_set"])
+            tokenization_path = pathlib.Path(config["tokenization"])
+    # Check if evaluation_set is just name of file in resources or an outside file path
+    # If it is just a file name and is present in resources, reassign as a full path to file in resources
+    if len(str(eval_set_path.parent)) < 2 and pathlib.Path(config_path.parent.joinpath(eval_set_path)).exists():
+        eval_set_path = config_path.parent.joinpath(eval_set_path)
+    # Check if tokenization is just name of file in resources or an outside file path
+    # If it is just a file name and is present in resources, reassign as a full path to file in resources
+    if len(str(tokenization_path.parent)) < 2 and pathlib.Path(config_path.parent.joinpath(tokenization_path)).exists():
+        tokenization_path = config_path.parent.joinpath(tokenization_path)
+    tokenizer = Tokenization_Scheme(tokenization_path)
+    return(tokenizer, eval_set_path)
 
 TESTING = True
 if __name__ == "__main__":

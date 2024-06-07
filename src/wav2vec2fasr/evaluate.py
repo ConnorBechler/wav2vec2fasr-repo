@@ -30,7 +30,39 @@ from wav2vec2fasr import resources
 import json
 import time
 
-#TODO: Actually implement the new orthography module's methods
+def load_eval_settings(eval_set_path, test_set):
+    full = list(range(len(test_set)))
+    with open(eval_set_path, "r") as f:
+        ev_set = json.loads(f.read())
+        if ev_set["mode"] == "both":
+            if "indexes" in ev_set:
+                ev_set["mode"] = "index"
+            elif set(ev_set["features"]) <= set(test_set.features):
+                ev_set["mode"] = "feature"
+            else:
+                raise Exception("No indexes or proper feature set (features present in the testing set) provided")
+        if ev_set["mode"] == "feature" :
+            sub_inds ={s : [] for s in ev_set["subsets"]}
+            rec_inds = {}
+            for i in range(len(test_set)):
+                for s in ev_set["subsets"]:
+                    for f in ev_set["features"]:
+                        if test_set[i][f] in ev_set["subsets"][s] : 
+                            sub_inds[s].append(i)
+                            if test_set[i][f] not in rec_inds: 
+                                rec_inds[test_set[i][f]] = [i]
+                            else: 
+                                if i not in rec_inds[test_set[i][f]] : rec_inds[test_set[i][f]].append(i)
+        if ev_set["mode"] == "index":
+            rec_inds = {r : list(range(ev_set["indexes"][r][0], ev_set["indexes"][r][1])) for r in ev_set["indexes"]}
+            sub_inds = {}
+            for s in ev_set["subsets"]:
+                sub_inds[s] = []
+                for r in ev_set["subsets"][s]:
+                    sub_inds[s] += rec_inds[r]
+        print(rec_inds)
+        print(sub_inds)
+        return(full, rec_inds, sub_inds)
 
 def main_program(home=None, 
                 project_dir = "npp_asr",
@@ -106,14 +138,7 @@ def main_program(home=None,
     #Load in evaluation set and tokenization scheme
     ort_tokenizer, eval_set_path = orthography.load_config()
     # Load evaluation set
-    with open(eval_set_path, "r") as f:
-        ev_set = json.loads(f.read())
-        rec_inds = {r : list(range(ev_set["indexes"][r][0], ev_set["indexes"][r][1])) for r in ev_set["indexes"]}
-        sub_inds = {}
-        for s in ev_set["subsets"]:
-            sub_inds[s] = []
-            for r in ev_set["subsets"][s]:
-                sub_inds[s] += rec_inds[r]
+    full, rec_inds, sub_inds = load_eval_settings(eval_set_path, np_test_ds)
     
     vocab_set = {ort_tokenizer.apply(char) for char in processor.tokenizer.get_vocab()} | {" "}
     print(vocab_set)
@@ -231,7 +256,7 @@ def main_program(home=None,
     logging.debug("Loading logits for test values")
     stt = time.time()
     labels, preds, comb_labels, comb_preds = [], [], [], []
-    for ind in rec_inds["full"]:
+    for ind in full:
         label, pred, comb_label, comb_pred = get_predictions(ind, return_comb=True)
         labels.append(label), preds.append(pred)
         comb_labels.append(comb_label), comb_preds.append(comb_pred)
@@ -271,44 +296,44 @@ def main_program(home=None,
     print("Decoded testing vocab: ", d_vocab_count)
     
     #Output original transcript for comparison
-    text = [ort_tokenizer.revert(np_test_ds[ind]["transcript"]) for ind in rec_inds["full"]]
+    text = [ort_tokenizer.revert(np_test_ds[ind]["transcript"]) for ind in full]
     with open(eval_name+'_transcript.txt', 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
     
     #Output predicted transcript for comparison
-    text = [ort_tokenizer.revert(comb_preds[ind]) for ind in rec_inds["full"]]
+    text = [ort_tokenizer.revert(comb_preds[ind]) for ind in full]
     with open(eval_name+'_prediction.txt', 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
 
     #Set in_preds tuples of already generated transcriptions/predictions to avoid recomputing them
     in_preds = (labels, preds)
     #Calculate WER for each subsection and then each recording
-    print(f"{eval_name} WER on full testing set: {compute_wer(rec_inds['full'], in_preds)}")
+    print(f"{eval_name} WER on full testing set: {compute_wer(full, in_preds)}")
     for subset in sub_inds:
         print(f"{eval_name} WER on {subset} set: {compute_wer(sub_inds[subset], in_preds)}")
     for recording in rec_inds:
-        if recording != "full": print(f"{eval_name} WER on {recording}: {compute_wer(rec_inds[recording], in_preds)}")
+        print(f"{eval_name} WER on {recording}: {compute_wer(rec_inds[recording], in_preds)}")
 
     #Calculate CER for each subsection and then each recording
-    print(f"{eval_name} CER on full testing set: {compute_cer(rec_inds['full'], in_preds)}")
+    print(f"{eval_name} CER on full testing set: {compute_cer(full, in_preds)}")
     for subset in sub_inds:
         print(f"{eval_name} CER on {subset} set: {compute_cer(sub_inds[subset], in_preds)}")
     for recording in rec_inds:
-        if recording != "full": print(f"{eval_name} CER on {recording}: {compute_cer(rec_inds[recording], in_preds)}")
+        print(f"{eval_name} CER on {recording}: {compute_cer(rec_inds[recording], in_preds)}")
 
     in_preds = (labels, preds, comb_labels, comb_preds)
     #Save error and replacements tables to eval directory
-    err_table, comb_err_table = save_error_table(eval_name+'_errors', rec_inds["full"], in_preds)
+    err_table, comb_err_table = save_error_table(eval_name+'_errors', full, in_preds)
     print("Error Table: \n" + err_table)
     print("Combined Error Table: \n" + comb_err_table)
-    rep_table, comb_rep_table = save_replacements_table(eval_name+'_replacements', rec_inds["full"], in_preds)
+    rep_table, comb_rep_table = save_replacements_table(eval_name+'_replacements', full, in_preds)
     print("Replacements Table: \n" + rep_table)
     print("Combined Replacements Table: \n" + comb_rep_table)
 
     #Block which prints out random sample predictions
     logging.debug("Sample Predictions")
     random.seed("test")
-    inds = rec_inds["full"]
+    inds = full
     random.shuffle(inds)
     ex_inds = inds[:20]
     #ex_inds = list(range(0, 279, 4))

@@ -15,7 +15,7 @@ from wav2vec2fasr import segment
 from wav2vec2fasr import orthography as ort
 from wav2vec2fasr.orthography import def_tok, load_config
 from wav2vec2fasr.transcribe import get_logits, transcribe_segment, build_lm_decoder
-ort_tokenizer, = load_config()
+ort_tokenizer = load_config()[0]
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)

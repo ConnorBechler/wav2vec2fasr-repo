@@ -347,6 +347,74 @@ def generate_alignments_for_phrases(audio_path,
     if output_name==None: output_name = f"{src_path.stem}_realigned"
     out_file.to_file(f"{output_name}{src_path.suffix}")
 
+def align_transcriptions(audio_path, 
+                        src_path, 
+                        model_dir, 
+                        tier_list = None,
+                        word_tier_name="words", 
+                        char_tier_name="chars", 
+                        copy_existing=False, 
+                        output_name=None,
+                        lm_dir = None,):
+    """
+    This function generates word and character transcriptions from an existing transcription file
+    Args:
+        audio_path : path to audio file (wav or mp3)
+        src_path : path to source transcription file (either Praat TextGrid or ELAN eaf)
+        model_dir : path to wav2vec 2.0 model
+        tier_list (list of str) : list of specific tiers to transcribe (if none, aligns all tiers)
+        word_tier_name (str) : name of word tier for word alignments (full name is phrase_tier+word_tier)
+        char_tier_name (Str) : name of character tier for character alignments (full name is phrase_tier+char_tier)
+        copy_existing (bool) : if true, makes output of function a copy of the src_file with the new tiers
+            If false, creates entirely new transcript file with only src_tier, word_tier, and char_tier
+        output_name (str) : name for the resulting file, defaults to f"{src_path.stem}_realigned" if None
+        lm_dir (str or pathlib.Path) : path to a kenlm model
+    Outputs:
+        Transcript file, either an EAF or TextGrid based on the src_file
+    """
+    model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    #If language model directory provided, build lm decoder
+    if lm_dir != None: decoder, processor = build_lm_decoder(model_dir, lm_dir, processor)
+    else: decoder = None
+    audio_path = Path(audio_path)
+    src_path = Path(src_path)
+    if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
+    if src_path.suffix == ".TextGrid" : src_file = pympi.TextGrid(src_path).to_eaf()
+    elif src_path.suffix == ".eaf" : src_file = pympi.Eaf(src_path)
+    if copy_existing: out_file = src_file
+    else: out_file = pympi.Eaf()
+    out_file.add_linked_file(file_path=audio_path, mimetype=audio_path.suffix[1:])
+    #If tier list not provided, get all tiers from source
+    if tier_list == None: tier_list = src_file.get_tier_names()
+    for src_tier in tier_list:
+        if not(copy_existing): out_file.add_tier(src_tier)
+        out_file.add_tier(src_tier+"_tokenized")
+        # Get annotation data from the source tier
+        src_tier_annotations = src_file.get_annotation_data_for_tier(src_tier)
+        word_tier, char_tier = src_tier + word_tier_name, src_tier + char_tier_name
+        out_file.add_tier(word_tier)
+        out_file.add_tier(char_tier)
+        for ann in src_tier_annotations:
+            # Each corrected transcript entry has to be retokenized using the current tokenization scheme
+            transcript = def_tok.apply(ort.remove_special_chars(ann[2]))
+            aud_chunk = lib_aud[librosa.time_to_samples(ann[0]/1000, sr=sr): librosa.time_to_samples(ann[1]/1000, sr=sr)]
+            calign, walign, tokenized_transcript = align_audio(processor, transcript=transcript, model=model, audio=aud_chunk,
+                                                                decoder = decoder)
+            #If character and word alignments were generated, add annotations for both
+            if calign != None and walign != None:
+                #Add new word alignments
+                for word in walign:
+                    out_file.add_annotation(word_tier, word['start']+ann[0], word['end']+ann[0], 
+                        def_tok.revert(word['word']))
+                #Add new character alignment annotations
+                for char in calign:
+                    out_file.add_annotation(char_tier, char['start']+ann[0], char['end']+ann[0], 
+                        def_tok.revert(char['char']))
+        if src_path.suffix == '.TextGrid': out_file = out_file.to_textgrid()
+    if output_name==None: output_name = f"{src_path.stem}_realigned"
+    out_file.to_file(f"{output_name}{src_path.suffix}")
+
 def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier = "prediction", 
                        word_tier="words", char_tier="chars", lm_dir = None):
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')

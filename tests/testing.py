@@ -5,6 +5,7 @@ from wav2vec2fasr import orthography as ort
 from wav2vec2fasr import segment
 from wav2vec2fasr import evaluate
 import tests
+import pympi
 
 test_path = pathlib.Path(inspect.getabsfile(inspect.currentframe()))
 test_dir = test_path.parent.joinpath("test_files")
@@ -25,6 +26,7 @@ lm_dir = host_dir.joinpath("models/kenlm_models/"+lm_model)
 
 #print(f"Testing alignment of {str(test_rec)} using the {str(model_dir)} model")
 
+<<<<<<< Updated upstream
 #methods = ["rvad_chunk", "rvad_chunk_faster", "pitch_chunk"]
 #segment.create_chunked_annotation(test_rec, methods)
 
@@ -35,6 +37,15 @@ evaluate.main_program(home=str(host_dir.drive), project_dir=str(host_dir), eval_
 #forcedalignment.generate_alignments_for_phrases(test_rec, orig_eaf, model_dir, src_tier="A_phrase-segnum-en")
 #forcedalignment.chunk_and_align(test_rec, model_dir, output=".eaf", lm_dir=lm_dir)
 
+=======
+#4/27/24 - Rewriting forced alignment function to automatically interpret textgrid or ELAN input
+
+ort.load_tokenization("pumi_phons.tsv")
+tiers = [tier for tier in pympi.Eaf(orig_eaf).get_tier_names() if "phrase-segnum" in tier]
+forcedalignment.align_transcriptions(test_rec, orig_eaf, model_dir, tier_list=tiers)
+#forcedalignment.generate_alignments_for_phrases(test_rec, orig_eaf, model_dir, src_tier="A_phrase-segnum-en")
+#forcedalignment.chunk_and_align(test_rec, model_dir, output=".eaf", lm_dir=lm_dir)
+>>>>>>> Stashed changes
 #forcedalignment.chunk_and_align(test_rec, model_dir, output=".eaf")
 #forcedalignment.correct_alignments(test_rec, base_eaf, cor_phrase_eaf, model_dir, cor_tier="prediction")
 #forcedalignment.correct_alignments(test_rec, old_doc=cor_phrase_ac_eaf, corrected_doc=cor_words_eaf, model_dir=model_dir, cor_tier="words")

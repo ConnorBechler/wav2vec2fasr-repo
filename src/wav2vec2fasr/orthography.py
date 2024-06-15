@@ -37,6 +37,7 @@ def load_directory(directory,
                    report=True) -> list:
     """
     Function for loading all files with a particular extension within a specific directory
+    
     Args:
         directory (str | pathlib.Path) : directory to load files from
         ext (str) : file extension of the file types to be loaded

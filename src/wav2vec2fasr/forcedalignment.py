@@ -13,8 +13,9 @@ import re
 from pathlib import Path
 from wav2vec2fasr import segment
 from wav2vec2fasr import orthography as ort
-from wav2vec2fasr.orthography import def_tok
+from wav2vec2fasr.orthography import def_tok, load_config
 from wav2vec2fasr.transcribe import get_logits, transcribe_segment, build_lm_decoder
+ort_tokenizer, = load_config()
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)
@@ -224,6 +225,7 @@ def chunk_and_align(audio_path : any,
     """
     Function for (1) chunking a specified audio file by a specified method and
      (2) transcribing and aligning it using a given wav2vec 2.0 model
+    
     Args:
         audio_path (str | pathlib.Path) : path to wav or mp3 file
         model_dir (str | pathlib.Path) : path to a wav2vec 2.0 model
@@ -256,17 +258,17 @@ def chunk_and_align(audio_path : any,
         #DEBUG: Print start of phrase, end of phrase
         #print(pred_st, pred_end, pred_end-pred_st)
         calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], strides=chunk[2], decoder=decoder)
-        ts.add_annotation('prediction', pred_st, pred_end, def_tok.revert(pred))
-        annotations['prediction'].append((pred_st, pred_end, def_tok.revert(pred)))
+        ts.add_annotation('prediction', pred_st, pred_end, ort_tokenizer.revert(pred))
+        annotations['prediction'].append((pred_st, pred_end, ort_tokenizer.revert(pred)))
         if calign != None and walign != None:
             for word in walign:
                 ts.add_annotation('words', word['start']+chunk[0], word['end']+chunk[0], 
-                def_tok.revert(word['word']))
-                annotations['words'].append((word['start']+chunk[0], word['end']+chunk[0], def_tok.revert(word['word'])))
+                ort_tokenizer.revert(word['word']))
+                annotations['words'].append((word['start']+chunk[0], word['end']+chunk[0], ort_tokenizer.revert(word['word'])))
             for char in calign:
                 ts.add_annotation('chars', char['start']+chunk[0], char['end']+chunk[0], 
-                def_tok.revert(char['char']))
-                annotations['chars'].append((char['start']+chunk[0], char['end']+chunk[0], def_tok.revert(char['char'])))
+                ort_tokenizer.revert(char['char']))
+                annotations['chars'].append((char['start']+chunk[0], char['end']+chunk[0], ort_tokenizer.revert(char['char'])))
     if output != None: 
         if output == '.TextGrid': ts = ts.to_textgrid()
         ts.to_file(name+"_preds"+output)
@@ -283,6 +285,7 @@ def generate_alignments_for_phrases(audio_path,
                                     lm_dir = None):
     """
     This function generates word and character transcriptions from an existing transcription file
+    
     Args:
         audio_path : path to audio file (wav or mp3)
         src_path : path to source transcription file (either Praat TextGrid or ELAN eaf)
@@ -322,24 +325,24 @@ def generate_alignments_for_phrases(audio_path,
     else: out_file.add_tier(char_tier)
     for ann in src_tier_annotations:
         # Each corrected transcript entry has to be retokenized using the current tokenization scheme
-        transcript = def_tok.apply(ort.remove_special_chars(ann[2]))
+        transcript = ort_tokenizer.apply(ort.remove_special_chars(ann[2]))
         aud_chunk = lib_aud[librosa.time_to_samples(ann[0]/1000, sr=sr): librosa.time_to_samples(ann[1]/1000, sr=sr)]
         calign, walign, tokenized_transcript = align_audio(processor, transcript=transcript, model=model, audio=aud_chunk,
                                                             decoder = decoder)
         #Add tokenized phrasal transcripts
         out_file.add_annotation(src_tier, ann[0], ann[1], ann[2])
         out_file.add_annotation(src_tier+"_tokenized", ann[0], ann[1], 
-                                def_tok.revert(tokenized_transcript))
+                                ort_tokenizer.revert(tokenized_transcript))
         #If character and word alignments were generated, add annotations for both
         if calign != None and walign != None:
             #Add new word alignments
             for word in walign:
                 out_file.add_annotation(word_tier, word['start']+ann[0], word['end']+ann[0], 
-                    def_tok.revert(word['word']))
+                    ort_tokenizer.revert(word['word']))
             #Add new character alignment annotations
             for char in calign:
                 out_file.add_annotation(char_tier, char['start']+ann[0], char['end']+ann[0], 
-                    def_tok.revert(char['char']))
+                    ort_tokenizer.revert(char['char']))
         if src_path.suffix == '.TextGrid': out_file = out_file.to_textgrid()
     if output_name==None: output_name = f"{src_path.stem}_realigned"
     out_file.to_file(f"{output_name}{src_path.suffix}")
@@ -382,7 +385,7 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
         if run:
             print(dat[0], dat[1], dat[2])
             # Each corrected transcript entry has to be retokenized using the current tokenization scheme
-            transcript = def_tok.apply(ort.remove_special_chars(dat[2]))
+            transcript = ort_tokenizer.apply(ort.remove_special_chars(dat[2]))
             if transcript != '':
                 print("Aligning |"+transcript+"|")
                 aud_chunk = lib_aud[librosa.time_to_samples(dat[0]/1000, sr=sr): librosa.time_to_samples(dat[1]/1000, sr=sr)]
@@ -402,14 +405,14 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
                         #Add new alignments
                         for word in walign:
                             ts.add_annotation(word_tier, word['start']+dat[0], word['end']+dat[0], 
-                                def_tok.revert(word['word']))
+                                ort_tokenizer.revert(word['word']))
                     #DEBUG: If the corrected tier is the word tier, for debugging add a new_words tier
                     else:
                         if "new_words" not in ts.get_tier_names(): ts.add_tier("new_words")
                         for word in walign:
-                            print((word['start']+dat[0], word['end']+dat[0], def_tok.revert(word['word'])))
+                            print((word['start']+dat[0], word['end']+dat[0], ort_tokenizer.revert(word['word'])))
                             ts.add_annotation("new_words", word['start']+dat[0], word['end']+dat[0], 
-                                def_tok.revert(word['word']))
+                                ort_tokenizer.revert(word['word']))
                     #Clear previous character annotations
                     if char_tier in ts.get_tier_names(): 
                         char_del = ts.get_annotation_data_between_times(char_tier, dat[0], dat[1])
@@ -419,9 +422,9 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
                         ts.add_tier(char_tier)
                     #Add new character alignment annotations
                     for char in calign:
-                        print("adding", (char['start']+dat[0], char['end']+dat[0], def_tok.revert(char['char'])))
+                        print("adding", (char['start']+dat[0], char['end']+dat[0], ort_tokenizer.revert(char['char'])))
                         ts.add_annotation(char_tier, char['start']+dat[0]+strides[0], char['end']+dat[0]+strides[0], 
-                            def_tok.revert(char['char']))
+                            ort_tokenizer.revert(char['char']))
             else: print("Cannot align blank segment")
         if cor_path.suffix == '.TextGrid': ts = ts.to_textgrid()
     ts.to_file(f"{cor_path.stem}_ac{cor_path.suffix}")

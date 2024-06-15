@@ -5,7 +5,7 @@ from wav2vec2fasr.new_data_process import process_data
 from wav2vec2fasr.new_vocab_setup import setup_vocab
 from wav2vec2fasr.new_finetune import main_program
 from wav2vec2fasr.evaluate import main_program as eval_program
-from wav2vec2fasr.orthography import load_tokenization
+from wav2vec2fasr.orthography import load_tokenization, load_config
 
 #Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -56,8 +56,8 @@ else:
     logging.debug(f"Creating output directory {output_dir}")
     os.mkdir(output_dir)
 
-logging.debug("***Setting Tokenization Scheme***")
-load_tokenization(args['tokenization'])
+#logging.debug("***Setting Tokenization Scheme***")
+#load_tokenization(args['tokenization'])
 
 logging.debug("***Processing data***")
 process_data(home=args['home'],

@@ -81,7 +81,7 @@ def process_data(
     
     #If legacy functions not called, use default tokenization
     if not(remove_hyphens or remove_tones or remove_nontones or combine_diac or combine_tones):
-        scheme = ort.def_tok
+        scheme, = ort.load_config()#def_tok
         np_train_full_ds = np_train_full_ds.map(ort.batch_remove_special_chars)
         np_test_full_ds = np_test_full_ds.map(ort.batch_remove_special_chars)
         np_train_full_ds = np_train_full_ds.map(scheme.batch_apply)

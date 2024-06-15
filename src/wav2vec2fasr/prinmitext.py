@@ -1,5 +1,5 @@
 """
-Module for basic Prinmi transcription preprocessing
+Module for hard-coded basic Prinmi transcription preprocessing
 """
 
 import re

@@ -31,6 +31,18 @@ import json
 import time
 
 def load_eval_settings(eval_set_path, test_set):
+    """Internal function for loading evaluation setting json files
+    
+    Arguments:
+        eval_set_path (str | Pathlib.Path) : Path to a eval settings json file with the following format
+            {
+                "mode" : var_1, 
+                "subsets" : {"set1" : ["recording1", "recording2"], "set2" : ["recording3"]},
+                "indexes" : {"recording1"]}, # either this or "features" must be included
+                "features" : ["feature_name_to_sort_by_typically_filename"]
+            }
+        test_set (datasets.Dataset) : Dataset object with testing set data
+    """
     full = list(range(len(test_set)))
     with open(eval_set_path, "r") as f:
         ev_set = json.loads(f.read())

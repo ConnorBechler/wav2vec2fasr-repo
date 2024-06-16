@@ -351,7 +351,10 @@ def generate_alignments_for_phrases(audio_path,
 
 def align_transcriptions(audio_path, 
                         src_path, 
-                        model_dir, 
+                        model_dir,
+                        model,
+                        processor = None,
+                        lm_decoder = None,
                         tier_list = None,
                         word_tier_name="words", 
                         char_tier_name="chars", 
@@ -359,12 +362,16 @@ def align_transcriptions(audio_path,
                         output_name=None,
                         lm_dir = None,
                         ts_format=".TextGrid"):
+                        output_name=None
+                        ):
     """
     This function generates word and character transcriptions from an existing transcription file
     Args:
         audio_path : path to audio file (wav or mp3)
         src_path : path to source transcription file (either Praat TextGrid or ELAN eaf)
-        model_dir : path to wav2vec 2.0 model
+        model (AutoModelForCTC or Pathlib.Path) : wav2vec2.0 model or path to wav2vec 2.0 model
+        processor (Wav2Vec2Processor) : include your processor here if you've already loaded it
+        lm_decoder (BeamSearchDecoderCTC or pathlib.Path) : either a kenlm beam search ctc decoder or a path to one
         tier_list (list of str) : list of specific tiers to transcribe (if none, aligns all tiers)
         word_tier_name (str) : name of word tier for word alignments (full name is phrase_tier+word_tier)
         char_tier_name (Str) : name of character tier for character alignments (full name is phrase_tier+char_tier)
@@ -376,11 +383,12 @@ def align_transcriptions(audio_path,
     Outputs:
         Transcript file, either an EAF or TextGrid based on the src_file
     """
-    model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
-    processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
     ort_tokenizer = load_config()[0]
     #If language model directory provided, build lm decoder
-    if lm_dir != None: decoder, processor = build_lm_decoder(model_dir, lm_dir, processor)
+    if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
+    elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
     else: decoder = None
     audio_path = Path(audio_path)
     src_path = Path(src_path)

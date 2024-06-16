@@ -2,6 +2,11 @@ CLEAN	repl	⁵⁵⁵	⁵⁵
 CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵][ ]	 
 CLEAN	repl	[¹|²|³|⁵][¹|²|³|⁵]	
 CLEAN	repl	[¹|²|³|⁵]	
+CLEAN	repl	[1-9]	
 CLEAN	repl	-	
 CLEAN	repl	õ	õ
 CLEAN	repl	ĩ	ĩ
+CLEAN	repl	ā	a
+CLEAN	repl	à	a
+CLEAN	repl	ī	i
+CLEAN	repl	ǐ	i

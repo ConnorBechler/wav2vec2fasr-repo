@@ -14,6 +14,7 @@ import soundfile
 import os
 from datasets import Dataset
 from pandas import DataFrame
+from wav2vec2fasr.orthography import hanzi_reg
 
 def return_tiers(eaf, tar_txt='segnum', find_dominant=False):
     """Function for returning tiers with specified text in name from EAF file 
@@ -30,7 +31,7 @@ def return_tiers(eaf, tar_txt='segnum', find_dominant=False):
       pos_tiers = [candidate]
     return(pos_tiers)
 
-def chunk_audio_by_eaf_into_audio(path, out_dir=None, out_aud=".wav", tar_tier_type="segnum", find_dominant=False, exclude_regex=u'[\u4e00-\u9fff]'):
+def chunk_audio_by_eaf_into_audio(path, out_dir=None, out_aud=".wav", tar_tier_type="segnum", find_dominant=False, exclude_regex=hanzi_reg):
     """Function for chunking an audio file by eaf time stamp values from a given annotation tier into audio files"""
     if path.is_file() and pathlib.Path(str(path).rstrip(path.suffix)+".eaf").is_file():
         audio, sr = librosa.load(path, sr=16000)

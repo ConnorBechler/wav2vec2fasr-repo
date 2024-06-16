@@ -4,3 +4,7 @@ CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵](?!¹|²|³|⁵)
 CLEAN	repl	-	
 CLEAN	repl	õ	õ
 CLEAN	repl	ĩ	ĩ
+CLEAN	repl	ā	a
+CLEAN	repl	à	a
+CLEAN	repl	ī	i
+CLEAN	repl	ǐ	i

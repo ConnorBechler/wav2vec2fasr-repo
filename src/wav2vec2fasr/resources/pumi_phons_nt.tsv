@@ -32,3 +32,8 @@ aff	comb	ʈʂ
 aff	comb	ɖʐ
 aff	comb	tɕ
 aff	comb	dʑ
+CLEAN	repl	ā	a
+CLEAN	repl	à	a
+CLEAN	repl	ī	i
+CLEAN	repl	ǐ	i
+CLEAN	repl	[1-9]	

@@ -27,28 +27,35 @@ model_dir = host_dir.joinpath("models/"+model)
 raw_corpus_dir = host_dir.joinpath("wav-eaf-meta/")
 resources_dir = test_dir.parents[1].joinpath("src/wav2vec2fasr/resources/")
 mfa_dir = host_dir.joinpath("mfa/")
-mfa_corpus_dir = mfa_dir.joinpath("mfa_corpus/")
+mfa_corpus_dir = mfa_dir.joinpath("mfa_corpus/testing")
 lm_model = "c_npplm_nh_cb_5g.binary"
 lm_dir = host_dir.joinpath("models/kenlm_models/"+lm_model)
 
 
 #MFA Pipeline
-# Create MFA ready text corpus
-for path in raw_corpus_dir.iterdir():
-    if path.suffix == ".eaf":
-        if not(mfa_corpus_dir.joinpath(path.name).exists()):
-            mfa_tools.preprocess_ts_for_mfa(raw_corpus_dir.joinpath(pathlib.Path(path.stem+".wav")), path, output_dir=mfa_corpus_dir)
-# Generate vocab and pronunciation dictionary from corpus
-vocab, chars = mfa_tools.load_vocab_from_ts_directory(mfa_corpus_dir)
-pron_dict = mfa_tools.generate_pron_dict_w_phonemap(vocab, resources_dir.joinpath("phoneMapping2.txt"), mfa_dir)
-#print(pron_dict)
+if False:
+    # Create MFA ready text corpus
+    for path in raw_corpus_dir.iterdir():
+        if path.suffix == ".eaf":
+            if not(mfa_corpus_dir.joinpath(path.name).exists()):
+                mfa_tools.preprocess_ts_for_mfa(raw_corpus_dir.joinpath(pathlib.Path(path.stem+".wav")), path, output_dir=mfa_corpus_dir)
+    # Generate vocab and pronunciation dictionary from corpus
+    vocab, chars = mfa_tools.load_vocab_from_ts_directory(mfa_corpus_dir)
+    #pron_dict = mfa_tools.generate_pron_dict_w_phonemap(vocab, resources_dir.joinpath("phoneMapping3.txt"), mfa_dir)
+    #print(pron_dict)
 
 stt = time.time()
-for path in mfa_corpus_dir.iterdir():
-    if path.suffix == ".TextGrid":
-        print("Aligning ", str(path.name))
-        forcedalignment.align_transcriptions(raw_corpus_dir.joinpath(pathlib.Path(path.stem+".wav")), path, model_dir)
-print("alignment took ", time.time()-stt, " seconds")
+#mfa_tools.search_ts_corpus(mfa_corpus_dir, "ɬ")
+mfa_tools.describe_audio_corpus(mfa_corpus_dir, speech_tier_key="phrase-segnum")
+
+#for path in mfa_corpus_dir.iterdir():
+#    if path.suffix == ".TextGrid":
+#        print("Aligning ", str(path.name))
+#        forcedalignment.align_transcriptions(raw_corpus_dir.joinpath(pathlib.Path(path.stem+".wav")), path, model_dir)
+#forcedalignment.align_transcription_dirs(mfa_corpus_dir, mfa_corpus_dir, model_dir)
+#forcedalignment.align_transcriptions(test_rec, orig_eaf, model_dir, tier_list=["A_phrase-segnum-en"])
+print("process took ", time.time()-stt, " seconds")
+
 #print(f"Testing alignment of {str(test_rec)} using the {str(model_dir)} model")
 
 #methods = ["rvad_chunk", "rvad_chunk_faster", "pitch_chunk"]

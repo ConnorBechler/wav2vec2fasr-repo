@@ -15,7 +15,7 @@ from wav2vec2fasr import segment
 from wav2vec2fasr import orthography as ort
 from wav2vec2fasr.orthography import def_tok, load_config
 from wav2vec2fasr.transcribe import get_logits, transcribe_segment, build_lm_decoder
-
+ort_tokenizer = load_config()[0]
 
 def get_trellis(emission, tokens, blank_id=0):
     num_frame = emission.size(0)
@@ -203,7 +203,7 @@ def align_audio(processor: Wav2Vec2Processor,
     clean_transcript = transcript.replace(' ', '|')
     #Combine multiple adjacent pipes into single pipe
     clean_transcript = re.sub('\|+', '|', clean_transcript)
-    tokens = [align_dictionary[c] for c in clean_transcript]
+    tokens = [align_dictionary[c] for c in clean_transcript if c in align_dictionary]
     blank_id = 0
     for char, code in align_dictionary.items():
         if char.lower() == '[pad]' or char.lower() == '<pad>':
@@ -243,7 +243,6 @@ def chunk_and_align(audio_path : any,
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
     chunks = segment.chunk_audio(path=audio_path, method=chunking_method)
-    ort_tokenizer = load_config()[0]
     #If language model directory provided, build lm decoder
     if lm_dir != None: decoder, processor = build_lm_decoder(model_dir, lm_dir, processor)
     else: decoder = None
@@ -303,7 +302,6 @@ def generate_alignments_for_phrases(audio_path,
     """
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     processor = Wav2Vec2Processor.from_pretrained(model_dir)
-    ort_tokenizer = load_config()[0]
     #If language model directory provided, build lm decoder
     if lm_dir != None: decoder, processor = build_lm_decoder(model_dir, lm_dir, processor)
     audio_path = Path(audio_path)
@@ -350,9 +348,9 @@ def generate_alignments_for_phrases(audio_path,
     out_file.to_file(f"{output_name}{src_path.suffix}")
 
 def align_transcriptions(audio_path, 
-                        src_path, 
+                        src_path,
                         model_dir,
-                        model,
+                        model = None,
                         processor = None,
                         lm_decoder = None,
                         tier_list = None,
@@ -360,10 +358,8 @@ def align_transcriptions(audio_path,
                         char_tier_name="chars", 
                         copy_existing=False, 
                         output_name=None,
-                        lm_dir = None,
                         ts_format=".TextGrid"):
-                        output_name=None
-                        ):
+
     """
     This function generates word and character transcriptions from an existing transcription file
     Args:
@@ -385,7 +381,6 @@ def align_transcriptions(audio_path,
     """
     if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
-    ort_tokenizer = load_config()[0]
     #If language model directory provided, build lm decoder
     if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
     elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
@@ -402,7 +397,6 @@ def align_transcriptions(audio_path,
     if tier_list == None: tier_list = src_file.get_tier_names()
     for src_tier in tier_list:
         if not(copy_existing): out_file.add_tier(src_tier)
-        out_file.add_tier(src_tier+"_tokenized")
         # Get annotation data from the source tier
         src_tier_annotations = src_file.get_annotation_data_for_tier(src_tier)
         word_tier, char_tier = src_tier + word_tier_name, src_tier + char_tier_name
@@ -415,7 +409,6 @@ def align_transcriptions(audio_path,
             calign, walign, tokenized_transcript = align_audio(processor, transcript=transcript, model=model, audio=aud_chunk,
                                                                 decoder = decoder)
             if not(copy_existing) : out_file.add_annotation(src_tier, ann[0], ann[1], ann[2])
-            out_file.add_annotation(src_tier+"_tokenized", ann[0], ann[1], transcript)
             #If character and word alignments were generated, add annotations for both
             if calign != None and walign != None:
                 #Add new word alignments
@@ -430,6 +423,31 @@ def align_transcriptions(audio_path,
     if output_name==None: output_name = f"{src_path.stem}_realigned"
     out_file.to_file(f"{output_name}{ts_format}")
 
+def align_transcription_dirs(aud_dir : Path,
+                             src_dir : Path,
+                             model_dir : Path,
+                             model=None,
+                             processor = None,
+                             lm_decoder = None,
+                             tier_list = None,
+                             word_tier_name="words", 
+                             char_tier_name="chars",
+                             ts_format = ".TextGrid",
+                             ):
+    if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    #If language model directory provided, build lm decoder
+    if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
+    elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
+    else: decoder = None
+    wavs = {path.stem : path for path in aud_dir.iterdir() if path.suffix == ".wav"}
+    srcs = {path.stem : path for path in src_dir.iterdir() if path.suffix in [".eaf", ".TextGrid"]}
+    align_paths = [(wavs[ts], srcs[ts]) for ts in srcs if ts in wavs]
+    for pair in align_paths:
+        print("Aligning", pair[0].stem)
+        align_transcriptions(pair[0], pair[1], model_dir, model=model, processor=processor, lm_decoder=lm_decoder, 
+                             tier_list=tier_list, word_tier_name=word_tier_name, char_tier_name=char_tier_name, ts_format=ts_format)
+    
 def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier = "prediction", 
                        word_tier="words", char_tier="chars", lm_dir = None):
     model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')

@@ -25,6 +25,7 @@ chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\�
 hanzi_reg = u'[\u4e00-\u9fff]'
 pinyin_tones_reg = [chr(i) for i in []]
 all_diac_reg = u'[\u0300-\u036f]'
+#all_diac_reg = "[" + '\\'.join([chr(i) for i in list(range(768, 879))]) + "]"
 
 def remove_special_chars(text):
     text = re.sub(chars_to_ignore_regex, '', text.lower())

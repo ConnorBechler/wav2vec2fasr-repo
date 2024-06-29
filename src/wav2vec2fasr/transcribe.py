@@ -196,7 +196,8 @@ def get_logits(processor, model, audio, strides=(0,0)):
         input_values =  torch.tensor([pad + list(input_values[0]) + pad])
     logits = model(input_values.to('cpu')).logits
     # Line below slices logit tensor to only include predictions for window within strides
-    logits = torch.tensor([logits[0][round(strides[0]/20): len(logits[0])-round(strides[1]/20)].detach().numpy()])
+    if strides != (0,0):
+        logits = torch.tensor([logits[0][round(strides[0]/20): len(logits[0])-round(strides[1]/20)].detach().numpy()])
     #Normalize logits into log domain to avoid "numerical instability" 
     # (https://pytorch.org/audio/stable/tutorials/forced_alignment_tutorial.html#generate-frame-wise-label-probability)????
     logits = torch.log_softmax(logits, dim=-1)

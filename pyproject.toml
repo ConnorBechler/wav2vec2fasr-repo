@@ -25,6 +25,7 @@ speechbrain = "^0.5.16"
 click = "^8.1.7"
 kenlm = {url = "https://github.com/kpu/kenlm/archive/master.zip"}
 rvadfast = "^0.0.3"
+polars = "^1.0.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -166,7 +166,7 @@ def return_alignments(trellis, path, transcript, separator="|"):
             else:
                 chars.append(Segment(segments[i2].label, segments[i2].start, audio_end, segments[i2].score))
                 char_alignments.append({"char": segments[i2].label, "start": int(segments[i2].start*20),
-                    "end": int(audio_end*20), "score": segments[i2].score, "word-idx": word_idx})
+                    "end": int(audio_end*20)-1, "score": segments[i2].score, "word-idx": word_idx})
             i2 += 1
     return(chars, words, char_alignments, word_alignments)
 
@@ -354,14 +354,15 @@ def align_transcriptions(audio_path,
                         processor = None,
                         lm_decoder = None,
                         tier_list = None,
-                        word_tier_name="words", 
-                        char_tier_name="chars", 
+                        utt_tier_name=" - utterances",
+                        word_tier_name=" - words", 
+                        char_tier_name=" - phones", 
                         copy_existing=False, 
                         output_name=None,
                         ts_format=".TextGrid"):
 
     """
-    This function generates word and character transcriptions from an existing transcription file
+    This function generates word and character alignments from an existing transcription file
     Args:
         audio_path : path to audio file (wav or mp3)
         src_path : path to source transcription file (either Praat TextGrid or ELAN eaf)
@@ -369,10 +370,11 @@ def align_transcriptions(audio_path,
         processor (Wav2Vec2Processor) : include your processor here if you've already loaded it
         lm_decoder (BeamSearchDecoderCTC or pathlib.Path) : either a kenlm beam search ctc decoder or a path to one
         tier_list (list of str) : list of specific tiers to transcribe (if none, aligns all tiers)
-        word_tier_name (str) : name of word tier for word alignments (full name is phrase_tier+word_tier)
-        char_tier_name (Str) : name of character tier for character alignments (full name is phrase_tier+char_tier)
+        utt_tier_name (str) : name of utterance tier for utterance alignments (full name is base_tier+utterance_tier)
+        word_tier_name (str) : name of word tier for word alignments (full name is base_tier+word_tier)
+        char_tier_name (Str) : name of character tier for character alignments (full name is base_tier+char_tier)
         copy_existing (bool) : if true, makes output of function a copy of the src_file with the new tiers
-            If false, creates entirely new transcript file with only src_tier, word_tier, and char_tier
+            If false, creates entirely new transcript file with only utterance_tier, word_tier, and char_tier
         output_name (str) : name for the resulting file, defaults to f"{src_path.stem}_realigned" if None
         lm_dir (str or pathlib.Path) : path to a kenlm model
         ts_format (str) : .TextGrid or .eaf, output of alignments
@@ -393,10 +395,12 @@ def align_transcriptions(audio_path,
     if copy_existing: out_file = src_file
     else: out_file = pympi.Eaf()
     out_file.add_linked_file(file_path=audio_path, mimetype=audio_path.suffix[1:])
+    out_file.remove_tier("default")
     #If tier list not provided, get all tiers from source
     if tier_list == None: tier_list = src_file.get_tier_names()
     for src_tier in tier_list:
-        if not(copy_existing): out_file.add_tier(src_tier)
+        utt_tier = src_tier+utt_tier_name
+        if not(copy_existing): out_file.add_tier(utt_tier)
         # Get annotation data from the source tier
         src_tier_annotations = src_file.get_annotation_data_for_tier(src_tier)
         word_tier, char_tier = src_tier + word_tier_name, src_tier + char_tier_name
@@ -408,7 +412,7 @@ def align_transcriptions(audio_path,
             aud_chunk = lib_aud[librosa.time_to_samples(ann[0]/1000, sr=sr): librosa.time_to_samples(ann[1]/1000, sr=sr)]
             calign, walign, tokenized_transcript = align_audio(processor, transcript=transcript, model=model, audio=aud_chunk,
                                                                 decoder = decoder)
-            if not(copy_existing) : out_file.add_annotation(src_tier, ann[0], ann[1], ann[2])
+            if not(copy_existing) : out_file.add_annotation(utt_tier, ann[0], ann[1], ann[2])
             #If character and word alignments were generated, add annotations for both
             if calign != None and walign != None:
                 #Add new word alignments
@@ -420,7 +424,7 @@ def align_transcriptions(audio_path,
                     out_file.add_annotation(char_tier, char['start']+ann[0], char['end']+ann[0], 
                         ort_tokenizer.revert(char['char']))
     if ts_format == '.TextGrid': out_file = out_file.to_textgrid()
-    if output_name==None: output_name = f"{src_path.stem}_realigned"
+    if output_name==None: output_name = f"{src_path.stem}"
     out_file.to_file(f"{output_name}{ts_format}")
 
 def align_transcription_dirs(aud_dir : Path,
@@ -430,8 +434,9 @@ def align_transcription_dirs(aud_dir : Path,
                              processor = None,
                              lm_decoder = None,
                              tier_list = None,
-                             word_tier_name="words", 
-                             char_tier_name="chars",
+                             utt_tier_name=" - utterances",
+                             word_tier_name=" - words", 
+                             char_tier_name=" - phones",
                              ts_format = ".TextGrid",
                              ):
     if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
@@ -446,7 +451,8 @@ def align_transcription_dirs(aud_dir : Path,
     for pair in align_paths:
         print("Aligning", pair[0].stem)
         align_transcriptions(pair[0], pair[1], model_dir, model=model, processor=processor, lm_decoder=lm_decoder, 
-                             tier_list=tier_list, word_tier_name=word_tier_name, char_tier_name=char_tier_name, ts_format=ts_format)
+                             tier_list=tier_list, utt_tier_name=utt_tier_name, word_tier_name=word_tier_name, 
+                             char_tier_name=char_tier_name, ts_format=ts_format)
     
 def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier = "prediction", 
                        word_tier="words", char_tier="chars", lm_dir = None):

@@ -27,10 +27,11 @@ model_dir = host_dir.joinpath("models/"+model)
 raw_corpus_dir = host_dir.joinpath("wav-eaf-meta/")
 resources_dir = test_dir.parents[1].joinpath("src/wav2vec2fasr/resources/")
 mfa_dir = host_dir.joinpath("mfa/")
-mfa_corpus_dir = mfa_dir.joinpath("mfa_corpus/testing")
+mfa_corpus_dir = mfa_dir.joinpath("mfa_corpus/")
 lm_model = "c_npplm_nh_cb_5g.binary"
 lm_dir = host_dir.joinpath("models/kenlm_models/"+lm_model)
-
+mfa_alignments_dir = mfa_dir.joinpath("mfa_alignments", "7-15-24")
+w2v2_alignments_dir = mfa_dir.joinpath("wv2vc2fasr_alignments", "7-6-24xls-r")
 
 #MFA Pipeline
 if False:
@@ -40,21 +41,25 @@ if False:
             if not(mfa_corpus_dir.joinpath(path.name).exists()):
                 mfa_tools.preprocess_ts_for_mfa(raw_corpus_dir.joinpath(pathlib.Path(path.stem+".wav")), path, output_dir=mfa_corpus_dir)
     # Generate vocab and pronunciation dictionary from corpus
-    vocab, chars = mfa_tools.load_vocab_from_ts_directory(mfa_corpus_dir)
+    #vocab, chars = mfa_tools.load_vocab_from_ts_directory(mfa_corpus_dir)
     #pron_dict = mfa_tools.generate_pron_dict_w_phonemap(vocab, resources_dir.joinpath("phoneMapping3.txt"), mfa_dir)
     #print(pron_dict)
 
 stt = time.time()
 #mfa_tools.search_ts_corpus(mfa_corpus_dir, "ɬ")
-mfa_tools.describe_audio_corpus(mfa_corpus_dir, speech_tier_key="phrase-segnum")
 
-#for path in mfa_corpus_dir.iterdir():
-#    if path.suffix == ".TextGrid":
-#        print("Aligning ", str(path.name))
-#        forcedalignment.align_transcriptions(raw_corpus_dir.joinpath(pathlib.Path(path.stem+".wav")), path, model_dir)
+#mfa_tools.describe_ts_corpus(mfa_corpus_dir, speech_tier_key="phrase-segnum", 
+#                             collate_data=model_dir.joinpath("results.csv"),save_dir=mfa_corpus_dir)
+
+#mfa_tools.compare_tss(mfa_alignments_dir.joinpath("wq10_011.TextGrid"), w2v2_alignments_dir.joinpath("wq10_011.TextGrid"))
+mfa_tools.compare_ts_dirs(mfa_alignments_dir, w2v2_alignments_dir, comp_tier_key=" - words")
 #forcedalignment.align_transcription_dirs(mfa_corpus_dir, mfa_corpus_dir, model_dir)
+
 #forcedalignment.align_transcriptions(test_rec, orig_eaf, model_dir, tier_list=["A_phrase-segnum-en"])
-print("process took ", time.time()-stt, " seconds")
+#mfa_tools.preprocess_ts_for_mfa(raw_corpus_dir.joinpath("wq09_001.wav"), raw_corpus_dir.joinpath("wq09_001.eaf"), output_dir=mfa_corpus_dir)
+#forcedalignment.align_transcriptions(mfa_corpus_dir.joinpath("wq09_001.wav"),
+#                                     mfa_corpus_dir.joinpath("wq09_001.TextGrid"),
+#                                     model_dir)
 
 #print(f"Testing alignment of {str(test_rec)} using the {str(model_dir)} model")
 
@@ -77,3 +82,5 @@ print("process took ", time.time()-stt, " seconds")
 #forcedalignment.chunk_and_align(test_rec, model_dir, output=".eaf")
 #forcedalignment.correct_alignments(test_rec, base_eaf, cor_phrase_eaf, model_dir, cor_tier="prediction")
 #forcedalignment.correct_alignments(test_rec, old_doc=cor_phrase_ac_eaf, corrected_doc=cor_words_eaf, model_dir=model_dir, cor_tier="words")
+
+print("process took ", time.time()-stt, " seconds")

@@ -238,6 +238,24 @@ def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
                 comb_chunk = None
     return(nnchunks)
 
+def from_src_chunk(src_eaf : pympi.Eaf, tiers):
+    chunks = []
+    total_speech = set()
+    for tier in tiers:
+        an_dat = src_eaf.get_annotation_data_for_tier(tier)
+        for dat in an_dat: 
+            for i in list(range(dat[0],dat[1])):
+                total_speech.add(i)
+    total_speech = list(total_speech)
+    total_speech.sort()
+    chunks = []
+    start = min(total_speech)
+    for i, ind in enumerate(total_speech):
+        if ind != start and ind-start > 1:
+            chunks.append([start, total_speech[i-1], (0,0)])
+            start = ind
+    return(chunks)
+
 def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=100, 
                     max_chunk=10000, stride = 1000, method='stride_chunk', length = None, sr = 16000) -> list:
     """
@@ -251,7 +269,8 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=1
         min_chunk (int) : minimum chunk duration in milliseconds
         max_chunk (int) : maximum chunk duration in milliseconds
         stride (int) : length of stride for stride chunking and fallback chunking for other methods
-        method (str) : method used for chunking audio; can be silence_chunk, og_chunk, vad_chunk, rvad_chunk, pitch_chunk, or stride_chunk
+        method (str) : method used for chunking audio; can be silence_chunk, og_chunk, vad_chunk, rvad_chunk, 
+        pitch_chunk, stride_chunk, or src_chunk
         length (int) : duration of audio file in seconds, calculated using librosa if not provided
         sr (int) : sampling rate, 16000 by default
     Returns:
@@ -271,6 +290,7 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=1
     elif method == 'rvad_chunk_faster': nchunks = rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride)
     elif method == 'rvad_chunk': nchunks = rvad_chunk(lib_aud, min_chunk, max_chunk, sr)
     elif method == 'pitch_chunk': nchunks = pitch_chunk(path, min_chunk, max_chunk, stride)
+    elif method == 'src_chunk' : nchunks = from_src_chunk(src_eaf, tiers)
     else: 
         method = 'stride_chunk'
         nchunks = stride_chunk(max_chunk, stride=stride, length=length)

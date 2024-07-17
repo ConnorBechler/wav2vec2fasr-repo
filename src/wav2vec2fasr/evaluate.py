@@ -82,7 +82,8 @@ def main_program(home=None,
                 data_dir=None, 
                 checkpoint=None, 
                 cpu=False, 
-                lm=None):
+                lm=None,
+                training_instead=False):
     """Function for evaluating the performance of a wav2vec2 model on a dataset
     Generates a multitude of outputs, printing most to the console but also creating
     error tables and replacement tables as csvs"""
@@ -150,7 +151,19 @@ def main_program(home=None,
     #Load in evaluation set and tokenization scheme
     ort_tokenizer, eval_set_path = orthography.load_config()
     # Load evaluation set
-    full, rec_inds, sub_inds = load_eval_settings(eval_set_path, np_test_ds)
+    if not(training_instead):
+        full, rec_inds, sub_inds = load_eval_settings(eval_set_path, np_test_ds)
+    else:
+        recs = []
+        start_inds = []
+        for r, rec in enumerate(np_train_ds):
+            if rec["from_file"] not in recs:
+                recs.append(rec["from_file"])
+                start_inds.append(r)
+        start_inds.append(len(np_train_ds))
+        full = list(range(len(np_train_ds)))
+        rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-1] for r in range(len(recs))}
+        sub_inds = None
     
     vocab_set = {ort_tokenizer.apply(char) for char in processor.tokenizer.get_vocab()} | {" "}
     print(vocab_set)
@@ -265,14 +278,24 @@ def main_program(home=None,
             f.write(comb_csv)
         return csv, comb_csv
     
-    logging.debug("Loading logits for test values")
-    stt = time.time()
-    labels, preds, comb_labels, comb_preds = [], [], [], []
-    for ind in full:
-        label, pred, comb_label, comb_pred = get_predictions(ind, return_comb=True)
-        labels.append(label), preds.append(pred)
-        comb_labels.append(comb_label), comb_preds.append(comb_pred)
-    print(time.time()-stt)
+    if not(training_instead):
+        logging.debug("Loading logits for test values")
+        stt = time.time()
+        labels, preds, comb_labels, comb_preds = [], [], [], []
+        for ind in full:
+            label, pred, comb_label, comb_pred = get_predictions(ind, return_comb=True)
+            labels.append(label), preds.append(pred)
+            comb_labels.append(comb_label), comb_preds.append(comb_pred)
+        print(time.time()-stt)
+    else:
+        logging.debug("Loading logits for training values")
+        stt = time.time()
+        labels, preds, comb_labels, comb_preds = [], [], [], []
+        for ind in full:
+            label, pred, comb_label, comb_pred = get_predictions(ind, return_comb=True)
+            labels.append(label), preds.append(pred)
+            comb_labels.append(comb_label), comb_preds.append(comb_pred)
+        print(time.time()-stt)
 
     print('Printing vocab of', eval_name)
     #Lines that collect and print the encoded vocab (preprocessed prediction labels) of the training dataset
@@ -321,15 +344,17 @@ def main_program(home=None,
     in_preds = (labels, preds)
     #Calculate WER for each subsection and then each recording
     print(f"{eval_name} WER on full testing set: {compute_wer(full, in_preds)}")
-    for subset in sub_inds:
-        print(f"{eval_name} WER on {subset} set: {compute_wer(sub_inds[subset], in_preds)}")
+    if sub_inds != None:
+        for subset in sub_inds:
+            print(f"{eval_name} WER on {subset} set: {compute_wer(sub_inds[subset], in_preds)}")
     for recording in rec_inds:
         print(f"{eval_name} WER on {recording}: {compute_wer(rec_inds[recording], in_preds)}")
 
     #Calculate CER for each subsection and then each recording
     print(f"{eval_name} CER on full testing set: {compute_cer(full, in_preds)}")
-    for subset in sub_inds:
-        print(f"{eval_name} CER on {subset} set: {compute_cer(sub_inds[subset], in_preds)}")
+    if sub_inds != None:
+        for subset in sub_inds:
+            print(f"{eval_name} CER on {subset} set: {compute_cer(sub_inds[subset], in_preds)}")
     for recording in rec_inds:
         print(f"{eval_name} CER on {recording}: {compute_cer(rec_inds[recording], in_preds)}")
 

@@ -1,5 +1,5 @@
 import librosa
-import pathlib
+from pathlib import Path
 import pympi
 #import soundfile
 #import numpy
@@ -7,6 +7,8 @@ import os
 
 from wav2vec2fasr.prinmitext import phone_revert, tone_revert, rep_tones, chars_to_ignore_regex, tone_regex
 from wav2vec2fasr.segment import chunk_audio
+from wav2vec2fasr.orthography import load_config
+ort_tokenizer = load_config()[0]
 
 #from datasets import Dataset
 #from pandas import DataFrame
@@ -183,7 +185,7 @@ def get_logits(processor, model, audio, strides=(0,0)):
         audio (str or Path or ndarray) : Either the path to an audio file or the audio as an ndarray
         strides (tuple) : Strides on either side of each segment to provide context for prediction
     """
-    if type(audio) == type("string") or type(audio) == type(pathlib.Path("/")):
+    if type(audio) == type("string") or type(audio) == type(Path("/")):
             lib_aud, sr = librosa.load(audio, sr=16000)
     else: 
         lib_aud = audio
@@ -212,7 +214,7 @@ def build_lm_decoder(model_dir, lm_dir, processor=None):
         lm_dir (path or str) : directory of kenlm model
         processor (Wav2Vec2Processor) : wav2vec2 processor used for processing the audio
     """
-    model_dir = pathlib.Path(model_dir)
+    model_dir = Path(model_dir)
     if processor==None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
     tokenizer = Wav2Vec2CTCTokenizer(model_dir.joinpath("vocab.json"), bos_token=None, eos_token=None, 
                                     unk_token="[UNK]", pad_token="[PAD]")
@@ -262,7 +264,7 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
         processor = Wav2Vec2Processor(feature_extractor=processor.feature_extractor, tokenizer=n_tokenizer)        
 
     print("***Chunking audio***")
-    if pathlib.Path(path+filename+aud_ext).is_file():
+    if Path(path+filename+aud_ext).is_file():
         lib_aud, sr = librosa.load(path+filename+aud_ext, sr=16000)
         length = librosa.get_duration(lib_aud, sr=sr)
         print(f"{filename} is {round(length, 2)}s long")
@@ -337,13 +339,93 @@ def transcribe_audio(model_dir, filename, path, aud_ext=".wav", device="cpu", ou
     print(f"Transcription took {round(proc_leng, 2)}s, or {round(proc_leng/length, 2)}x the length of the recording")  
     print("***Process Complete!***")
 
+def transcribe(audio_path, 
+                        model_dir,
+                        model = None,
+                        processor = None,
+                        lm_decoder = None,
+                        chunk_method = "stride_chunk",
+                        src_path = None,
+                        tier_list = None,
+                        word_tier_name=" - words", 
+                        char_tier_name=" - phones", 
+                        output_name=None,
+                        ts_format=".TextGrid"):
+
+    """
+    This function generates phrase, word, and character transcriptions for an audio file
+    Args:
+        audio_path : path to audio file (wav or mp3)
+        src_path : path to source transcription file (either Praat TextGrid or ELAN eaf)
+        model (AutoModelForCTC or Pathlib.Path) : wav2vec2.0 model or path to wav2vec 2.0 model
+        processor (Wav2Vec2Processor) : include your processor here if you've already loaded it
+        lm_decoder (BeamSearchDecoderCTC or pathlib.Path) : either a kenlm beam search ctc decoder or a path to one
+        tier_list (list of str) : list of specific tiers to transcribe (if none, aligns all tiers)
+        word_tier_name (str) : name of word tier for word alignments (full name is phrase_tier+word_tier)
+        char_tier_name (Str) : name of character tier for character alignments (full name is phrase_tier+char_tier)
+        copy_existing (bool) : if true, makes output of function a copy of the src_file with the new tiers
+            If false, creates entirely new transcript file with only src_tier, word_tier, and char_tier
+        output_name (str) : name for the resulting file, defaults to f"{src_path.stem}_realigned" if None
+        lm_dir (str or pathlib.Path) : path to a kenlm model
+        ts_format (str) : .TextGrid or .eaf, output of alignments
+    Outputs:
+        Transcript file, either an EAF or TextGrid based on the src_file
+    """
+    if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    #If language model directory provided, build lm decoder
+    if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
+    elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
+    else: decoder = None
+    audio_path = Path(audio_path)
+    src_path = Path(src_path)
+    if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
+    if src_path != None:
+        if src_path.suffix == ".TextGrid" : src_file = pympi.TextGrid(src_path).to_eaf()
+        elif src_path.suffix == ".eaf" : src_file = pympi.Eaf(src_path)
+        method = "src_method"
+    out_file = pympi.Eaf()
+    out_file.add_linked_file(file_path=audio_path, mimetype=audio_path.suffix[1:])
+    out_file.remove_tier("default")
+    aud_chunks = chunk_audio(lib_aud, method=chunk_method)
+    pass
+
+    if ts_format == '.TextGrid': out_file = out_file.to_textgrid()
+    if output_name==None: output_name = f"{src_path.stem}"
+    out_file.to_file(f"{output_name}{ts_format}")
+
+def transcribe_dirs(aud_dir : Path,
+                             src_dir : Path,
+                             model_dir : Path,
+                             model=None,
+                             processor = None,
+                             lm_decoder = None,
+                             tier_list = None,
+                             word_tier_name=" - words", 
+                             char_tier_name=" - phones",
+                             ts_format = ".TextGrid",
+                             ):
+    if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    #If language model directory provided, build lm decoder
+    if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
+    elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
+    else: decoder = None
+    wavs = {path.stem : path for path in aud_dir.iterdir() if path.suffix == ".wav"}
+    srcs = {path.stem : path for path in src_dir.iterdir() if path.suffix in [".eaf", ".TextGrid"]}
+    align_paths = [(wavs[ts], srcs[ts]) for ts in srcs if ts in wavs]
+    for pair in align_paths:
+        print("Aligning", pair[0].stem)
+        transcribe(pair[0], pair[1], model_dir, model=model, processor=processor, lm_decoder=lm_decoder, 
+                             tier_list=tier_list, word_tier_name=word_tier_name, char_tier_name=char_tier_name, ts_format=ts_format)
+
 def transcribe_dir(model_dir, aud_dir, aud_ext=".wav", device="cpu", output_path="d:/Northern Prinmi Data/Transcripts/", 
                    validate=False, format=".eaf", chunk_method='stride_chunk', min_sil=1000, min_chunk=100, max_chunk=10000, 
                    char_align=True, word_align=True, lm=None):
     """Function for automatically chunking all audio files in a given directory by eaf annotation tier time stamps"""
     if not(os.path.exists(output_path)):
         os.mkdir(output_path)
-    for path in pathlib.Path(aud_dir).iterdir():
+    for path in Path(aud_dir).iterdir():
         if path.is_file():
             if str(path).lower().endswith(aud_ext):
                 flname = str(path)[len(aud_dir):-len(aud_ext)]

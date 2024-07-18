@@ -238,9 +238,14 @@ def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
                 comb_chunk = None
     return(nnchunks)
 
-def from_src_chunk(src_eaf : pympi.Eaf, tiers):
+def from_src_chunk(src_ts : pathlib.Path, tiers=None, tier_key=None):
+    if src_ts.suffix == ".eaf": src_eaf = pympi.Eaf(src_ts)
+    elif src_ts.suffix == ".TextGrid": src_eaf = pympi.TextGrid(src_ts).to_eaf()
+    if tier_key != None: tiers = [tier for tier in src_eaf.get_tier_names() if tier_key in tier]
+    if tiers == None: tiers = src_eaf.get_tier_names()
     chunks = []
     total_speech = set()
+    print(tiers)
     for tier in tiers:
         an_dat = src_eaf.get_annotation_data_for_tier(tier)
         for dat in an_dat: 
@@ -250,14 +255,26 @@ def from_src_chunk(src_eaf : pympi.Eaf, tiers):
     total_speech.sort()
     chunks = []
     start = min(total_speech)
-    for i, ind in enumerate(total_speech):
-        if ind != start and ind-start > 1:
+    for i in range(1, len(total_speech)):
+        if total_speech[i]-total_speech[i-1] > 1:
             chunks.append([start, total_speech[i-1], (0,0)])
-            start = ind
+            start = total_speech[i]
+    chunks.append([start, max(total_speech), (0,0)])
     return(chunks)
 
-def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=100, 
-                    max_chunk=10000, stride = 1000, method='stride_chunk', length = None, sr = 16000) -> list:
+def chunk_audio(lib_aud=None, 
+                path=None, 
+                aud_ext : str =None, 
+                min_sil : int =1000, 
+                min_chunk : int =100, 
+                max_chunk : int =10000, 
+                stride :int = 1000, 
+                method='stride_chunk', 
+                length = None, 
+                sr : int = 16000,
+                src_ts : pathlib.Path = None,
+                tiers : list = None,
+                tier_key : str = None) -> list:
     """
     Function for chunking long audio into shorter chunks with a specified method
         Requires either audio array or path to audio file
@@ -273,6 +290,9 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=1
         pitch_chunk, stride_chunk, or src_chunk
         length (int) : duration of audio file in seconds, calculated using librosa if not provided
         sr (int) : sampling rate, 16000 by default
+        src_ts (pathlib.Path) : path to source transcription (eaf or TextGrid) for chunking from source
+        tiers (list) : list of tiers from a transcription to chunk from source
+        tier_key (str) : string to select tiers from transcription source for chunk from source
     Returns:
         list : chunks paired with ndarrays of audio 
         [ [ (chunk1_start_ms, chunk1_end_ms, (front_stride_ms, back_stride_ms) ), chunk1_audio_ndarray], ... 
@@ -282,7 +302,6 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=1
         if pathlib.Path(path).exists():
             aud_ext = pathlib.Path(path).suffix
             lib_aud, sr = librosa.load(path, sr=16000)
-    if length == None: length = librosa.get_duration(y=lib_aud, sr=sr)
     if method == 'silence_chunk': nchunks = silence_stride_chunk(path, aud_ext, max_chunk, 
                                                                    min_chunk, stride, min_sil)
     elif method == 'og_chunk': nchunks = og_silence_chunk(path, aud_ext, min_sil, min_chunk, max_chunk, stride)
@@ -290,9 +309,10 @@ def chunk_audio(lib_aud=None, path=None, aud_ext=None, min_sil=1000, min_chunk=1
     elif method == 'rvad_chunk_faster': nchunks = rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride)
     elif method == 'rvad_chunk': nchunks = rvad_chunk(lib_aud, min_chunk, max_chunk, sr)
     elif method == 'pitch_chunk': nchunks = pitch_chunk(path, min_chunk, max_chunk, stride)
-    elif method == 'src_chunk' : nchunks = from_src_chunk(src_eaf, tiers)
+    elif method == 'src_chunk' : nchunks = from_src_chunk(src_ts, tiers, tier_key)
     else: 
         method = 'stride_chunk'
+        if length == None: length = librosa.get_duration(y=lib_aud, sr=sr)
         nchunks = stride_chunk(max_chunk, stride=stride, length=length)
     print(f'Chunked using {method} method')
     chunks = [nchunk + [lib_aud[librosa.time_to_samples(nchunk[0]/1000, sr=sr):

@@ -27,7 +27,7 @@ model_dir = host_dir.joinpath("models/"+model)
 raw_corpus_dir = host_dir.joinpath("wav-eaf-meta/")
 resources_dir = test_dir.parents[1].joinpath("src/wav2vec2fasr/resources/")
 mfa_dir = host_dir.joinpath("mfa/")
-mfa_corpus_dir = mfa_dir.joinpath("mfa_corpus/")
+mfa_corpus_dir = mfa_dir.joinpath("mfa_corpus/full")
 lm_model = "c_npplm_nh_cb_5g.binary"
 lm_dir = host_dir.joinpath("models/kenlm_models/"+lm_model)
 mfa_alignments_dir = mfa_dir.joinpath("mfa_alignments", "7-15-24")
@@ -46,13 +46,18 @@ if False:
     #print(pron_dict)
 
 stt = time.time()
+print(segment.chunk_audio(path=mfa_corpus_dir.joinpath("wq09_073.wav"),
+                          method="src_chunk",
+                          src_eaf=mfa_corpus_dir.joinpath("wq09_073.TextGrid")))
 #mfa_tools.search_ts_corpus(mfa_corpus_dir, "ɬ")
 
 #mfa_tools.describe_ts_corpus(mfa_corpus_dir, speech_tier_key="phrase-segnum", 
 #                             collate_data=model_dir.joinpath("results.csv"),save_dir=mfa_corpus_dir)
 
 #mfa_tools.compare_tss(mfa_alignments_dir.joinpath("wq10_011.TextGrid"), w2v2_alignments_dir.joinpath("wq10_011.TextGrid"))
-mfa_tools.compare_ts_dirs(mfa_alignments_dir, w2v2_alignments_dir, comp_tier_key=" - words")
+
+#mfa_tools.compare_ts_dirs(mfa_alignments_dir, w2v2_alignments_dir, comp_tier_key=" - words")
+
 #forcedalignment.align_transcription_dirs(mfa_corpus_dir, mfa_corpus_dir, model_dir)
 
 #forcedalignment.align_transcriptions(test_rec, orig_eaf, model_dir, tier_list=["A_phrase-segnum-en"])

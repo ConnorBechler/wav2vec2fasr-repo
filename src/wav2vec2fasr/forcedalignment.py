@@ -217,62 +217,122 @@ def align_audio(processor: Wav2Vec2Processor,
         return(None, None, transcript)
     
 
-def chunk_and_align(audio_path : any, 
-                    model_dir : any, 
+def transcribe_audio(audio_path : any, 
+                    model_dir,
+                    model = None,
+                    processor = None,
+                    lm_decoder = None,
                     chunking_method='rvad_chunk', 
-                    output='.eaf',
-                    lm_dir = None) -> dict:
+                    src_path = None,
+                    tier_list = None,
+                    tier_key = None,
+                    utt_tier_name="utterances",
+                    word_tier_name="words", 
+                    char_tier_name="phones", 
+                    output_name=None,
+                    output=".TextGrid",
+                    eval=False) -> dict:
     """
     Function for (1) chunking a specified audio file by a specified method and
      (2) transcribing and aligning it using a given wav2vec 2.0 model
     
     Args:
-        audio_path (str | pathlib.Path) : path to wav or mp3 file
-        model_dir (str | pathlib.Path) : path to a wav2vec 2.0 model
-        chunking_method (str) : chunking method name from segment.chunk_audio function (check there for options)
-        output (str) : either .TextGrid or .eaf for praat TextGrids or ELAN eaf files, respectively
-            TODO: add .txt output
-        lm_dir (str or pathlib.Path) : path to a kenlm model
+        audio_path (str | pathlib.Path) : path to audio file (wav or mp3)
+        model_dir (str | pathlib.Path) : path to wav2vec 2.0 model
+        model (AutoModelForCTC) : wav2vec2.0 model (optional if model path provided)
+        processor (Wav2Vec2Processor) : include your processor here if you've already loaded it
+        lm_decoder (BeamSearchDecoderCTC or pathlib.Path) : either a kenlm beam search ctc decoder or a path to one
+        chunking_method (str) : method used to chunk audio, check segment.chunk_audio for options
+        src_ts : path to source transcription file (either Praat TextGrid or ELAN eaf) for comparison
+        tier_list (list of str) : list of specific tiers to segment audio by and transcribe
+        tier_key (str) : returns all tiers from src_transcription with the key as a substring of their name
+        word_tier_name (str) : name of word tier for word alignments
+        char_tier_name (Str) : name of character tier for character alignments
+        output_name (str) : name for the resulting file, defaults to f"{src_path.stem}{ts_format}" if None
     Returns:
         dict of annotations, with the lists of tuples for keys 'prediction' (referencing phrases), 'words', and 'chars'
             each tuple contains a prediction entry with start time and end time in milliseconds and the prediction as a string
     Output:
         if output is not None, then returns either a TextGrid or eaf file
     """
-    name = Path(audio_path).stem
-    model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
-    processor = Wav2Vec2Processor.from_pretrained(model_dir)
-    chunks = segment.chunk_audio(path=audio_path, method=chunking_method)
+    if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
     #If language model directory provided, build lm decoder
-    if lm_dir != None: decoder, processor = build_lm_decoder(model_dir, lm_dir, processor)
+    if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
+    elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
     else: decoder = None
+    audio_path = Path(audio_path)
+    src_path = Path(src_path)
+    if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
+    chunks = segment.chunk_audio(lib_aud=lib_aud, path=audio_path, method=chunking_method, 
+                                 src_path=src_path, tiers=tier_list, tier_key=tier_key)
     ts = pympi.Eaf()
-    ts.add_linked_file(file_path=audio_path, mimetype='wav')
+    ts.add_linked_file(file_path=audio_path, mimetype=audio_path.suffix[1:])
     ts.remove_tier('default')
-    ts.add_tier('prediction')
-    ts.add_tier('words')
-    ts.add_tier('chars')
-    annotations = {'prediction' : [], 'words' : [], 'chars' : []}
+    ts.add_tier(utt_tier_name)
+    ts.add_tier(word_tier_name)
+    ts.add_tier(char_tier_name)
+    annotations = {utt_tier_name : [], word_tier_name : [], char_tier_name : []}
     for chunk in chunks:
         pred_st, pred_end = chunk[0] + chunk[2][0], chunk[1] - chunk[2][1]
         #DEBUG: Print start of phrase, end of phrase
         #print(pred_st, pred_end, pred_end-pred_st)
         calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], strides=chunk[2], decoder=decoder)
-        ts.add_annotation('prediction', pred_st, pred_end, ort_tokenizer.revert(pred))
-        annotations['prediction'].append((pred_st, pred_end, ort_tokenizer.revert(pred)))
+        ts.add_annotation(utt_tier_name, pred_st, pred_end, ort_tokenizer.revert(pred))
+        annotations[utt_tier_name].append((pred_st, pred_end, ort_tokenizer.revert(pred)))
         if calign != None and walign != None:
             for word in walign:
-                ts.add_annotation('words', word['start']+chunk[0], word['end']+chunk[0], 
+                ts.add_annotation(word_tier_name, word['start']+chunk[0], word['end']+chunk[0], 
                 ort_tokenizer.revert(word['word']))
-                annotations['words'].append((word['start']+chunk[0], word['end']+chunk[0], ort_tokenizer.revert(word['word'])))
+                annotations[word_tier_name].append((word['start']+chunk[0], word['end']+chunk[0], ort_tokenizer.revert(word['word'])))
             for char in calign:
-                ts.add_annotation('chars', char['start']+chunk[0], char['end']+chunk[0], 
+                ts.add_annotation(char_tier_name, char['start']+chunk[0], char['end']+chunk[0], 
                 ort_tokenizer.revert(char['char']))
-                annotations['chars'].append((char['start']+chunk[0], char['end']+chunk[0], ort_tokenizer.revert(char['char'])))
+                annotations[char_tier_name].append((char['start']+chunk[0], char['end']+chunk[0], ort_tokenizer.revert(char['char'])))
     if output != None: 
         if output == '.TextGrid': ts = ts.to_textgrid()
-        ts.to_file(name+"_preds"+output)
+        if output_name == None: output_name=f"{audio_path.stem}{output}"
+        ts.to_file(output_name)
     return(annotations)
+
+def transcribe_audio_dir(aud_dir : Path,
+                         model_dir,
+                         model = None,
+                         processor = None,
+                         lm_decoder = None,
+                         chunking_method='rvad_chunk', 
+                         src_dir : Path = None,
+                         tier_list = None,
+                         tier_key = None,
+                         utt_tier_name="utterances",
+                         word_tier_name="words", 
+                         char_tier_name="phones", 
+                         output=".TextGrid"):
+    if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    #If language model directory provided, build lm decoder
+    if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
+    elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
+    else: decoder = None
+    wavs = {path.stem : path for path in aud_dir.iterdir() if path.suffix == ".wav"}
+    paired = []
+    if src_dir != None and chunking_method=="src_chunk":
+        srcs = {path.stem : path for path in src_dir.iterdir() if path.suffix in [".eaf", ".TextGrid"]}
+        transcribe_pairs = [(wavs[ts], srcs[ts]) for ts in srcs if ts in wavs]
+        paired = [wavs[ts] for ts in wavs in srcs]
+        for pair in transcribe_pairs:
+            print("Transcribing", pair)
+            transcribe_audio(pair[0], model_dir, model=model, processor=processor, lm_decoder=lm_decoder, 
+                             chunking_method=chunking_method, src_path=pair[1], tier_list=tier_list, tier_key=tier_key,
+                             utt_tier_name=utt_tier_name, word_tier_name=word_tier_name, char_tier_name=char_tier_name, 
+                             output=output)
+    for wav in wavs not in paired:
+        print("Transcribing", wav)
+        transcribe_audio(wav, model_dir, model=model, processor=processor, lm_decoder=lm_decoder, 
+                            chunking_method=chunking_method, tier_list=tier_list, tier_key=tier_key,
+                            utt_tier_name=utt_tier_name, word_tier_name=word_tier_name, char_tier_name=char_tier_name, 
+                            output=output)
+        
 
 def generate_alignments_for_phrases(audio_path, 
                                     src_path, 

@@ -466,9 +466,11 @@ def pitchblockdetect(pv01, pitch, nfr10, opts):
 winlen, ovrlen, pre_coef, nfilter, nftt = 0.025, 0.01, 0.97, 20, 512
 opts=1
 
-def rVAD_fast(finwav, fvad=None, ftThres=0.5, vadThres=0.4):
+def rVAD_fast(finwav, sr=None, fvad=None, ftThres=0.5, vadThres=0.4):
     if isinstance(finwav, str):
         fs, data = speech_wave(finwav)
+    elif sr != None:
+         fs, data = sr, finwav
     ft, flen, fsh10, nfr10 = sflux(data, fs, winlen, ovrlen, nftt)
 
     # --spectral flatness --

@@ -178,7 +178,7 @@ def rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride):
     for x in range(len(segs)):
         if segs[x] == 1:
             if win_st == None: win_st = x*10
-            win_end = x*10
+            win_end = (x+1)*10
         elif segs[x] == 0:
             if win_end != None:
                 diff = win_end - win_st

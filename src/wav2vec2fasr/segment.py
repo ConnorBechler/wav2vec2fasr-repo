@@ -238,7 +238,8 @@ def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
                 comb_chunk = None
     return(nnchunks)
 
-def from_src_chunk(src_ts : pathlib.Path, tiers=None, tier_key=None):
+def from_src_chunk(src_ts, tiers=None, tier_key=None):
+    src_ts = pathlib.Path(src_ts)
     if src_ts.suffix == ".eaf": src_eaf = pympi.Eaf(src_ts)
     elif src_ts.suffix == ".TextGrid": src_eaf = pympi.TextGrid(src_ts).to_eaf()
     if tier_key != None: tiers = [tier for tier in src_eaf.get_tier_names() if tier_key in tier]

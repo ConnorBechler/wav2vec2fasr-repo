@@ -262,7 +262,6 @@ def transcribe_audio(audio_path : any,
     elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
     else: decoder = None
     audio_path = Path(audio_path)
-    src_path = Path(src_path)
     if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
     chunks = segment.chunk_audio(lib_aud=lib_aud, path=audio_path, method=chunking_method, 
                                  src_path=src_path, tiers=tier_list, tier_key=tier_key)

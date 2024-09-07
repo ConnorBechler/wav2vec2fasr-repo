@@ -25,7 +25,6 @@ warnings.simplefilter("ignore")
 
 #from wav2vec2fasr.prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
 from wav2vec2fasr import orthography
-from importlib import resources as il_resources
 from wav2vec2fasr import resources
 import json
 import time

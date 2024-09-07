@@ -5,7 +5,7 @@ from wav2vec2fasr.new_data_process import process_data
 from wav2vec2fasr.new_vocab_setup import setup_vocab
 from wav2vec2fasr.new_finetune import main_program
 from wav2vec2fasr.evaluate import main_program as eval_program
-from wav2vec2fasr.orthography import load_tokenization, load_config
+#from wav2vec2fasr.orthography import load_tokenization, load_config
 
 #Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter

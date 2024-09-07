@@ -308,13 +308,31 @@ def transcribe_audio_dir(aud_dir : Path,
                          word_tier_name="words", 
                          char_tier_name="phones", 
                          output=".TextGrid"):
+    """
+    Function for applying transcribe_audio to all audio files in a given directory
+    Args:
+        aud_dir (pathlib.Path) : path to directory containing audio file (wav or mp3)
+        model_dir (str | pathlib.Path) : path to wav2vec 2.0 model
+        model (AutoModelForCTC) : wav2vec2.0 model (optional if model path provided)
+        processor (Wav2Vec2Processor) : include your processor here if you've already loaded it
+        lm_decoder (BeamSearchDecoderCTC or pathlib.Path) : either a kenlm beam search ctc decoder or a path to one
+        chunking_method (str) : method used to chunk audio, check segment.chunk_audio for options
+        src_dir : path directory of source transcription filse (either Praat TextGrid or ELAN eaf) for comparison
+        tier_list (list of str) : list of specific tiers to segment audio by and transcribe
+        tier_key (str) : returns all tiers from src_transcription with the key as a substring of their name
+        word_tier_name (str) : name of word tier for word alignments
+        char_tier_name (Str) : name of character tier for character alignments
+        output_name (str) : name for the resulting file, defaults to f"{src_path.stem}{ts_format}" if None
+    Output:
+        if output is not None, then returns either a TextGrid or eaf file
+    """
     if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
     #If language model directory provided, build lm decoder
     if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
     elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
     else: decoder = None
-    wavs = {path.stem : path for path in aud_dir.iterdir() if path.suffix == ".wav"}
+    wavs = {path.stem : path for path in aud_dir.iterdir() if path.suffix in [".wav", ".mp3"]}
     paired = []
     if src_dir != None and chunking_method=="src_chunk":
         srcs = {path.stem : path for path in src_dir.iterdir() if path.suffix in [".eaf", ".TextGrid"]}

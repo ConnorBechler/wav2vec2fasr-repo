@@ -266,29 +266,28 @@ def load_config():
     tokenizer = Tokenization_Scheme(tokenization_path)
     return(tokenizer, eval_set_path)
 
-TESTING = True
+def set_tokenization_path(path):
+    """Function for setting config tokenization path
+    WARNING: MODIFIES INTERNAL PROJECT PATH
+    Args:
+        path (pathlib.Path | str) : path to tokenization tsv
+    """
+    if pathlib.Path(path).suffix == ".tsv":
+        with il_resources.path(resources, "config.json") as config_path:
+            config_path = pathlib.Path(config_path)
+            with open(config_path, "r+") as f:
+                config = json.loads(f.read())
+                config["tokenization"] = path
+                f.seek(0)
+                f.write(json.dumps(config))
+                f.truncate()
+
+    else: raise Exception(f"{path} not path to .tsv")
+
 if __name__ == "__main__":
     
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--tokenization", default="default_tokenization.tsv", help="Name of tokenization tsv to load tokenization from")
+    parser.add_argument("--change_path", default=None, help="Name of tokenization tsv to set as default in config.json")
     args = vars(parser.parse_args())
-    if not(TESTING):
-        load_tokenization(args['tokenization'])
-
-    if TESTING:
-        #load_tokenization("pumi_cb.tsv")
-        #txts = load_directory("C:/Users/cbech/Desktop/Northern Prinmi Project/wq12_017/", ".eaf", "phrase-seg", report=False)
-        txts = load_directory("D:/Northern Prinmi Data/wav-eaf-meta/testing/", ".eaf", "phrase-seg")
-        corp = "\n".join([remove_special_chars(txt[1]) for txt in txts])
-        load_tokenization("pumi_phons.tsv")
-        txt = def_tok.apply(corp)
-        print(txt)
-        print(set(txt))
-        #print(set(list(re.findall("..", txt))))
-        #new = def_tok.revert(def_tok.apply(txt))
-        #if new != txt : raise Exception("TEST FAILED")
-
-        #files = "C:/Users/cbech/Desktop/Northern Prinmi Project/td21-22_020/td21-22_020_preds.eaf"
-        #tar_tiers = ["prediction", "words", "chars"]
-        #def_tok.apply_to_files(files, tar_tiers)
-        #def_tok.apply_to_files(files, tar_tiers, revert_op=True)
+    if args["change_path"] != None:
+        set_tokenization_path(args['change_path'])

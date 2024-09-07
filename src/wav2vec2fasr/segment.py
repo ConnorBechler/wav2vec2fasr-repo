@@ -159,9 +159,12 @@ def rvad_chunk(audio, min_chunk, max_chunk, sr, vad=rVADfast()):
             for p in problems:
                 st_ind = librosa.time_to_samples(int(segs[p][0]/1000), sr=sr)
                 end_ind = librosa.time_to_samples(int(segs[p][1]/1000), sr=sr)
-                new_segs = rvad_chunk_base(audio[st_ind:end_ind], sr, vad)
-                new_segs = [[seg[0]+segs[p][0], seg[1]+segs[p][0], (0, 0)] for seg in new_segs]
-                segs = segs[:p] + new_segs + segs[p+1:]
+                # Check if problem segment is greater than 25 ms, the minimum window length rVADfast can work on
+                #  see rVADfast.py for the relevant parameter
+                if segs[p][1] - segs[p][0] > 25 :
+                    new_segs = rvad_chunk_base(audio[st_ind:end_ind], sr, vad)
+                    new_segs = [[seg[0]+segs[p][0], seg[1]+segs[p][0], (0, 0)] for seg in new_segs]
+                    segs = segs[:p] + new_segs + segs[p+1:]
         else:
             run = False
     return(segs)
@@ -343,6 +346,7 @@ def create_chunked_annotation(filepath : str, methods, format=".eaf"):
         print(len(chunks))
         for chunk in chunks:
             ts.add_annotation(method, chunk[0]+chunk[2][0], chunk[1]-chunk[2][1], 'CHUNK')
+    if format == ".TextGrid" : ts = ts.to_textgrid()
     ts.to_file(f"{filepath.stem}_chunked{format}")
 
 

@@ -15,6 +15,8 @@ from wav2vec2fasr import segment
 from wav2vec2fasr import orthography as ort
 from wav2vec2fasr.orthography import def_tok, load_config
 from wav2vec2fasr.transcribe import get_logits, transcribe_segment, build_lm_decoder
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import time
 ort_tokenizer = load_config()[0]
 
 def get_trellis(emission, tokens, blank_id=0):
@@ -262,9 +264,12 @@ def transcribe_audio(audio_path : any,
     elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
     else: decoder = None
     audio_path = Path(audio_path)
-    if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
+    if audio_path.suffix in [".wav",".mp3"]: 
+        lib_aud, sr = librosa.load(audio_path, sr=16000)
+    if src_path != None and chunking_method == "src_chunk":
+        src_dir = Path(src_dir)
     chunks = segment.chunk_audio(lib_aud=lib_aud, path=audio_path, method=chunking_method, 
-                                 src_path=src_path, tiers=tier_list, tier_key=tier_key)
+                                 src_ts=src_path, tiers=tier_list, tier_key=tier_key)
     ts = pympi.Eaf()
     ts.add_linked_file(file_path=audio_path, mimetype=audio_path.suffix[1:])
     ts.remove_tier('default')
@@ -334,6 +339,7 @@ def transcribe_audio_dir(aud_dir : Path,
     wavs = {path.stem : path for path in aud_dir.iterdir() if path.suffix in [".wav", ".mp3"]}
     paired = []
     if src_dir != None and chunking_method=="src_chunk":
+        src_dir = Path(src_dir)
         srcs = {path.stem : path for path in src_dir.iterdir() if path.suffix in [".eaf", ".TextGrid"]}
         transcribe_pairs = [(wavs[ts], srcs[ts]) for ts in srcs if ts in wavs]
         paired = [wavs[ts] for ts in wavs in srcs]
@@ -343,13 +349,12 @@ def transcribe_audio_dir(aud_dir : Path,
                              chunking_method=chunking_method, src_path=pair[1], tier_list=tier_list, tier_key=tier_key,
                              utt_tier_name=utt_tier_name, word_tier_name=word_tier_name, char_tier_name=char_tier_name, 
                              output=output)
-    for wav in wavs not in paired:
+    for wav in [wav for wav in wavs if wav not in paired]:
         print("Transcribing", wav)
-        transcribe_audio(wav, model_dir, model=model, processor=processor, lm_decoder=lm_decoder, 
+        transcribe_audio(wavs[wav], model_dir, model=model, processor=processor, lm_decoder=lm_decoder, 
                             chunking_method=chunking_method, tier_list=tier_list, tier_key=tier_key,
                             utt_tier_name=utt_tier_name, word_tier_name=word_tier_name, char_tier_name=char_tier_name, 
                             output=output)
-        
 
 def generate_alignments_for_phrases(audio_path, 
                                     src_path, 
@@ -424,19 +429,19 @@ def generate_alignments_for_phrases(audio_path,
     if output_name==None: output_name = f"{src_path.stem}_realigned"
     out_file.to_file(f"{output_name}{src_path.suffix}")
 
-def align_transcriptions(audio_path, 
-                        src_path,
-                        model_dir,
-                        model = None,
-                        processor = None,
-                        lm_decoder = None,
-                        tier_list = None,
-                        utt_tier_name=" - utterances",
-                        word_tier_name=" - words", 
-                        char_tier_name=" - phones", 
-                        copy_existing=False, 
-                        output_name=None,
-                        ts_format=".TextGrid"):
+def align_transcript(audio_path, 
+                     src_path,
+                     model_dir,
+                     model = None,
+                     processor = None,
+                     lm_decoder = None,
+                     tier_list = None,
+                     utt_tier_name=" - utterances",
+                     word_tier_name=" - words", 
+                     char_tier_name=" - phones", 
+                     copy_existing=False, 
+                     output_name=None,
+                     ts_format=".TextGrid"):
 
     """
     This function generates word and character alignments from an existing transcription file
@@ -465,7 +470,14 @@ def align_transcriptions(audio_path,
     elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
     else: decoder = None
     audio_path = Path(audio_path)
-    src_path = Path(src_path)
+    if src_path != None: 
+        src_path = Path(src_path)
+    else : 
+        src_path = str(audio_path.parent) +"\\" + audio_path.stem
+        print(src_path)
+        if Path(src_path + ".TextGrid").exists() : src_path = Path(src_path + ".TextGrid")
+        elif Path(src_path + ".eaf").exists() : src_path = Path(src_path + ".eaf")
+        else: raise Exception("No source transcript provided or found to align")
     if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
     if src_path.suffix == ".TextGrid" : src_file = pympi.TextGrid(src_path).to_eaf()
     elif src_path.suffix == ".eaf" : src_file = pympi.Eaf(src_path)
@@ -504,18 +516,21 @@ def align_transcriptions(audio_path,
     if output_name==None: output_name = f"{src_path.stem}"
     out_file.to_file(f"{output_name}{ts_format}")
 
-def align_transcription_dirs(aud_dir : Path,
-                             src_dir : Path,
-                             model_dir : Path,
-                             model=None,
-                             processor = None,
-                             lm_decoder = None,
-                             tier_list = None,
-                             utt_tier_name=" - utterances",
-                             word_tier_name=" - words", 
-                             char_tier_name=" - phones",
-                             ts_format = ".TextGrid",
-                             ):
+def align_transcript_dirs(aud_dir,
+                          src_dir,
+                          model_dir : Path,
+                          model=None,
+                          processor = None,
+                          lm_decoder = None,
+                          tier_list = None,
+                          utt_tier_name=" - utterances",
+                          word_tier_name=" - words", 
+                          char_tier_name=" - phones",
+                          ts_format = ".TextGrid",
+                          ):
+    aud_dir = Path(aud_dir)
+    if src_dir != None: src_dir = Path(src_dir)
+    else : src_dir = aud_dir
     if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
     if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
     #If language model directory provided, build lm decoder
@@ -527,7 +542,7 @@ def align_transcription_dirs(aud_dir : Path,
     align_paths = [(wavs[ts], srcs[ts]) for ts in srcs if ts in wavs]
     for pair in align_paths:
         print("Aligning", pair[0].stem)
-        align_transcriptions(pair[0], pair[1], model_dir, model=model, processor=processor, lm_decoder=lm_decoder, 
+        align_transcript(pair[0], pair[1], model_dir, model=model, processor=processor, lm_decoder=lm_decoder, 
                              tier_list=tier_list, utt_tier_name=utt_tier_name, word_tier_name=word_tier_name, 
                              char_tier_name=char_tier_name, ts_format=ts_format)
     
@@ -615,4 +630,80 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
 
 
 if __name__ == "__main__":
-    pass
+    tot_start = time.time()
+    
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument("function", type=str, help="Function to perform, either transcribe or align")
+    parser.add_argument("model_dir", type=str, help="wav2vec 2.0 ASR model to be used")
+    parser.add_argument("audio_path", type=str, help="Path to audio or audio directory")
+    parser.add_argument("-t", "--transcript_path", type=str, help="Path to reference transcript (or directory of transcripts)")
+    #parser.add_argument("-d", "--device", type=str, default="cpu", help="Run on cpu or gpu")
+    parser.add_argument("-l","--lm_dir", default=None, help="Path to kenlm language model")
+    #parser.add_argument("-o", "--output_dir", type=str, default="./", help="Output directory")
+    parser.add_argument("-s", "--segmentation_method", type=str, default="rvad_chunk_faster", 
+                        help="Method for segmenting audio, see segment.chunk_audio() for options")
+    parser.add_argument("-n", "--output_name", type=str, default=None, help="Name for output transcript file (for transcription)")
+    parser.add_argument("-f","--format", type=str, default=".TextGrid", help="Output transcription format, either .eaf or .TextGrid")
+    parser.add_argument("--tier_list", default=None, help="Tier or list of tiers to align")
+    parser.add_argument("--tier_key", default=None, help="String included in all tiers to transcribe by (if using src_chunk method)")
+    #parser.add_argument("--utterance_tier_suffix", default=None, help="Suffix of utterance tier, if none defaults to function default")
+    #parser.add_argument("--word_tier_suffix", default=None, help="Suffix of utterance tier, if none defaults to function default")
+    #parser.add_argument("--phone_tier_suffix", default=None, help="Suffix of utterance tier, if none defaults to function default")
+    #parser.add_argument("--min_sil", type=int, default=1000, help="Minimum decibel threshold for silence detection")
+    #parser.add_argument("--min_chunk", type=int, default=100, help="Minimum speech chunk length in ms")
+    #parser.add_argument("--max_chunk", type=int, default=10000, help="Maximum speech chunk length in ms")
+    #parser.add_argument("--no_char_align", action="store_false", help="Don't align character predictions")
+    #parser.add_argument("--no_word_align", action="store_false", help="Don't align word predictions")
+    
+
+    args = vars(parser.parse_args())
+    aud_path = Path(args["audio_path"])
+    if args['function'] == "align":
+        if aud_path.is_file():
+            align_transcript(aud_path, 
+                             args["transcript_path"], 
+                             args["model_dir"], 
+                             lm_decoder=args["lm_dir"],
+                             tier_list=args["tier_list"],
+                             #utt_tier_name=args["utterance_tier_suffix"],
+                             #word_tier_name=args["word_tier_suffix"],
+                             #char_tier_name=args["char_tier_name"],
+                             output_name=args["output_name"],
+                             ts_format=args["format"])
+        else:
+            align_transcript_dirs(aud_path, 
+                                  args["transcript_path"], 
+                                  args["model_dir"], 
+                                  lm_decoder=args["lm_dir"],
+                                  tier_list=args["tier_list"],
+                                  #utt_tier_name=args["utt_tier_name"],
+                                  #word_tier_name=args["word_tier_name"],
+                                  #char_tier_name=args["char_tier_name"],
+                                  ts_format=args["format"])
+    elif args["function"] == "transcribe":
+        if aud_path.is_file():
+            transcribe_audio(aud_path,  
+                             args["model_dir"], 
+                             lm_decoder=args["lm_dir"],
+                             chunking_method=args["segmentation_method"],
+                             src_path=args["transcript_path"],
+                             tier_list=args["tier_list"],
+                             tier_key=args["tier_key"],
+                             #utt_tier_name=args["utt_tier_name"],
+                             #word_tier_name=args["word_tier_name"],
+                             #char_tier_name=args["char_tier_name"],
+                             output_name=args["output_name"],
+                             output=args["format"])
+        else:
+            transcribe_audio_dir(aud_path,  
+                                 args["model_dir"], 
+                                 lm_decoder=args["lm_dir"],
+                                 chunking_method=args["segmentation_method"],
+                                 src_dir=args["transcript_path"],
+                                 tier_list=args["tier_list"],
+                                 tier_key=args["tier_key"],
+                                 #utt_tier_name=args["utt_tier_name"],
+                                 #word_tier_name=args["word_tier_name"],
+                                 #char_tier_name=args["char_tier_name"],
+                                 output=args["format"])
+    print('Total time: ', time.time()-tot_start)

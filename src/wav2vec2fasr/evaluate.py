@@ -151,7 +151,21 @@ def main_program(home=None,
     ort_tokenizer, eval_set_path = orthography.load_config()
     # Load evaluation set
     if not(training_instead):
-        full, rec_inds, sub_inds = load_eval_settings(eval_set_path, np_test_ds)
+        try:
+            full, rec_inds, sub_inds = load_eval_settings(eval_set_path, np_test_ds)
+        except Exception as e:
+            print("Loading eval settings failed with exception:",e)
+            print("Evaluating full set and by file instead")
+            recs = []
+            start_inds = []
+            for r, rec in enumerate(np_test_ds):
+                if rec["from_file"] not in recs:
+                    recs.append(rec["from_file"])
+                    start_inds.append(r)
+            start_inds.append(len(np_test_ds))
+            full = list(range(len(np_test_ds)))
+            rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-1] for r in range(len(recs))}
+            sub_inds = None
     else:
         recs = []
         start_inds = []

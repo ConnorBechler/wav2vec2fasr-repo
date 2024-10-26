@@ -31,7 +31,7 @@ for x in range(len(doubs)):
     rep_dict[doubs[x]] = rep_doubs[x]  
 for x in range(len(tones)):
     rep_dict[tones[x]] = rep_tones[x]
-print("Encoding scheme:", rep_dict)
+#print("Encoding scheme:", rep_dict)
 
 def remove_special_chars(text):
     text = re.sub(chars_to_ignore_regex, '', text.lower())

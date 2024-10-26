@@ -109,9 +109,9 @@ def chunk_dir_into_audio(directory, out_dir="chunks", out_aud=".wav", name_tar="
                     try:
                         data = chunk_audio_by_transcript_into_data(path, out_dir=out_dir, out_aud=out_aud)
                         for ann in data:
-                            soundfile.write(f"{out_dir}/{path.stem}_{ann["tier"]}_#{ann["segment"]}{out_aud}", 
+                            soundfile.write(f"{out_dir}/{path.stem}_{ann['tier']}_#{ann['segment']}{out_aud}", 
                                             ann["audio"]["array"], ann["audio"]["sampling_rate"])
-                            with open(f"{out_dir}/{path.stem}_{ann["tier"]}_#{ann["segment"]}.txt", 'w', encoding='utf-8') as f: 
+                            with open(f"{out_dir}/{path.stem}_{ann['tier']}_#{ann['segment']}.txt", 'w', encoding='utf-8') as f: 
                                 f.write(ann["transcript"])
                     except OSError as error:
                         print(f"{path.name} chunking failed: {error}") 

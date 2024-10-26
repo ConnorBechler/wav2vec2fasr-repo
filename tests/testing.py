@@ -47,8 +47,8 @@ if False:
 
 stt = time.time()
 print(segment.chunk_audio(path=mfa_corpus_dir.joinpath("wq09_073.wav"),
-                          method="src_chunk",
-                          src_eaf=mfa_corpus_dir.joinpath("wq09_073.TextGrid")))
+                          method="rvad_chunk_faster",))
+                          #src_eaf=mfa_corpus_dir.joinpath("wq09_073.TextGrid")))
 #mfa_tools.search_ts_corpus(mfa_corpus_dir, "ɬ")
 
 #mfa_tools.describe_ts_corpus(mfa_corpus_dir, speech_tier_key="phrase-segnum", 

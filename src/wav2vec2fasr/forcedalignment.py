@@ -224,7 +224,7 @@ def transcribe_audio(audio_path : any,
                     model = None,
                     processor = None,
                     lm_decoder = None,
-                    chunking_method='rvad_chunk', 
+                    chunking_method='rvad_chunk_faster', 
                     src_path = None,
                     tier_list = None,
                     tier_key = None,
@@ -627,6 +627,93 @@ def correct_alignments(audio_path, old_doc, corrected_doc, model_dir, cor_tier =
             else: print("Cannot align blank segment")
         if cor_path.suffix == '.TextGrid': ts = ts.to_textgrid()
     ts.to_file(f"{cor_path.stem}_ac{cor_path.suffix}")
+
+def align_words(audio_path, 
+                src_path,
+                model_dir,
+                model = None,
+                processor = None,
+                lm_decoder = None,
+                tier_list = None,
+                word_tier_name=" - words", 
+                char_tier_name=" - phones", 
+                copy_existing=False, 
+                output_name=None,
+                ts_format=".TextGrid",
+                regenerate=False):
+    """
+    This function generates phone alignments for each word in an existing transcription file
+    Args:
+        audio_path : path to audio file (wav or mp3)
+        src_path : path to source transcription file (either Praat TextGrid or ELAN eaf)
+        model (AutoModelForCTC or Pathlib.Path) : wav2vec2.0 model or path to wav2vec 2.0 model
+        processor (Wav2Vec2Processor) : include your processor here if you've already loaded it
+        lm_decoder (BeamSearchDecoderCTC or pathlib.Path) : either a kenlm beam search ctc decoder or a path to one
+        tier_list (list of str) : list of specific tiers to regenerate phone alignments for (if none, aligns all tiers with key)
+        word_tier_name (str) : name of word tier for word alignments (full name is base_tier+word_tier)
+        char_tier_name (str) : name of character tier for character alignments (full name is base_tier+char_tier)
+        copy_existing (bool) : if true, makes output of function a copy of the src_file with the new tiers
+            If false, creates entirely new transcript file with only utterance_tier, word_tier, and char_tier
+        output_name (str) : name for the resulting file, defaults to f"{src_path.stem}_realigned" if None
+        lm_dir (str or pathlib.Path) : path to a kenlm model
+        ts_format (str) : .TextGrid or .eaf, output of alignments
+        regenerate (bool) : set to true if you do not want the word transcript to be used for alignment
+    Outputs:
+        Transcript file, either an EAF or TextGrid based on the src_file
+    """
+    if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    #If language model directory provided, build lm decoder
+    if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
+    elif type(lm_decoder) == "<class 'BeamSearchDecoderCTC'>" : decoder = lm_decoder
+    else: decoder = None
+    audio_path = Path(audio_path)
+    if src_path != None: src_path = Path(src_path)
+    else : 
+        src_path = str(audio_path.parent) +"\\" + audio_path.stem
+        print(src_path)
+        if Path(src_path + ".TextGrid").exists() : src_path = Path(src_path + ".TextGrid")
+        elif Path(src_path + ".eaf").exists() : src_path = Path(src_path + ".eaf")
+        else: raise Exception("No source transcript provided or found to align")
+    if audio_path.exists(): lib_aud, sr = librosa.load(audio_path, sr=16000)
+    if src_path.suffix == ".TextGrid" : src_file = pympi.TextGrid(src_path).to_eaf()
+    elif src_path.suffix == ".eaf" : src_file = pympi.Eaf(src_path)
+    if copy_existing: out_file = src_file
+    else: out_file = pympi.Eaf()
+    out_file.add_linked_file(file_path=audio_path, mimetype=audio_path.suffix[1:])
+    out_file.remove_tier("default")
+    #If tier list not provided, get all tiers from source
+    all_tiers = src_file.get_tier_names()
+    if tier_list == None: tier_list = all_tiers
+    tier_set = {}
+    for tier in tier_list:
+        print(tier)
+        matches = {t2 for t2 in tier_list if (tier in t2) and (tier != t2)}
+        if len(matches)>0 : tier_set[tier] = matches  
+    print(tier_set)
+    for src_tier in tier_set:
+        # Get annotation data from the source tier
+        word_tier, char_tier = src_tier + word_tier_name, src_tier + char_tier_name
+        if copy_existing : 
+            out_file.remove_tier(char_tier)
+        else: 
+            out_file.add_tier(src_tier)
+            src_file.copy_tier(out_file, src_tier)
+            out_file.add_tier(word_tier)
+            out_file.add_tier(char_tier) 
+        for ann in src_file.get_annotation_data_for_tier(word_tier):
+            if regenerate: transcript = None
+            else: transcript = ort_tokenizer.apply(ort.remove_special_chars(ann[2]))
+            aud_chunk = lib_aud[librosa.time_to_samples(ann[0]/1000, sr=sr): librosa.time_to_samples(ann[1]/1000, sr=sr)]
+            calign, walign, tokenized_transcript = align_audio(processor, transcript=transcript, model=model, audio=aud_chunk,
+                                                                decoder = decoder)
+            out_file.add_annotation(word_tier, ann[0], ann[1], ann[2])
+            if calign != None :
+                for char in calign:
+                    out_file.add_annotation(char_tier, char['start']+ann[0], char['end']+ann[0], ort_tokenizer.revert(char['char']))
+    if ts_format == '.TextGrid': out_file = out_file.to_textgrid()
+    if output_name==None: output_name = f"{src_path.stem}"
+    out_file.to_file(f"{output_name}_cor{ts_format}")
 
 
 if __name__ == "__main__":

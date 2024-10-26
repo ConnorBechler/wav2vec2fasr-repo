@@ -171,10 +171,7 @@ def rvad_chunk(audio, min_chunk, max_chunk, sr, vad=rVADfast()):
 
 def rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride):
     """Uses rvad_faster to chunk audio, with fall-back stride chunking for segments that are too long"""
-    aud_mono = librosa.to_mono(lib_aud)
-    soundfile.write("rvad_working_mono.wav", aud_mono, sr)
-    segs = rvad_faster.rVAD_fast("rvad_working_mono.wav", ftThres = 0.4)
-    os.remove("rvad_working_mono.wav")
+    segs = rvad_faster.rVAD_fast(lib_aud, sr, ftThres = 0.4)
     win_st = None
     win_end = None
     nchunks = []

@@ -22,7 +22,7 @@ Clone the repo to get started. To actually make it usable, I recommend using [po
 
 1. Separate your audio corpus/dataset into a training directory and a testing directory, with audio files and transcripts (eafs or TextGrids)
 2. Use `audio_processor.py` to chunk each directory into training and testing huggingface datasets, respectively
-3. Create a tokenization scheme .tsv file, following the instructions [here](), and put its name or path in src/wav2vec2fasr/resources/config.json. If you just add its name, be sure the tsv is also in the resources folder.
+3. Create a tokenization scheme .tsv file, following the instructions [here](https://github.com/ConnorBechler/wav2vec2fasr-repo/wiki/Tokenization-Schemes#creating-a-tokenization-scheme-file), and put its name or path in src/wav2vec2fasr/resources/config.json. If you just add its name, be sure the tsv is also in the resources folder.
 4. Create an evaluation settings .json file, following the instructions [here](), and put its name or path in src/wav2vec2fasr/resources/config.json. If you just add its name, be sure the json is also in the resources folder.
 5. Run `full_finetune.py` from the command line with the hyper-parameters of your choice.
 6. There will probably be a bug somewhere, but if not, you will have models! The evaluation logs should give you some idea of how well they actually trained.

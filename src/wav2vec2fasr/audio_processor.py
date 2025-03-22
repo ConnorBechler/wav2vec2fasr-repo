@@ -150,12 +150,10 @@ if __name__ == "__main__":
     hgf_testing = Dataset.from_pandas(testing_dl)
     hgf_training = Dataset.from_pandas(training_dl)
     
-    dir = "/dataset"
+    if not(os.path.isdir(p_testing)): os.mkdir(p_testing)
+    hgf_testing.save_to_disk(p_testing)
     
-    if not(os.path.isdir(p_testing+dir)): os.mkdir(p_testing+dir)
-    hgf_testing.save_to_disk(p_testing+dir)
-    
-    if not(os.path.isdir(p_training+dir)): os.mkdir(p_training+dir)
-    hgf_training.save_to_disk(p_training+dir)
+    if not(os.path.isdir(p_training)): os.mkdir(p_training)
+    hgf_training.save_to_disk(p_training)
     """
 

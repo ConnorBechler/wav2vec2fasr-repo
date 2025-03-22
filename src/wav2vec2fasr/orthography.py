@@ -112,8 +112,8 @@ class Tokenization_Scheme:
     """A class of objects for applying orthographic transformations for tokenization.
 Initialization loads from a path to a tsv with the following structure:
 "repl\tnasals\tn~\tN\ncomb\ttri\txxx\ncomb\tdi\txx"
-Where the first column is the type of operation, the second column is the label for the 
-particular rule, the third column is the set of characters to be operated on, and the 
+Where the first column is the label for the particular rule, the second column is  the type 
+of operation, the third column is the set of characters to be operated on, and the 
 fourth column is used to specify replacement characters. The order of rows DETERMINES 
 rule order, so be sure to have the combinations you want to happen first higher up in the table!
 
@@ -180,9 +180,9 @@ Note: If you only want a rule to run on application and not on reversion, label 
                                 tar_tiers = [], 
                                 new_name = None,
                                 revert_op=False):
-        """Applies orthographic combination rules to a list of eaf or textgrid files
+        """Applies orthographic combination rules to a list of eaf, textgrid, or txt files
         Args:
-            files (str | list) : either a single path to a TextGrid or eaf file or a list of such paths
+            files (str | list) : either a single path to a TextGrid, eaf, or txt file, or a list of such paths
             tar_tiers (str | list) : either a single tier name or a list of tier names; if empty, defaults to all
             new_name (str) : a new name for the resulting file, defaults to original name plus tokenization scheme name
             revert (bool) : if set to true, reverses application of the tokenization scheme rather than applying it
@@ -194,23 +194,33 @@ Note: If you only want a rule to run on application and not on reversion, label 
             name = path.stem
             if path.suffix == ".eaf" : ts = Eaf(path)
             elif path.suffix == ".TextGrid" : ts = TextGrid(path).to_eaf()
-            else : raise Exception("files must be .eaf or .TextGrid")
-            if tar_tiers == []: tar_tiers = ts.get_tier_names()
-            tiers = [tier for tier in ts.tiers if len(tier) > 1 and tier in tar_tiers]
-            for tier in tiers:
-                an_dat = ts.get_annotation_data_for_tier(tier)
-                if revert_op : 
-                    new_an_dat = [(an[0], an[1], self.revert(an[2])) for an in an_dat]
-                elif not(revert_op) : 
-                    new_an_dat = [(an[0], an[1], self.apply(an[2])) for an in an_dat]
-                ts.remove_all_annotations_from_tier(tier)
-                for an in new_an_dat:
-                    ts.add_annotation(tier, an[0], an[1], an[2])
-            if path.suffix == ".TextGrid": ts = ts.to_textgrid()
+            if path.suffix in [".eaf",".TextGrid"]:
+                if tar_tiers == []: tar_tiers = ts.get_tier_names()
+                tiers = [tier for tier in ts.tiers if len(tier) > 1 and tier in tar_tiers]
+                for tier in tiers:
+                    an_dat = ts.get_annotation_data_for_tier(tier)
+                    if revert_op : 
+                        new_an_dat = [(an[0], an[1], self.revert(an[2])) for an in an_dat]
+                    elif not(revert_op) : 
+                        new_an_dat = [(an[0], an[1], self.apply(an[2])) for an in an_dat]
+                    ts.remove_all_annotations_from_tier(tier)
+                    for an in new_an_dat:
+                        ts.add_annotation(tier, an[0], an[1], an[2])
+                if path.suffix == ".TextGrid": ts = ts.to_textgrid()
+            elif path.suffix == ".txt":
+                ts = False
+                with open(path, "r", encoding="utf-8") as f:
+                    body = f.read()
+                if revert_op: new_body = self.revert(body)
+                else : new_body = self.apply(body)
+            else : raise Exception("files must be .eaf, .TextGrid, or .txt")
             if revert_op: operation = "_revert"
             else: operation = "_apply"
             if new_name == None : new_name = name + "_" + self.name + operation
-            ts.to_file(os.path.join(path.parent, new_name+path.suffix))
+            if ts == False: 
+                with open(os.path.join(path.parent, new_name+path.suffix), "w", encoding="utf-8") as f:
+                    f.write(new_body)
+            else: ts.to_file(os.path.join(path.parent, new_name+path.suffix))
                     
 #Load default tokenization scheme
 with il_resources.path(resources, "default_tokenization.tsv") as def_path:

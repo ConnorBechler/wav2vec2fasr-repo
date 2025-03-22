@@ -46,8 +46,10 @@ if False:
     #print(pron_dict)
 
 stt = time.time()
-print(segment.chunk_audio(path=mfa_corpus_dir.joinpath("wq09_073.wav"),
-                          method="rvad_chunk_faster",))
+#evaluate.main_program(home=str(host_dir.drive), project_dir=str(host_dir), eval_dir="models/"+model, 
+#                      data_dir=str(host_dir)+"/hf_datasets/data_all_speakers/", cpu=True)
+#print(segment.chunk_audio(path=mfa_corpus_dir.joinpath("wq09_073.wav"),
+#                          method="rvad_chunk_faster",))
                           #src_eaf=mfa_corpus_dir.joinpath("wq09_073.TextGrid")))
 #mfa_tools.search_ts_corpus(mfa_corpus_dir, "ɬ")
 
@@ -70,10 +72,6 @@ print(segment.chunk_audio(path=mfa_corpus_dir.joinpath("wq09_073.wav"),
 
 #methods = ["rvad_chunk", "rvad_chunk_faster", "pitch_chunk"]
 #segment.create_chunked_annotation(test_rec, methods)
-
-#Testing evaluation
-#evaluate.main_program(home=str(host_dir.drive), project_dir=str(host_dir), eval_dir="models/"+model, 
-#                      data_dir=str(host_dir)+"/hf_datasets/data_all_speakers/", cpu=True)
 
 #ort.load_tokenization("pumi_phons.tsv")
 #forcedalignment.generate_alignments_for_phrases(test_rec, orig_eaf, model_dir, src_tier="A_phrase-segnum-en")

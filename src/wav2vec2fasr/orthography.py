@@ -294,7 +294,32 @@ def set_tokenization_path(path):
 
     else: raise Exception(f"{path} not path to .tsv")
 
+def explore_corpus(path, ext, tier_target = None):
+    """Function for opening set of texts to see characters and character combinations
+    Args:
+        path (pathlib.Path | str) : path to directory containing transcript files
+    """
+    tss = load_directory(path, ext, tier_target)
+    out = []
+    for t in range(len(tss)):
+        out.append([tss[t][0], remove_special_chars(tss[t][1])])
+    vocab = get_full_vocab(out)
+    vocab -= {" ", "\n"}
+    vdct = {c : v for c, v in enumerate(vocab)}
+    print(vdct)
+    inp = ""
+    while inp != "QUIT":
+        inp = input("Combine characters by index: ")
+        command = inp.split(" ")
+        if len(command) :
+            print(command)
+            if len(command) > 1:
+                if type(int(command[0])) == type(int(command[1])) == type(5):
+                    print(vdct[int(command[0])], vdct[int(command[1])])
+                
+
 if __name__ == "__main__":
+    #explore_corpus("C:/Users/bechl\code/npp_asr/unaligned-wavs/combined-corpus-w-flex", ".TextGrid", "words")
     
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("--change_path", default=None, help="Name of tokenization tsv to set as default in config.json")

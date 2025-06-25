@@ -31,9 +31,9 @@ def return_tiers(eaf, tar_txt='segnum', find_dominant=False):
       pos_tiers = [candidate]
     return(pos_tiers)
 
-def chunk_audio_by_transcript_into_data(path : Path, 
-                                 tar_tier_type="segnum", 
-                                 find_dominant=False, 
+def chunk_audio_by_transcript_into_data(path : str | Path, 
+                                 tar_tier_type : str = "segnum", 
+                                 find_dominant : bool = False, 
                                  exclude_regex=hanzi_reg):
     """Function for chunking an audio file by eaf or textgrid time stamp values from a given type of annotation tier into 
     a list of dictionary entries with specific metadata (file, tier, segment, transcript, audio)
@@ -41,16 +41,17 @@ def chunk_audio_by_transcript_into_data(path : Path,
     ASSUMES A TRANSCRIPT (.eaf or .TextGrid) EXISTS FOR THE AUDIO FILE IN THE DIRECTORY, WITH THE SAME NAME
 
     Args:
-        path (pathlib.Path) : path to .wav or .mp3 audio file
+        path (str | pathlib.Path) : path to .wav or .mp3 audio file
         tar_tier_type (str) : only tiers with this string in their name will be included
         find_dominant (bool) : if True, returns only the tier with the most annotations
         exclude_regex (str | None) : if set, excludes any annotations who match with regex
     Return:
         list of dictionaries containing annotations from transcripts and audio arrays
     """
+    path = Path(path)
     if path.is_file() and path.suffix in [".wav", ".mp3"] :
-        if Path(path.stem+".eaf").is_file(): eaf = Eaf(Path(path.stem+".eaf"))
-        elif Path(path.stem+".TextGrid").is_file() : eaf = TextGrid(Path(path.stem+".TextGrid")).to_eaf()
+        if path.parent.joinpath(Path(path.stem+".eaf")).is_file(): eaf = Eaf(path.parent.joinpath(Path(path.stem+".eaf")))
+        elif path.parent.joinpath(Path(path.stem+".TextGrid")).is_file() : eaf = TextGrid(path.parent.joinpath(Path(path.stem+".TextGrid"))).to_eaf()
         else: raise Exception("Missing transcript (eaf or TextGrid) for this audio file in this directory")
         audio, sr = librosa.load(path, sr=16000)
         pos_tiers = return_tiers(eaf, tar_tier_type, find_dominant)
@@ -61,6 +62,7 @@ def chunk_audio_by_transcript_into_data(path : Path,
             for x in range(len(an_dat)):
                 start = librosa.time_to_samples(an_dat[x][0]/1000, sr=sr)
                 end = librosa.time_to_samples(an_dat[x][1]/1000, sr=sr)
+                #print(an_dat[x][1]/1000 - an_dat[x][0]/1000)
                 if not(re.search(exclude_regex, an_dat[x][2])):
                     data.append({'from_file' : path.name, 'tier': tier, 'segment' : x, 'transcript' : an_dat[x][2],
                         'audio' : {'array': audio[start:end], 'sampling_rate' : sr}})
@@ -69,7 +71,7 @@ def chunk_audio_by_transcript_into_data(path : Path,
     else:
         print(f"Audio file not found at {path}, chunking not possible")
 
-def chunk_dir_into_dataset(directory, name_tar="", file_list=[]):
+def chunk_dir_into_dataset(directory, name_tar="", file_list=[], tar_tier_type="segnum"):
     """Function for automatically chunking all .wav and .mp3 files in a given directory by eaf annotation tier time stamps
     Args:
         directory (str | Path) : Path to directory containing audio files and transcript files
@@ -86,7 +88,7 @@ def chunk_dir_into_dataset(directory, name_tar="", file_list=[]):
             if name_tar in path.name or name_tar=="":
                 if path.stem in file_list or file_list==[]:
                   try:
-                      dataset += chunk_audio_by_transcript_into_data(path)
+                      dataset += chunk_audio_by_transcript_into_data(path, tar_tier_type=tar_tier_type)
                   except OSError as error:
                       print(f"{path.name} chunking failed: {error}") 
     return(dataset)
@@ -128,6 +130,20 @@ def save_dataset_to_dsk(dataset, path):
     if not(os.path.isdir(path)): os.mkdir(path)
     hgf_dataset.save_to_disk(path)
 
+def create_dataset_from_dir(directory : str | Path, name : str, out_path : str | Path, name_tar="", file_list=[], tar_tier_type="segnum"):
+    """Function for automatically chunking all .wav and .mp3 files in a given directory by eaf annotation tier time stamps
+    Args:
+        directory (str | Path) : Path to directory containing audio files and transcript files
+        name (str) : Name of dataset directory
+        out_path (str | path) : output path where dataset directory should be created
+        name_tar (str) : Filter string, only files whose names contain the string will be chunked (unless blank)
+        file_list (list) : list of file names to be chunked (without extension)
+    Out:
+        hgf_dataset directory saved to output location
+    """
+    directory, out_path = Path(directory), Path(out_path)
+    dataset = chunk_dir_into_dataset(directory, name_tar, file_list)
+    save_dataset_to_dsk(dataset, out_path.joinpath(name))
 
 if __name__ == "__main__":
     

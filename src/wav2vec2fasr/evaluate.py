@@ -76,7 +76,7 @@ def load_eval_settings(eval_set_path, test_set):
         return(full, rec_inds, sub_inds)
 
 def main_program(eval_dir, 
-                data_dir, 
+                data_dir=None, 
                 checkpoint=None, 
                 cpu=False, 
                 lm=None,

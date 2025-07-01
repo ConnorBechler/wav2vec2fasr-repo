@@ -60,7 +60,6 @@ def main_program(
 
 
     logging.debug("tokenizer setup")
-    print(vocab_dir.joinpath("vocab.json"))
     tokenizer = Wav2Vec2CTCTokenizer(vocab_dir.joinpath("vocab.json"), 
                                     unk_token="[UNK]", 
                                     pad_token="[PAD]", 

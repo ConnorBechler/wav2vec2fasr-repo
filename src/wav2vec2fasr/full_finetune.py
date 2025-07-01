@@ -23,7 +23,7 @@ parser.add_argument("-d", "--data_dir", default="./data/", help="The path from y
 parser.add_argument("-o", "--output_dir", default="./output/", help="The path where this run's processed data, vocab and model will be created")
 parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
 parser.add_argument("--tokenization", default="None", help="Name of tokenization file to load tokenization from")
-parser.add_argument("--eval_settings", defaults="None", help="Path to eval_settings .json file")
+parser.add_argument("--eval_settings", default="None", help="Path to eval_settings .json file")
 parser.add_argument("--comb_tones", action="store_true", help="Combine tone pairs")
 parser.add_argument("--comb_diac", action="store_true", help="Combine diacritic character clusters")
 parser.add_argument("--no_tones", action="store_true", help="Remove tones from transcripts")

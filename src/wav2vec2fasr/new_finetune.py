@@ -158,8 +158,8 @@ def main_program(
     data_collator = DataCollatorCTCWithPadding(processor=processor, padding=True)
 
     logging.debug("loading wer and cer")
-    wer_metric = load_metric("wer")
-    cer_metric = load_metric("cer")
+    wer_metric = load_metric("wer", trust_remote_code=True)
+    cer_metric = load_metric("cer", trust_remote_code=True)
 
     def compute_metrics(pred):
         pred_logits = pred.predictions

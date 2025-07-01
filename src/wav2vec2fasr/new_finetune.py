@@ -10,18 +10,20 @@ from typing import Any, Dict, List, Optional, Union
 from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, Wav2Vec2ForCTC, TrainingArguments, Trainer
 
 import os
+from pathlib import Path
 
 
-def main_program(home = None,
-        project_dir = "npp_asr", 
-        output_dir="", 
-        data_dir=None, 
+def main_program( 
+        data_dir,
+        output_dir,
         vocab_dir=None,
         learn_rate=3e-4,
         batches=1,
         grdacc_steps=2,
         epochs=30,
         mixed_precision=True,
+        use_cpu=False,
+        no_cuda=False,
         atn_dout=0.1,
         hid_dout=0.1,
         ft_proj_dout=0.0,
@@ -29,17 +31,11 @@ def main_program(home = None,
         ldrop=0.1,
         w2v2_model="facebook/wav2vec2-large-xlsr-53"):
 
-    if home == None: home = os.environ["HOME"]
-    full_project = os.path.join(home, project_dir)
-    if output_dir == "": 
-        output_dir = os.path.join(full_project, "output/")
-    if data_dir == None: 
-        data_dir = output_dir+"/data"
-    data_dir = os.path.join(full_project, data_dir)
-    data_train = os.path.join(data_dir, "training/")
-    data_test = os.path.join(data_dir, "testing/")
+    data_dir = Path(data_dir)
+    data_train = data_dir.joinpath("training/")
+    data_test = data_dir.joinpath("testing/")
     if vocab_dir == None: 
-        vocab_dir = output_dir
+        vocab_dir = data_dir
     mod_dir = output_dir#os.path.join(output_dir, "model/")
     if os.path.exists(mod_dir):
         logging.debug(f"Output directory {mod_dir} exists")
@@ -216,6 +212,8 @@ def main_program(home = None,
     gradient_accumulation_steps=grdacc_steps,#2,
     evaluation_strategy="steps",
     num_train_epochs=epochs,#30,
+    no_cuda = no_cuda,
+    use_cpu= use_cpu,
     fp16=mixed_precision,#True,
     save_steps=1000,
     eval_steps=100,

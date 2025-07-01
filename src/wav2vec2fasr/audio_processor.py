@@ -20,6 +20,7 @@ def return_tiers(eaf, tar_txt='segnum', find_dominant=False):
     """Function for returning tiers with specified text in name from EAF file 
     Can also just return tier with most children"""
     pos_tiers = [tier for tier in eaf.tiers if len(tier) > 1 and tar_txt in tier]
+    print(pos_tiers)
     if find_dominant:
       num_chld = 0
       candidate = None
@@ -31,7 +32,7 @@ def return_tiers(eaf, tar_txt='segnum', find_dominant=False):
       pos_tiers = [candidate]
     return(pos_tiers)
 
-def chunk_audio_by_transcript_into_data(path : str | Path, 
+def chunk_audio_by_transcript_into_data(path, 
                                  tar_tier_type : str = "segnum", 
                                  find_dominant : bool = False, 
                                  exclude_regex=hanzi_reg):
@@ -118,7 +119,7 @@ def chunk_dir_into_audio(directory, out_dir="chunks", out_aud=".wav", name_tar="
                     except OSError as error:
                         print(f"{path.name} chunking failed: {error}") 
 
-def save_dataset_to_dsk(dataset, path):
+def save_dataset_to_dsk(dataset, path) -> Dataset:
     """Function for saving chunked dataset to disk as huggingface dataset
     args:
         dataset (list) : dataset created by chunk_audio_by_transcript_into_data
@@ -129,8 +130,9 @@ def save_dataset_to_dsk(dataset, path):
     hgf_dataset = Dataset.from_pandas(DataFrame(dataset))
     if not(os.path.isdir(path)): os.mkdir(path)
     hgf_dataset.save_to_disk(path)
+    return(hgf_dataset)
 
-def create_dataset_from_dir(directory : str | Path, name : str, out_path : str | Path, name_tar="", file_list=[], tar_tier_type="segnum"):
+def create_dataset_from_dir(directory, name : str, out_path, name_tar="", file_list=[], tar_tier_type="segnum") -> Dataset:
     """Function for automatically chunking all .wav and .mp3 files in a given directory by eaf annotation tier time stamps
     Args:
         directory (str | Path) : Path to directory containing audio files and transcript files
@@ -140,10 +142,13 @@ def create_dataset_from_dir(directory : str | Path, name : str, out_path : str |
         file_list (list) : list of file names to be chunked (without extension)
     Out:
         hgf_dataset directory saved to output location
+    Returns:
+        Dataset
     """
     directory, out_path = Path(directory), Path(out_path)
-    dataset = chunk_dir_into_dataset(directory, name_tar, file_list)
-    save_dataset_to_dsk(dataset, out_path.joinpath(name))
+    dataset = chunk_dir_into_dataset(directory, name_tar, file_list, tar_tier_type)
+    dataset = save_dataset_to_dsk(dataset, out_path.joinpath(name))
+    return(dataset)
 
 if __name__ == "__main__":
     

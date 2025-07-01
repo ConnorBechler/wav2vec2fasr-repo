@@ -10,7 +10,7 @@ import re
 from pympi import Eaf, TextGrid
 from importlib import resources as il_resources
 from wav2vec2fasr import resources
-import json
+import json, unicodedata
 
 with il_resources.path(resources, "config.json") as config_path:
     with open(str(config_path), "r") as f:
@@ -21,11 +21,22 @@ import warnings
 warnings.simplefilter("ignore")
 
 rep_chrs = [chr(x) for x in list(range(9312, 9912))]
-chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，\？'+"\']"
+chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，\？\[\]\#\@'+"\']"
 hanzi_reg = u'[\u4e00-\u9fff]'
 pinyin_tones_reg = [chr(i) for i in []]
 all_diac_reg = u'[\u0300-\u036f]'
 #all_diac_reg = "[" + '\\'.join([chr(i) for i in list(range(768, 879))]) + "]"
+
+def unicode_normalize_chars(text, norm="NFKD", exclude=[]):
+    out = ""
+    for c in text:
+        if c not in exclude: out += unicodedata.normalize(norm, c)
+        else: out += c   
+    return(out)
+
+def unicode_normalize_batch(batch, key="transcript", norm="NFKD", exclude=[]):
+    batch[key] = unicode_normalize_chars(batch[key], norm, exclude)
+    return batch
 
 def remove_special_chars(text):
     text = re.sub(chars_to_ignore_regex, '', text.lower())
@@ -36,7 +47,7 @@ def batch_remove_special_chars(batch, key="transcript"):
     return batch
 
 def remove_special_chars_from_files(files = [], 
-                    tar_tiers = [], 
+                    tar_tiers = [],
                     new_name = None):
         """Applies orthographic combination rules to a list of eaf or textgrid files
         Args:
@@ -109,39 +120,67 @@ def get_full_vocab(txts : list) -> set:
     return(vocab)
 
 class Tokenization_Scheme:
-    """A class of objects for applying orthographic transformations for tokenization.
-Initialization loads from a path to a tsv with the following structure:
-"repl\tnasals\tn~\tN\ncomb\ttri\txxx\ncomb\tdi\txx"
-Where the first column is the label for the particular rule, the second column is  the type 
-of operation, the third column is the set of characters to be operated on, and the 
-fourth column is used to specify replacement characters. The order of rows DETERMINES 
-rule order, so be sure to have the combinations you want to happen first higher up in the table!
-
-Note: If you only want a rule to run on application and not on reversion, label it "CLEAN" """
+    """A class of objects for applying orthographic transformations for tokenization."""
     path : str
     name : str
     _rules : dict
     _rule_order : list
+    _tokens : dict = {}
+    _normalize : bool = False
+    _preserve : list = []
+    _strict : bool = False
 
     def __init__(self, path : str):
+        """Loads tokenization scheme from json or TSV
+        Initialization loads from a path to a tsv with the following structure:
+        "repl\tnasals\tn~\tN\ncomb\ttri\txxx\ncomb\tdi\txx"
+        Where the first column is the label for the particular rule, the second column is  the type 
+        of operation, the third column is the set of characters to be operated on, and the 
+        fourth column is used to specify replacement characters. The order of rows DETERMINES 
+        rule order, so be sure to have the combinations you want to happen first higher up in the table!
+
+        Note: If you only want a rule to run on application and not on reversion, label it "CLEAN" """
         if path != None:
+            self.path = path
             self.name = pathlib.Path(path).stem
-            tsv = pathlib.Path(path).read_text(encoding="utf-8")
-            rows = [line.split("\t") for line in tsv.split("\n")]
-            rules, rule_order = {}, []
-            for x in range(len(rows)):
-                if rows[x][1] == "comb": rep = rep_chrs[x]
-                elif rows[x][1] == "repl": rep = rows[x][3]
-                if rows[x][0] in rule_order:
-                    rules[rows[x][0]].append((rows[x][2], rep))
-                else:
-                    rule_order.append(rows[x][0])
-                    rules[rows[x][0]] = [(rows[x][2], rep)]
-        self._rules, self._rule_order = rules, rule_order
+            suffix = pathlib.Path(path).suffix
+            if suffix == ".tsv":
+                doc = pathlib.Path(path).read_text(encoding="utf-8")
+                rows = [line.split("\t") for line in doc.split("\n")]
+                rules, rule_order = {}, []
+                for x in range(len(rows)):
+                    if rows[x][1] == "comb": rep = rep_chrs[x]
+                    elif rows[x][1] == "repl": rep = rows[x][3]
+                    if rows[x][0] in rule_order:
+                        rules[rows[x][0]].append((rows[x][2], rep))
+                    else:
+                        rule_order.append(rows[x][0])
+                        rules[rows[x][0]] = [(rows[x][2], rep)]
+            elif suffix == ".json": 
+                doc = json.loads(pathlib.Path(path).read_text("utf-8"))
+                rule_order = ["replace", "tokens"]
+                rules = {rule : [] for rule in rule_order}
+                for item in doc["replace"].items():
+                    rules["replace"].append((item[0], item[1]))
+                self._tokens, x = [], 0
+                for cat in doc["tokens"].keys(): self._tokens += doc["tokens"][cat]
+                for phone in self._tokens:
+                    if len(phone) > 1 : 
+                        rules["tokens"].append((phone, rep_chrs[x]))
+                        x += 1
+                if "options" in doc:
+                    self._normalize = bool(doc["options"]["unicode-normalize"])
+                    if "unicode-preserve" in doc["options"]: self._preserve = doc["options"]["unicode-preserve"]
+                    self._strict = bool(doc["options"]["strict"])
+            self._rules, self._rule_order = rules, rule_order
+
+    def __str__(self):
+        return(f"Rules: {self._rules}\n Rule Order: {self._rule_order}")
 
     def apply(self, txt, ignore_rules=[], only_rule=None) -> str:
         """Applies orthographic combination rules to a string"""
         output = txt
+        if self._normalize : output = unicode_normalize_chars(output, exclude=self._preserve)
         if only_rule == None:
             for rule in self._rule_order: 
                 if rule not in ignore_rules and only_rule == None:
@@ -152,6 +191,10 @@ Note: If you only want a rule to run on application and not on reversion, label 
             reps = self._rules[only_rule]
             for rep in reps: 
                 output = re.sub(rep[0], rep[1], output)
+        if self._strict:
+            toks = list(set(output)-set(" "))
+            exceptions = [self.revert(tok) for tok in toks if self.revert(tok) not in self._tokens]
+            for exception in exceptions: output = re.sub(exception, "", output)
         return(output)
 
     def batch_apply(self, batch, key = "transcript", ignore_rules=[], only_rule=None):
@@ -163,6 +206,7 @@ Note: If you only want a rule to run on application and not on reversion, label 
         """Reverts orthographic combination rules applied to a string"""
         output = txt
         ignore_rules.append("CLEAN")
+        ignore_rules.append("replace")
         for rule in self._rule_order: 
             if rule not in ignore_rules:
                 reps = self._rules[rule]
@@ -221,6 +265,26 @@ Note: If you only want a rule to run on application and not on reversion, label 
                 with open(os.path.join(path.parent, new_name+path.suffix), "w", encoding="utf-8") as f:
                     f.write(new_body)
             else: ts.to_file(os.path.join(path.parent, new_name+path.suffix))
+
+    def check_tokenization(self, text) -> list:
+        """Check to see if there are any tokens present in the text not present in the tokenization scheme"""
+        # Take set of tokenized text (as all tokens are single characters after scheme application)
+        toks = list(set(self.apply(text)))
+        toks = [self.revert(tok) for tok in toks]
+        toks_not_in_scheme = [tok for tok in toks if tok not in self._tokens]
+        if " " in toks_not_in_scheme: toks_not_in_scheme.remove(" ")
+        return(toks_not_in_scheme)
+    
+    def save(self, out_path, name=None):
+        out_path = pathlib.Path(out_path)
+        if name == None: name = self.name
+        with open(self.path, 'r', encoding="utf-8") as f:
+            text = f.read()
+        if not(os.path.exists(out_path)):
+            os.mkdir(out_path)
+        with open(out_path.joinpath(name +".json"), 'w', encoding="utf-8") as w:
+            w.write(text)
+
                     
 #Load default tokenization scheme
 with il_resources.path(resources, "default_tokenization.tsv") as def_path:

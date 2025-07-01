@@ -1,7 +1,7 @@
 import os
 import logging
 import re
-import pathlib
+from pathlib import Path
 from wav2vec2fasr import orthography as ort
 
 from datasets import load_from_disk, Audio
@@ -9,10 +9,9 @@ from wav2vec2fasr.prinmitext import chars_to_ignore_regex, tone_regex, nontone_r
 from wav2vec2fasr.prinmitext import rep_trips, rep_doubs, tones, rep_tones, rep_combs
 
 def process_data(
-        home = None,
-        project_dir = "npp_asr", 
         data_dir="data", 
         output_dir="data_processed",
+        tokenization_scheme = None,
         remove_tones=False,
         remove_nontones=False,
         combine_diac=False,
@@ -21,10 +20,8 @@ def process_data(
     """
     Function for applying orthographic transformations to training/testing data
     Args:
-        home (str) : root directory if files are not navigated from os home
-        project_dir (str) : project directory
         data_dir (str) : path to directory with testing and training data directories
-        output_dir (str) : path to output directory
+        output_dir (str) : path to output directory where processed data will be saved
         
     Output:
         Creates training and testing directories and exports huggingface style datasets to them
@@ -32,15 +29,13 @@ def process_data(
             
     logging.basicConfig(level=logging.DEBUG)
     
-    if home == None: home = os.environ["HOME"]
-    project_dir = project_dir #"npp_asr"
-    full_project = os.path.join(home, project_dir)
-    data_dir = os.path.join(full_project, data_dir)
-    data_train = os.path.join(data_dir, "training/dataset/")
-    data_test = os.path.join(data_dir, "testing/dataset/")
-    data_out = os.path.join(output_dir, "data/")
-    dtr_out = os.path.join(data_out, "training/")
-    dte_out = os.path.join(data_out, "testing/")
+    data_dir = Path(data_dir)
+    data_train = data_dir.joinpath("training/")
+    data_test = data_dir.joinpath("testing/")
+    data_out = Path(output_dir).joinpath("data/")
+    dtr_out = data_out.joinpath("training/")
+    dte_out = data_out.joinpath("testing/")
+    scheme = None
     
     if os.path.exists(data_train):
         logging.debug("Training directory exists")
@@ -81,7 +76,8 @@ def process_data(
     
     #If legacy functions not called, use default tokenization
     if not(remove_hyphens or remove_tones or remove_nontones or combine_diac or combine_tones):
-        scheme = ort.load_config()[0]#def_tok
+        if tokenization_scheme == None: scheme = ort.load_config()[0]#def_tok
+        else: scheme = tokenization_scheme
         np_train_full_ds = np_train_full_ds.map(ort.batch_remove_special_chars)
         np_test_full_ds = np_test_full_ds.map(ort.batch_remove_special_chars)
         np_train_full_ds = np_train_full_ds.map(scheme.batch_apply)
@@ -196,10 +192,15 @@ def process_data(
     else:
         os.mkdir(dte_out)
     
+    if scheme != None:
+        scheme.save(output_dir)
+
     np_train_full_ds.save_to_disk(output_dir+ "/data/training")
     np_test_full_ds.save_to_disk(output_dir + "/data/testing")
 
 if __name__ == "__main__":
+    
+    """
     home = "C:/Users/bechl/code/speech_proc/"
     project_dir = "npp_asr/"
     data_dir = "data_all_speakers/"
@@ -224,5 +225,6 @@ if __name__ == "__main__":
     n_ct_train = load_from_disk(home+project_dir+"output/pumi_cd_new/data/training/")
     print(o_ct_train, o_ct_train['transcript'][1])
     print(n_ct_train, n_ct_train['transcript'][1])
+    """
     
     

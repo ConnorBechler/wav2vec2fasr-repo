@@ -1,13 +1,13 @@
 import inspect
 import pathlib
-from wav2vec2fasr import forcedalignment
+#from wav2vec2fasr import forcedalignment
 from wav2vec2fasr import orthography as ort
-from wav2vec2fasr import segment
-from wav2vec2fasr import evaluate
-from wav2vec2fasr import mfa_tools
-from wav2vec2fasr.audio_processor import return_tiers
-import tests
-import pympi
+#from wav2vec2fasr import segment
+#from wav2vec2fasr import evaluate
+#from wav2vec2fasr import mfa_tools
+from wav2vec2fasr.audio_processor import return_tiers, create_dataset_from_dir
+#import tests
+#import pympi
 import time
 
 test_path = pathlib.Path(inspect.getabsfile(inspect.currentframe()))
@@ -46,6 +46,17 @@ if False:
     #print(pron_dict)
 
 stt = time.time()
+#create_dataset_from_dir(host_dir.joinpath("unaligned-wavs/toywavdata/raw_both"), "both", 
+#                        host_dir.joinpath("unaligned-wavs/toywavdata/processed/"), tar_tier_type="sr_sentences")
+texts = ort.load_directory(host_dir.joinpath("unaligned-wavs/toywavdata/raw_both"), ext=".TextGrid", tier_target="sr_sentences")
+text = "\n".join([t[1] for t in texts])
+scheme = ort.load_config()[0]
+print(scheme)
+text = ort.remove_special_chars(text)
+text = scheme.revert(scheme.apply(text))
+print(text)
+scheme.check_tokenization(text)
+scheme.save("./")
 #evaluate.main_program(home=str(host_dir.drive), project_dir=str(host_dir), eval_dir="models/"+model, 
 #                      data_dir=str(host_dir)+"/hf_datasets/data_all_speakers/", cpu=True)
 #print(segment.chunk_audio(path=mfa_corpus_dir.joinpath("wq09_073.wav"),

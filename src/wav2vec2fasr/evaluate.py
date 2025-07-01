@@ -75,26 +75,24 @@ def load_eval_settings(eval_set_path, test_set):
         print(sub_inds)
         return(full, rec_inds, sub_inds)
 
-def main_program(home=None, 
-                project_dir = "npp_asr",
-                eval_dir="output", 
-                data_dir=None, 
+def main_program(eval_dir, 
+                data_dir, 
                 checkpoint=None, 
                 cpu=False, 
                 lm=None,
-                training_instead=False):
+                training_instead=False,
+                ort_tokenizer=None,
+                eval_set_path=None):
     """Function for evaluating the performance of a wav2vec2 model on a dataset
     Generates a multitude of outputs, printing most to the console but also creating
     error tables and replacement tables as csvs"""
 
-    if home == None: home = os.environ["HOME"]
-    full_project = os.path.join(home, project_dir)
-    eval_dir = os.path.join(full_project, eval_dir)
+    eval_dir = pathlib.Path(eval_dir)
     if data_dir == None:
-        data_dir = os.path.join(eval_dir, "data/")
-    data_train = os.path.join(data_dir, "training/")
-    data_test = os.path.join(data_dir, "testing/")
-    vocab_dir = os.path.join(eval_dir, "vocab.json")
+        data_dir = eval_dir.joinpath("data/")
+    data_train = data_dir.joinpath("training/")
+    data_test = data_dir.joinpath("testing/")
+    vocab_dir = eval_dir.joinpath("vocab.json")
     if checkpoint == None:
         if os.path.exists(os.path.join(eval_dir, "model/")):
             model_dir = os.path.join(eval_dir, "model/")
@@ -105,8 +103,8 @@ def main_program(home=None,
         device = 'cpu'
     else: 
         device = 'cuda'
-    if lm== None: eval_name = eval_dir.split('/')[-1]
-    else: eval_name = eval_dir.split('/')[-1]+"_w_"+lm.split("/")[-1].split(".")[0]
+    if lm== None: eval_name = eval_dir.stem
+    else: eval_name = eval_dir.stem+"_w_"+pathlib.Path(lm).stem
 
     print("Evaluating", eval_name)
 
@@ -148,7 +146,8 @@ def main_program(home=None,
     model = AutoModelForCTC.from_pretrained(model_dir).to(device)
     
     #Load in evaluation set and tokenization scheme
-    ort_tokenizer, eval_set_path = orthography.load_config()
+    if ort_tokenizer == None: ort_tokenizer = orthography.load_config()[0]
+    if eval_set_path == None: eval_set_path = orthography.load_config()[1]
     # Load evaluation set
     if not(training_instead):
         try:

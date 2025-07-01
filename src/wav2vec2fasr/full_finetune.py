@@ -84,7 +84,7 @@ setup_vocab(data_dir = run_dir.joinpath("data"),
             output_dir = run_dir)
 
 logging.debug("***Finetuning model***")
-main_program(data_dir = data_dir, output_dir = run_dir,
+main_program(data_dir = run_dir.joinpath("data"), output_dir = run_dir,
     learn_rate=args['learning_rate'],
     batches=args['batch_size'],
     grdacc_steps=args['grdacc_steps'],

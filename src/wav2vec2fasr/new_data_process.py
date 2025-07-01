@@ -195,8 +195,8 @@ def process_data(
     if scheme != None:
         scheme.save(output_dir)
 
-    np_train_full_ds.save_to_disk(output_dir+ "/data/training")
-    np_test_full_ds.save_to_disk(output_dir + "/data/testing")
+    np_train_full_ds.save_to_disk(dtr_out)
+    np_test_full_ds.save_to_disk(dte_out)
 
 if __name__ == "__main__":
     

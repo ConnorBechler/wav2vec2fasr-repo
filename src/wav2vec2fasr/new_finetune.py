@@ -176,14 +176,14 @@ def main_program(
 
         return {"cer": cer, "wer": wer}
 
-    if mixed_precision: torch_dtype = torch.float16
-    else: torch_dtype = torch.float32
+    #if mixed_precision: torch_dtype = torch.float16
+    #else: torch_dtype = torch.float32
 
     logging.debug("Downloading model")
     model = Wav2Vec2ForCTC.from_pretrained(
         w2v2_model, 
         # Experimental feature 6-21-24
-        torch_dtype=torch_dtype,
+        #torch_dtype=torch_dtype,
         attention_dropout=atn_dout,#0.1,
         hidden_dropout=hid_dout,#0.1,
         feat_proj_dropout=ft_proj_dout,#0.0,

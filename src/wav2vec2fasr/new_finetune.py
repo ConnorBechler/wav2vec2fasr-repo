@@ -216,23 +216,22 @@ def main_program(
     logging.debug("Setting up training args")
     
     training_args = TrainingArguments(
-    # output_dir="/content/gdrive/MyDrive/wav2vec2-large-xlsr-turkish-demo",
-    output_dir = output_dir,
-    group_by_length=True,
-    per_device_train_batch_size=batches,#1,
-    gradient_accumulation_steps=grdacc_steps,#2,
-    evaluation_strategy="steps",
-    num_train_epochs=epochs,#30,
-    no_cuda = no_cuda,
-    use_cpu= use_cpu,
-    fp16=mixed_precision,#True,
-    save_steps=save_steps,
-    eval_steps=eval_steps,
-    logging_steps=logging_steps,
-    learning_rate=learn_rate,#3e-4,
-    warmup_steps=warmup_steps,
-    #save_total_limit=10,
-    )
+        output_dir = output_dir,
+        group_by_length=True,
+        per_device_train_batch_size=batches,#1,
+        gradient_accumulation_steps=grdacc_steps,#2,
+        logging_strategy="steps",
+        num_train_epochs=epochs,#30,
+        no_cuda = no_cuda,
+        use_cpu= use_cpu,
+        fp16=mixed_precision,#True,
+        save_steps=save_steps,
+        eval_steps=eval_steps,
+        logging_steps=logging_steps,
+        learning_rate=learn_rate,#3e-4,
+        warmup_steps=warmup_steps,
+        #save_total_limit=10,
+        )
 
     logging.debug("setting up trainer")
     trainer = Trainer(

@@ -36,9 +36,10 @@ def main_program(
         warmup_steps = 500):
 
     data_dir = Path(data_dir)
+    output_dir = Path(output_dir)
     data_train = data_dir.joinpath("training/")
     data_test = data_dir.joinpath("testing/")
-    if vocab_dir == None: 
+    if vocab_dir == None:
         vocab_dir = output_dir
     mod_dir = output_dir#os.path.join(output_dir, "model/")
     if os.path.exists(mod_dir):
@@ -59,7 +60,8 @@ def main_program(
 
 
     logging.debug("tokenizer setup")
-    tokenizer = Wav2Vec2CTCTokenizer(vocab_dir.joinpath("/vocab.json"), 
+    print(vocab_dir.joinpath("vocab.json"))
+    tokenizer = Wav2Vec2CTCTokenizer(vocab_dir.joinpath("vocab.json"), 
                                     unk_token="[UNK]", 
                                     pad_token="[PAD]", 
                                     word_delimiter_token="|")

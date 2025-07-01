@@ -45,7 +45,7 @@ logging.debug("***Configuration: " + str(args)+"***")
 run_name = args['run_name']#"test_nochanges_2-9-23"
 logging.debug(f"Run name: {run_name}")
 
-output_dir = Path(args['output_path'])
+output_dir = Path(args['output_dir'])
 data_dir = Path(args['data_dir'])
 
 

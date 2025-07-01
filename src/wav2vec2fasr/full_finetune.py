@@ -80,7 +80,7 @@ process_data(
     remove_hyphens=args['no_hyph'])
     
 logging.debug("***Setting up vocab***")
-setup_vocab(data_dir = run_dir, 
+setup_vocab(data_dir = run_dir.joinpath("data"), 
             output_dir = run_dir)
 
 logging.debug("***Finetuning model***")

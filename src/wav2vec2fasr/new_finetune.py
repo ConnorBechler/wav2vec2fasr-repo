@@ -39,7 +39,7 @@ def main_program(
     data_train = data_dir.joinpath("training/")
     data_test = data_dir.joinpath("testing/")
     if vocab_dir == None: 
-        vocab_dir = data_dir
+        vocab_dir = output_dir
     mod_dir = output_dir#os.path.join(output_dir, "model/")
     if os.path.exists(mod_dir):
         logging.debug(f"Output directory {mod_dir} exists")

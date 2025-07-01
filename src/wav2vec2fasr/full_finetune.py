@@ -71,7 +71,7 @@ else: eval_set_path = None
     
 
 logging.debug("***Processing data***")
-process_data(home=args['home'],
+process_data(
     data_dir = data_dir, output_dir = run_dir, 
     tokenization_scheme=ort_tokenizer,
     remove_tones=args['no_tones'],

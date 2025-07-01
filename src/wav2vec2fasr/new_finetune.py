@@ -29,7 +29,11 @@ def main_program(
         ft_proj_dout=0.0,
         msk_tm_prob=0.05,
         ldrop=0.1,
-        w2v2_model="facebook/wav2vec2-large-xlsr-53"):
+        w2v2_model="facebook/wav2vec2-large-xlsr-53",
+        save_steps = 1000,
+        eval_steps = 100,
+        logging_steps = 10,
+        warmup_steps = 500):
 
     data_dir = Path(data_dir)
     data_train = data_dir.joinpath("training/")
@@ -195,6 +199,10 @@ def main_program(
         adapter_weights = model._get_adapters()
         for param in adapter_weights.values():
             param.requires_grad = True
+        save_steps = 200
+        eval_steps = 100
+        logging_steps = 100
+        warmup_steps = 100
     else:
         logging.debug("freezing extractor")
         model.freeze_feature_extractor()
@@ -215,11 +223,11 @@ def main_program(
     no_cuda = no_cuda,
     use_cpu= use_cpu,
     fp16=mixed_precision,#True,
-    save_steps=1000,
-    eval_steps=100,
-    logging_steps=10,
+    save_steps=save_steps,
+    eval_steps=eval_steps,
+    logging_steps=logging_steps,
     learning_rate=learn_rate,#3e-4,
-    warmup_steps=500,
+    warmup_steps=warmup_steps,
     #save_total_limit=10,
     )
 

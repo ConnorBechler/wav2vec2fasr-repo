@@ -150,30 +150,24 @@ def main_program(eval_dir,
     if eval_set_path == None: eval_set_path = orthography.load_config()[1]
     # Load evaluation set
     if not(training_instead):
+        eval_dataset = np_test_ds
         try:
             full, rec_inds, sub_inds = load_eval_settings(eval_set_path, np_test_ds)
         except Exception as e:
             print("Loading eval settings failed with exception:",e)
             print("Evaluating full set and by file instead")
-            recs = []
-            start_inds = []
-            for r, rec in enumerate(np_test_ds):
-                if rec["from_file"] not in recs:
-                    recs.append(rec["from_file"])
-                    start_inds.append(r)
-            start_inds.append(len(np_test_ds))
-            full = list(range(len(np_test_ds)))
-            rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-1] for r in range(len(recs))}
-            sub_inds = None
+            full = None
     else:
+        eval_dataset = np_train_ds
+    if full == None:
         recs = []
         start_inds = []
-        for r, rec in enumerate(np_train_ds):
+        for r, rec in enumerate(eval_dataset):
             if rec["from_file"] not in recs:
                 recs.append(rec["from_file"])
                 start_inds.append(r)
-        start_inds.append(len(np_train_ds))
-        full = list(range(len(np_train_ds)))
+        start_inds.append(len(eval_dataset))
+        full = list(range(len(eval_dataset)))
         rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-1] for r in range(len(recs))}
         sub_inds = None
     
@@ -181,7 +175,7 @@ def main_program(eval_dir,
     print(vocab_set)
 
     def get_predictions(ind, return_comb=False):
-        input_values = processor(np_test_ds[ind]["audio"]['array'], return_tensors="pt", padding=True, sampling_rate=16000).input_values
+        input_values = processor(eval_dataset[ind]["audio"]['array'], return_tensors="pt", padding=True, sampling_rate=16000).input_values
         logits = model(input_values.to(device)).logits
         if lm == None: 
             pred_ids = torch.argmax(logits, dim=-1)[0]
@@ -190,7 +184,7 @@ def main_program(eval_dir,
         else: 
             comb_pred = decoder.decode(logits[0].detach().cpu().numpy())
             pred = ort_tokenizer.revert(comb_pred)
-        comb_label = ort_tokenizer.apply(orthography.remove_special_chars(np_test_ds[ind]["transcript"]))
+        comb_label = ort_tokenizer.apply(orthography.remove_special_chars(eval_dataset[ind]["transcript"]))
         label = ort_tokenizer.revert(comb_label)
         missing = set(comb_label) - vocab_set
         if missing != set(): print(missing)

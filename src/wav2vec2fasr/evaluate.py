@@ -177,7 +177,7 @@ def main_program(eval_dir,
         rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-1] for r in range(len(recs))}
         sub_inds = None
     
-    vocab_set = {ort_tokenizer.revert(char) for char in processor.tokenizer.get_vocab()} | {" "}
+    vocab_set = {char for char in processor.tokenizer.get_vocab()} | {" "}
     print(vocab_set)
 
     def get_predictions(ind, return_comb=False):

@@ -186,7 +186,9 @@ class Tokenization_Scheme:
                 if rule not in ignore_rules and only_rule == None:
                     reps = self._rules[rule]
                     for rep in reps: 
+                        #DEBUG: pre = output
                         output = re.sub(rep[0], rep[1], output)
+                        #DEBUG: if pre != output: print(rule, rep, pre, output)
         elif only_rule in self._rule_order:
             reps = self._rules[only_rule]
             for rep in reps: 

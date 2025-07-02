@@ -87,10 +87,10 @@ def main_program(
         return batch
 
     logging.debug("training prep")
-    np_train_ds = np_train_ds.map(prepare_dataset, remove_columns=np_train_ds.column_names, num_proc=4)
+    np_train_ds = np_train_ds.map(prepare_dataset, remove_columns=np_train_ds.column_names)
 
     logging.debug("test prep")
-    np_test_ds = np_test_ds.map(prepare_dataset, remove_columns=np_test_ds.column_names, num_proc=4)
+    np_test_ds = np_test_ds.map(prepare_dataset, remove_columns=np_test_ds.column_names)
 
     @dataclass
     class DataCollatorCTCWithPadding:

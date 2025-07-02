@@ -16,11 +16,15 @@ from datasets import Dataset
 from pandas import DataFrame
 from wav2vec2fasr.orthography import hanzi_reg
 
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+#warnings.simplefilter("ignore")
+
+
 def return_tiers(eaf, tar_txt='segnum', find_dominant=False):
     """Function for returning tiers with specified text in name from EAF file 
     Can also just return tier with most children"""
     pos_tiers = [tier for tier in eaf.tiers if len(tier) > 1 and tar_txt in tier]
-    print(pos_tiers)
+    #print(pos_tiers)
     if find_dominant:
       num_chld = 0
       candidate = None
@@ -152,7 +156,16 @@ def create_dataset_from_dir(directory, name : str, out_path, name_tar="", file_l
 
 if __name__ == "__main__":
     
-    pass
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-d", "--data_dir", help="Path to a folder with two subfolders named training and testing containing paired audio (.mp3 or .wav) and transcript (.eaf or .TextGrid) files")
+    parser.add_argument("-o", "--output_dir", help="Path where training and testing directories containing huggingface datasets will be created")
+    parser.add_argument("-t", "--tier", default="sentence", help="Name or part of name of the tier in each transcript from which the training labels should be drawn")
+    args = args = vars(parser.parse_args())
+
+    create_dataset_from_dir(Path(args['data_dir']).joinpath("training/"), "training", Path(args['output_dir']), tar_tier_type=args['tier'])
+    create_dataset_from_dir(Path(args['data_dir']).joinpath("testing/"), "testing", Path(args['output_dir']), tar_tier_type=args['tier'])
+
+    
     """TESTING FUNCTIONS
     flname = "jl33_007"
     p_testing = "d:/Northern Prinmi Data/wav-eaf-meta/testing"

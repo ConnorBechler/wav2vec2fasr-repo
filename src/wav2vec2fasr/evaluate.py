@@ -71,8 +71,8 @@ def load_eval_settings(eval_set_path, test_set):
                 sub_inds[s] = []
                 for r in ev_set["subsets"][s]:
                     sub_inds[s] += rec_inds[r]
-        print(rec_inds)
-        print(sub_inds)
+        #print(rec_inds)
+        #print(sub_inds)
         return(full, rec_inds, sub_inds)
 
 def main_program(eval_dir, 
@@ -177,7 +177,7 @@ def main_program(eval_dir,
         rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-1] for r in range(len(recs))}
         sub_inds = None
     
-    vocab_set = {ort_tokenizer.apply(char) for char in processor.tokenizer.get_vocab()} | {" "}
+    vocab_set = {ort_tokenizer.revert(char) for char in processor.tokenizer.get_vocab()} | {" "}
     print(vocab_set)
 
     def get_predictions(ind, return_comb=False):

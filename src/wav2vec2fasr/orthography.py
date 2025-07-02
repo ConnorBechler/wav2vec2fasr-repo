@@ -346,7 +346,7 @@ def set_tokenization_path(path):
     Args:
         path (pathlib.Path | str) : path to tokenization tsv
     """
-    if pathlib.Path(path).suffix == ".tsv":
+    if pathlib.Path(path).suffix == ".tsv" or pathlib.Path(path).suffix == ".json":
         with il_resources.path(resources, "config.json") as config_path:
             config_path = pathlib.Path(config_path)
             with open(config_path, "r+") as f:

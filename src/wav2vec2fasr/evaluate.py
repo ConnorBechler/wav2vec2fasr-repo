@@ -338,7 +338,7 @@ def main_program(eval_dir,
     print("Decoded testing vocab: ", d_vocab_count)
     
     #Output original transcript for comparison
-    text = [ort_tokenizer.revert(np_test_ds[ind]["transcript"]) for ind in full]
+    text = [ort_tokenizer.revert(eval_dataset[ind]["transcript"]) for ind in full]
     with open(eval_name+'_transcript.txt', 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
     

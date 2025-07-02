@@ -174,7 +174,7 @@ def main_program(eval_dir,
                 start_inds.append(r)
         start_inds.append(len(np_train_ds))
         full = list(range(len(np_train_ds)))
-        rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-2] for r in range(len(recs))}
+        rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-1] for r in range(len(recs))}
         sub_inds = None
     
     vocab_set = {char for char in processor.tokenizer.get_vocab()} | {" "}

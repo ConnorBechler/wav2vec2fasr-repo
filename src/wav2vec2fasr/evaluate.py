@@ -159,6 +159,7 @@ def main_program(eval_dir,
             full = None
     else:
         eval_dataset = np_train_ds
+        full = None
     if full == None:
         recs = []
         start_inds = []

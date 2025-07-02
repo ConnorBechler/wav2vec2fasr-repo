@@ -205,7 +205,7 @@ def main_program(
         for param in adapter_weights.values():
             param.requires_grad = True
         save_steps = 200
-        eval_steps = 100
+        eval_steps = 10
         logging_steps = 100
         warmup_steps = 100
     else:

@@ -25,7 +25,8 @@ warnings.simplefilter("ignore")
 
 #from wav2vec2fasr.prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
 from wav2vec2fasr import orthography
-from wav2vec2fasr import resources
+#from wav2vec2fasr import resources
+from pympi import Eaf, TextGrid
 import json
 import time
 
@@ -82,7 +83,8 @@ def main_program(eval_dir,
                 lm=None,
                 training_instead=False,
                 ort_tokenizer=None,
-                eval_set_path=None):
+                eval_set_path=None,
+                eval_out="./"):
     """Function for evaluating the performance of a wav2vec2 model on a dataset
     Generates a multitude of outputs, printing most to the console but also creating
     error tables and replacement tables as csvs"""
@@ -90,6 +92,7 @@ def main_program(eval_dir,
     eval_dir = pathlib.Path(eval_dir)
     if data_dir == None:
         data_dir = eval_dir.joinpath("data/")
+    data_dir = pathlib.Path(data_dir)
     data_train = data_dir.joinpath("training/")
     data_test = data_dir.joinpath("testing/")
     vocab_dir = eval_dir.joinpath("vocab.json")
@@ -105,6 +108,9 @@ def main_program(eval_dir,
         device = 'cuda'
     if lm== None: eval_name = eval_dir.stem
     else: eval_name = eval_dir.stem+"_w_"+pathlib.Path(lm).stem
+    eval_out = pathlib.Path(eval_out)
+    if not(os.path.exists(eval_out)):
+        os.makedirs(eval_out)
 
     print("Evaluating", eval_name)
 
@@ -230,7 +236,7 @@ def main_program(eval_dir,
         for x in replacements: table[targets.index(x[0])][errors.index(x[1])] += 1
         csv = "\t"+"\t".join(errors)
         for r in range(len(table)): csv += f"\n{targets[r]}\t"+"\t".join([str(i) for i in table[r]])
-        with open(name+'.tsv', 'w', encoding='utf-8') as f:
+        with open(eval_out.joinpath(name+'.tsv'), 'w', encoding='utf-8') as f:
             f.write(csv)
         comb_targets, comb_errors = set(), set()
         for x in comb_replacements:
@@ -242,7 +248,7 @@ def main_program(eval_dir,
         for x in comb_replacements: table[comb_targets.index(x[0])][comb_errors.index(x[1])] += 1
         comb_csv = "\t"+"\t".join(comb_errors)
         for r in range(len(table)): comb_csv += f"\n{comb_targets[r]}\t"+"\t".join([str(i) for i in table[r]])
-        with open(name+'_comb.tsv', 'w', encoding='utf-8') as f:
+        with open(eval_out.joinpath(name+'_comb.tsv'), 'w', encoding='utf-8') as f:
             f.write(comb_csv)
         return csv, comb_csv
 
@@ -281,7 +287,7 @@ def main_program(eval_dir,
         body = "\n".join([f"{err[:3]}:\t" + "\t".join([str(comb_err_counts[k][err]) for k in comb_err_counts.keys()]) for err in errs])
         sum = "\nsum:\t" + "\t".join([str(comb_err_counts[k][errs[0]] + comb_err_counts[k][errs[1]] + comb_err_counts[k][errs[2]]) for k in comb_err_counts.keys()])
         comb_csv = header + body + sum
-        with open(name+'_comb.tsv', 'w', encoding='utf-8') as f:
+        with open(eval_out.joinpath(name+'_comb.tsv'), 'w', encoding='utf-8') as f:
             f.write(comb_csv)
         return csv, comb_csv
     
@@ -339,12 +345,12 @@ def main_program(eval_dir,
     
     #Output original transcript for comparison
     text = [ort_tokenizer.revert(eval_dataset[ind]["transcript"]) for ind in full]
-    with open(eval_name+'_transcript.txt', 'w', encoding='utf-8') as f:
+    with open(eval_out.joinpath(eval_name+'_transcript.txt'), 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
     
     #Output predicted transcript for comparison
     text = [ort_tokenizer.revert(comb_preds[ind]) for ind in full]
-    with open(eval_name+'_prediction.txt', 'w', encoding='utf-8') as f:
+    with open(eval_out.joinpath(eval_name+'_prediction.txt'), 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
 
     #Set in_preds tuples of already generated transcriptions/predictions to avoid recomputing them
@@ -389,6 +395,29 @@ def main_program(eval_dir,
         print("Prediction:")
         print(pred)
     
+def compute_metrics_for_files(ref_path, hyp_path, tar_tier=None, ort_apply=False, ort_revert=False, tok_scheme=None) -> dict:
+    """Function for getting CER and WER from files
+    Args:
+        ref_path (pathlib.Path or str) : path to reference text file, .TextGrid, or .eaf
+        hyp_path (pathlib.Path or str) : path to hypothesis text file, .TextGrid, or .eaf
+        tar_tier (str or None) : only necessary if .TextGrid or .eaf to specify which tiers are being compared
+        ort_tokenized (bool) : if True, apply orthographic tokenization to both txts before comparison
+        tok_scheme (pathlib.Path, str, or None) : if None, default, otherwise try to load argument as path to Tokenization_Scheme file
+    """
+    ref_txt = orthography.load_text_from_ts(ref_path, tar_tier)
+    hyp_txt = orthography.load_text_from_ts(hyp_path, tar_tier)
+    ref_lines, hyp_lines = ref_txt.split("\n"), hyp_txt.split("\n")
+    if ort_apply or ort_revert:
+        if tok_scheme == None: tok_scheme = orthography.load_config()[0]
+        else: tok_scheme = orthography.Tokenization_Scheme(tok_scheme)
+        for l in range(len(ref_lines)):
+            ref_txt, hyp_txt = orthography.remove_special_chars(ref_lines[l]), orthography.remove_special_chars(hyp_lines[l])
+            if ort_apply: ref_txt, hyp_txt = tok_scheme.apply(ref_txt), tok_scheme.apply(hyp_txt)
+            if ort_revert: ref_txt, hyp_txt = tok_scheme.revert(ref_txt), tok_scheme.revert(hyp_txt)
+            ref_txt, hyp_txt = orthography.remove_extra_spaces(ref_txt), orthography.remove_extra_spaces(hyp_txt)
+            ref_lines[l], hyp_lines[l] = ref_txt, hyp_txt
+    metrics = {"CER" : cer(ref_lines, hyp_lines), "WER" : wer(ref_lines, hyp_lines)}
+    return(metrics)
 
 if __name__ == "__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)

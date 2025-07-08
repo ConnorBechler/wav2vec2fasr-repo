@@ -104,5 +104,6 @@ eval_program(eval_dir = run_dir,
              data_dir = data_dir,
              cpu=args['cpu'], 
              ort_tokenizer=ort_tokenizer,
-             eval_set_path=eval_set_path)
+             eval_set_path=eval_set_path,
+             eval_out=run_dir.joinpath("eval"))
 logging.debug("***Fine-tuning complete!***")

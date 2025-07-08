@@ -38,9 +38,17 @@ def unicode_normalize_batch(batch, key="transcript", norm="NFKD", exclude=[]):
     batch[key] = unicode_normalize_chars(batch[key], norm, exclude)
     return batch
 
-def remove_special_chars(text):
-    text = re.sub(chars_to_ignore_regex, '', text.lower())
+def remove_extra_spaces(text):
+    text = re.sub(r"  +", " ", text)
     return(text)
+
+def remove_special_chars(text):
+    text = re.sub(chars_to_ignore_regex, '', text)
+    return(text)
+
+def batch_perform(operation, batch, key="transcript", **kwargs):
+    batch[key] = operation(batch[key], **kwargs)
+    return(batch)
 
 def batch_remove_special_chars(batch, key="transcript"):
     batch[key] = remove_special_chars(batch[key])
@@ -86,7 +94,7 @@ def load_directory(directory,
     Args:
         directory (str | pathlib.Path) : directory to load files from
         ext (str) : file extension of the file types to be loaded
-            Excepts txt, eaf, and TextGrid
+            Accepts txt, eaf, and TextGrid
         tier_target (str) : name of tiers from eaf and TextGrid files to be loaded
     Return:
         txts (list) : A list of tuples with each files' name and contents
@@ -113,6 +121,18 @@ def load_directory(directory,
                     txts.append((path.name,txt))
     if report: print("Loaded ", len(txts), " texts")
     return txts
+
+def load_text_from_ts(path, tar_tier):
+    path = pathlib.Path(path)
+    if path.suffix == ".txt" :
+        with open(path, 'r', encoding="utf-8") as f: txt = f.read()
+    else:
+        if path.suffix == ".eaf": ts = Eaf(path)
+        if path.suffix == ".TextGrid": ts = TextGrid(path).to_eaf()
+        pos_tiers = [tier for tier in ts.tiers if len(tier) > 1 and tar_tier in tier]
+        an_dat = ts.get_annotation_data_for_tier(pos_tiers[0])
+        txt = "\n".join([an[2] for an in an_dat])
+    return(txt)
 
 def get_full_vocab(txts : list) -> set:
     mega_txt = "\n".join([txt[1] for txt in txts])
@@ -222,10 +242,10 @@ class Tokenization_Scheme:
         return batch
 
     def apply_to_files(self, 
-                                files = [], 
-                                tar_tiers = [], 
-                                new_name = None,
-                                revert_op=False):
+                        files = [], 
+                        tar_tiers = [], 
+                        new_name = None,
+                        revert_op=False):
         """Applies orthographic combination rules to a list of eaf, textgrid, or txt files
         Args:
             files (str | list) : either a single path to a TextGrid, eaf, or txt file, or a list of such paths

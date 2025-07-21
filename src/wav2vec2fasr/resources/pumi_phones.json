@@ -36,7 +36,7 @@
     },
     "options" : {
         "unicode-normalize" : 1, 
-        "unicode-preserve" : ["ʰ","ʲ"],
+        "unicode-preserve" : ["ʰ","ʲ","¹","²","³","⁵"],
         "strict" : 1
     }
 }

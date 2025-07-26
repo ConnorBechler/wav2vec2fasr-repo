@@ -281,7 +281,7 @@ def main_program(eval_dir,
         body = "\n".join([f"{err[:3]}:\t" + "\t".join([str(err_counts[k][err]) for k in err_counts.keys()]) for err in errs])
         sum = "\nsum:\t" + "\t".join([str(err_counts[k][errs[0]] + err_counts[k][errs[1]] + err_counts[k][errs[2]]) for k in err_counts.keys()])
         csv = header + body + sum
-        with open(name+'.tsv', 'w', encoding='utf-8') as f:
+        with open(eval_out.joinpath(name+'.tsv'), 'w', encoding='utf-8') as f:
             f.write(csv)
         header = "\t"+ "\t".join(list(comb_err_counts.keys())) + "\n"
         body = "\n".join([f"{err[:3]}:\t" + "\t".join([str(comb_err_counts[k][err]) for k in comb_err_counts.keys()]) for err in errs])

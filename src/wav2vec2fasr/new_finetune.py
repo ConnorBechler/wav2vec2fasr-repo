@@ -205,8 +205,8 @@ def main_program(
         for param in adapter_weights.values():
             param.requires_grad = True
         save_steps = 200
-        eval_steps = 10
-        logging_steps = 100
+        eval_steps = save_steps
+        logging_steps = 10
         warmup_steps = 100
     else:
         logging.debug("freezing extractor")
@@ -222,6 +222,7 @@ def main_program(
         group_by_length=True,
         per_device_train_batch_size=batches,#1,
         gradient_accumulation_steps=grdacc_steps,#2,
+        eval_strategy="steps",
         logging_strategy="steps",
         num_train_epochs=epochs,#30,
         no_cuda = no_cuda,

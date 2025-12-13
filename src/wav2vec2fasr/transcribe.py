@@ -19,7 +19,7 @@ from jiwer import wer, cer
 #IF USING NEWEST VERSION OF TRANSFORMERS (I use 4.11.3 instead): import Wav2Vec2ProcessorWithLM
 from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2CTCTokenizer#, Wav2Vec2FeatureExtractor,  Wav2Vec2ForCTC, TrainingArguments, Trainer
 #Testing pipeline stuff
-#from transformers import pipeline
+from transformers import pipeline, AutomaticSpeechRecognitionPipeline, WhisperForConditionalGeneration, WhisperProcessor
 import time
 import torch
 from pyctcdecode import build_ctcdecoder
@@ -175,7 +175,37 @@ def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
     else: predlst_chars = None
     return(predlst_words, predlst_chars)#predlst_js)
 
-def get_logits(processor, model, audio, strides=(0,0)):
+def load_whisper_pipeline(model, device="cpu", chunk_length_s=30, stride_length_s=5):
+    pipe = pipeline('automatic-speech-recognition', model, device=device, chunk_length_s=chunk_length_s, 
+                    stride_length_s=stride_length_s, return_timestamps=True)
+    return(pipe)
+
+def whisper_transcribe(audio, pipeline : AutomaticSpeechRecognitionPipeline, language="english"):
+    lib_aud, sr = librosa.load(audio, sr=16000)
+    chunks = pipeline(lib_aud, generate_kwargs={"language": language})['chunks']
+    sents = [[chunk['timestamp'][0]*1000, chunk['timestamp'][1]*1000, chunk['text']] for chunk in chunks]
+    return({"utterances": sents})
+
+def load_whisper_model_and_processor(model, device="cpu"):
+    processor = WhisperProcessor.from_pretrained(model)
+    model = WhisperForConditionalGeneration.from_pretrained(model).to(device)
+    return(model, processor)
+
+def whisper_transcribe_mp(audio_path, model, processor, language, device):
+    audio, sr = librosa.load(audio_path, sr=16000)
+    chunks = chunk_audio(audio, sr=sr, max_chunk=30000, min_chunk=500, method='rvad_chunk_faster')
+    sents = []
+    for chunk in chunks:
+        pred_st, pred_end = chunk[0] + chunk[2][0], chunk[1] - chunk[2][1]
+        input_features = processor(audio=chunk[3], sampling_rate=sr, return_tensors="pt").input_features.to(device)
+        generated_ids = model.generate(inputs=input_features, return_timestamps=False, 
+                                   task="transcribe", language=language)
+        pred = processor.batch_decode(generated_ids,skip_special_tokens=False)[0]
+        sents.append([pred_st, pred_end, pred])
+    return({"utterances": sents})
+    
+
+def get_logits(processor, model, audio, strides=(0,0), device="cpu"):
     """
     Returns logits for likelihood of each character at each time step (typically 20 ms)
     
@@ -184,6 +214,7 @@ def get_logits(processor, model, audio, strides=(0,0)):
         model (AutoModelForCTC) : Necessary if you do not provide the logits, wav2vec2 model for generating logits
         audio (str or Path or ndarray) : Either the path to an audio file or the audio as an ndarray
         strides (tuple) : Strides on either side of each segment to provide context for prediction
+        device (str) : cpu or cuda
     """
     if type(audio) == type("string") or type(audio) == type(Path("/")):
             lib_aud, sr = librosa.load(audio, sr=16000)
@@ -196,10 +227,10 @@ def get_logits(processor, model, audio, strides=(0,0)):
     if  diff > 0 :
         pad = [-500 for x in range(round(diff /2))]
         input_values =  torch.tensor([pad + list(input_values[0]) + pad])
-    logits = model(input_values.to('cpu')).logits
+    logits = model(input_values.to(device)).logits
     # Line below slices logit tensor to only include predictions for window within strides
     if strides != (0,0):
-        logits = torch.tensor([logits[0][round(strides[0]/20): len(logits[0])-round(strides[1]/20)].detach().numpy()])
+        logits = torch.tensor([logits[0][round(strides[0]/20): len(logits[0])-round(strides[1]/20)].detach().cpu().numpy()]).to(device)
     #Normalize logits into log domain to avoid "numerical instability" 
     # (https://pytorch.org/audio/stable/tutorials/forced_alignment_tutorial.html#generate-frame-wise-label-probability)????
     logits = torch.log_softmax(logits, dim=-1)

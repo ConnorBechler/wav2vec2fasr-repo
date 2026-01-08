@@ -426,4 +426,3 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
     if args["change_path"] != None:
         set_tokenization_path(args['change_path'])
-    """

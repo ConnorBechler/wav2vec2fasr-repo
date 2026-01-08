@@ -304,10 +304,10 @@ def main_program(
     elif model_type == "whisper":
         training_args = Seq2SeqTrainingArguments(
             output_dir=output_dir,  # change to a repo name of your choice
-            per_device_train_batch_size=batches,#16
-            gradient_accumulation_steps=grdacc_steps, #1 increase by 2x for every 2x decrease in batch size
-            learning_rate=learn_rate,#1e-5,
-            warmup_steps=warmup_steps,#500,
+            per_device_train_batch_size=16,#batches,#16
+            gradient_accumulation_steps=2,#grdacc_steps, #1 increase by 2x for every 2x decrease in batch size
+            learning_rate=1e-5,#learn_rate,#1e-5,
+            warmup_steps=500,#warmup_steps,#500,
             max_steps=5000,
             #gradient_checkpointing=True,
             fp16=mixed_precision,#True,
@@ -316,9 +316,9 @@ def main_program(
             per_device_eval_batch_size=8,
             predict_with_generate=True,
             generation_max_length=225,
-            save_steps=save_steps,#1000,
-            eval_steps=eval_steps,#1000,
-            logging_steps=logging_steps,#25,
+            save_steps=1000,#save_steps,#1000,
+            eval_steps=1000,#eval_steps,#1000,
+            logging_steps=25,#logging_steps,#25,
             #report_to=["tensorboard"],
             load_best_model_at_end=True,
             metric_for_best_model="cer",

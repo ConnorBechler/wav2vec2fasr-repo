@@ -448,6 +448,7 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--eval_settings", default=None, help="Path to evaluation set .json file")
     parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
     parser.add_argument("--lm", default=None, help="Path to kenlm language model")
+    parser.add_argument("--whisper", action="store_true", help="Is the model a whisper model?")
     args = vars(parser.parse_args())
     
     logging.debug("***Evaluating model***")
@@ -457,4 +458,5 @@ if __name__ == "__main__":
         cpu=args['cpu'],
         lm=args['lm'],
         ort_tokenizer=args['tokenization'],
-        eval_set_path=args['eval_set'])
+        eval_set_path=args['eval_set'],
+        whisper=args['whisper'])

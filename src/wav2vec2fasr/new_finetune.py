@@ -313,7 +313,7 @@ def main_program(
             #gradient_checkpointing=True,
             fp16=mixed_precision,#True,
             use_cpu= use_cpu,
-            #evaluation_strategy="steps",
+            eval_strategy="steps",
             per_device_eval_batch_size=8,
             predict_with_generate=True,
             generation_max_length=225,

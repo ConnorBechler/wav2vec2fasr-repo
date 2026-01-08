@@ -108,94 +108,95 @@ def main_program(
     logging.debug("test prep")
     np_test_ds = np_test_ds.map(prepare_dataset, remove_columns=np_test_ds.column_names)
 
-    @dataclass
-    class DataCollatorCTCWithPadding:
-        """
-        Data collator that will dynamically pad the inputs received.
-        Args:
-            processor (:class:`~transformers.Wav2Vec2Processor`)
-                The processor used for proccessing the data.
-            padding (:obj:`bool`, :obj:`str` or :class:`~transformers.tokenization_utils_base.PaddingStrategy`, `optional`, defaults to :obj:`True`):
-                Select a strategy to pad the returned sequences (according to the model's padding side and padding index)
-                among:
-                * :obj:`True` or :obj:`'longest'`: Pad to the longest sequence in the batch (or no padding if only a single
-                sequence if provided).
-                * :obj:`'max_length'`: Pad to a maximum length specified with the argument :obj:`max_length` or to the
-                maximum acceptable input length for the model if that argument is not provided.
-                * :obj:`False` or :obj:`'do_not_pad'` (default): No padding (i.e., can output a batch with sequences of
-                different lengths).
-            max_length (:obj:`int`, `optional`):
-                Maximum length of the ``input_values`` of the returned list and optionally padding length (see above).
-            max_length_labels (:obj:`int`, `optional`):
-                Maximum length of the ``labels`` returned list and optionally padding length (see above).
-            pad_to_multiple_of (:obj:`int`, `optional`):
-                If set will pad the sequence to a multiple of the provided value.
-                This is especially useful to enable the use of Tensor Cores on NVIDIA hardware with compute capability >=
-                7.5 (Volta).
-        """
+    if model_type == "wav2vec2":
+        @dataclass
+        class DataCollatorCTCWithPadding:
+            """
+            Data collator that will dynamically pad the inputs received.
+            Args:
+                processor (:class:`~transformers.Wav2Vec2Processor`)
+                    The processor used for proccessing the data.
+                padding (:obj:`bool`, :obj:`str` or :class:`~transformers.tokenization_utils_base.PaddingStrategy`, `optional`, defaults to :obj:`True`):
+                    Select a strategy to pad the returned sequences (according to the model's padding side and padding index)
+                    among:
+                    * :obj:`True` or :obj:`'longest'`: Pad to the longest sequence in the batch (or no padding if only a single
+                    sequence if provided).
+                    * :obj:`'max_length'`: Pad to a maximum length specified with the argument :obj:`max_length` or to the
+                    maximum acceptable input length for the model if that argument is not provided.
+                    * :obj:`False` or :obj:`'do_not_pad'` (default): No padding (i.e., can output a batch with sequences of
+                    different lengths).
+                max_length (:obj:`int`, `optional`):
+                    Maximum length of the ``input_values`` of the returned list and optionally padding length (see above).
+                max_length_labels (:obj:`int`, `optional`):
+                    Maximum length of the ``labels`` returned list and optionally padding length (see above).
+                pad_to_multiple_of (:obj:`int`, `optional`):
+                    If set will pad the sequence to a multiple of the provided value.
+                    This is especially useful to enable the use of Tensor Cores on NVIDIA hardware with compute capability >=
+                    7.5 (Volta).
+            """
 
-        processor: Wav2Vec2Processor
-        padding: Union[bool, str] = True
-        max_length: Optional[int] = None
-        max_length_labels: Optional[int] = None
-        pad_to_multiple_of: Optional[int] = None
-        pad_to_multiple_of_labels: Optional[int] = None
+            processor: Wav2Vec2Processor
+            padding: Union[bool, str] = True
+            max_length: Optional[int] = None
+            max_length_labels: Optional[int] = None
+            pad_to_multiple_of: Optional[int] = None
+            pad_to_multiple_of_labels: Optional[int] = None
 
-        def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
-            # split inputs and labels since they have to be of different lenghts and need
-            # different padding methods
-            input_features = [{"input_values": feature["input_values"]} for feature in features]
-            label_features = [{"input_ids": feature["labels"]} for feature in features]
+            def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+                # split inputs and labels since they have to be of different lenghts and need
+                # different padding methods
+                input_features = [{"input_values": feature["input_values"]} for feature in features]
+                label_features = [{"input_ids": feature["labels"]} for feature in features]
 
-            batch = self.processor.pad(
-                input_features,
-                padding=self.padding,
-                max_length=self.max_length,
-                pad_to_multiple_of=self.pad_to_multiple_of,
-                return_tensors="pt",
-            )
-            with self.processor.as_target_processor():
-                labels_batch = self.processor.pad(
-                    label_features,
+                batch = self.processor.pad(
+                    input_features,
                     padding=self.padding,
-                    max_length=self.max_length_labels,
-                    pad_to_multiple_of=self.pad_to_multiple_of_labels,
+                    max_length=self.max_length,
+                    pad_to_multiple_of=self.pad_to_multiple_of,
                     return_tensors="pt",
                 )
+                with self.processor.as_target_processor():
+                    labels_batch = self.processor.pad(
+                        label_features,
+                        padding=self.padding,
+                        max_length=self.max_length_labels,
+                        pad_to_multiple_of=self.pad_to_multiple_of_labels,
+                        return_tensors="pt",
+                    )
 
-            # replace padding with -100 to ignore loss correctly
-            labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
-            batch["labels"] = labels
+                # replace padding with -100 to ignore loss correctly
+                labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
+                batch["labels"] = labels
 
-            return batch
-        
-    @dataclass
-    class DataCollatorSpeechSeq2SeqWithPadding:
-        processor: Any
-        decoder_start_token_id: int
+                return batch
+    elif model_type=="whisper":
+        @dataclass
+        class DataCollatorSpeechSeq2SeqWithPadding:
+            processor: Any
+            decoder_start_token_id: int
 
-        def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
-            # split inputs and labels since they have to be of different lengths and need different padding methods
-            # first treat the audio inputs by simply returning torch tensors
-            input_features = [{"input_values": feature["input_values"]} for feature in features]
-            batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
+            def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+                # split inputs and labels since they have to be of different lengths and need different padding methods
+                # first treat the audio inputs by simply returning torch tensors
+                input_features = [{"input_values": feature["input_values"]} for feature in features]
+                batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
 
-            # get the tokenized label sequences
-            label_features = [{"input_ids": feature["labels"]} for feature in features]
-            # pad the labels to max length
-            labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
+                # get the tokenized label sequences
+                label_features = [{"input_ids": feature["labels"]} for feature in features]
+                # pad the labels to max length
+                labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
 
-            # replace padding with -100 to ignore loss correctly
-            labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
+                # replace padding with -100 to ignore loss correctly
+                labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
 
-            # if bos token is appended in previous tokenization step,
-            # cut bos token here as it's append later anyways
-            if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
-                labels = labels[:, 1:]
+                # if bos token is appended in previous tokenization step,
+                # cut bos token here as it's append later anyways
+                if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
+                    labels = labels[:, 1:]
 
-            batch["labels"] = labels
+                batch["labels"] = labels
 
-            return batch
+                return batch
 
     if model_type == "wav2vec2":
         logging.debug("collator prep")

@@ -276,7 +276,7 @@ def main_program(
         model.generation_config.forced_decoder_ids = None
         
         logging.debug("collator prep")
-        DataCollatorSpeechSeq2SeqWithPadding(processor=processor,
+        data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor,
                                              decoder_start_token_id=model.config.decoder_start_token_id)
 
     logging.debug("gradient checkpointing")

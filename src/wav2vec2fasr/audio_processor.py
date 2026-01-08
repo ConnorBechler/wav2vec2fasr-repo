@@ -24,7 +24,9 @@ def return_tiers(eaf, tar_txt='segnum', find_dominant=False):
     """Function for returning tiers with specified text in name from EAF file 
     Can also just return tier with most children"""
     pos_tiers = [tier for tier in eaf.tiers if len(tier) > 1 and tar_txt in tier]
-    #print(pos_tiers)
+    if len(tar_txt)>0: 
+        if tar_txt[0] == "!":
+            pos_tiers = [tier for tier in eaf.tiers if len(tier) > 1 and tar_txt[1:] not in tier]
     if find_dominant:
       num_chld = 0
       candidate = None
@@ -54,29 +56,30 @@ def chunk_audio_by_transcript_into_data(path,
         list of dictionaries containing annotations from transcripts and audio arrays
     """
     path = Path(path)
-    if path.is_file() and path.suffix in [".wav", ".mp3"] :
+    if path.is_file() and path.suffix.lower() in [".wav", ".mp3"] :
         if path.parent.joinpath(Path(path.stem+".eaf")).is_file(): eaf = Eaf(path.parent.joinpath(Path(path.stem+".eaf")))
         elif path.parent.joinpath(Path(path.stem+".TextGrid")).is_file() : eaf = TextGrid(path.parent.joinpath(Path(path.stem+".TextGrid"))).to_eaf()
         else: raise Exception("Missing transcript (eaf or TextGrid) for this audio file in this directory")
         audio, sr = librosa.load(path, sr=16000)
         pos_tiers = return_tiers(eaf, tar_tier_type, find_dominant)
         data = []
+        speech = 0
         if exclude_regex == None: exclude_regex = "(?!)"
         for tier in pos_tiers:
             an_dat = eaf.get_annotation_data_for_tier(tier)
             for x in range(len(an_dat)):
                 start = librosa.time_to_samples(an_dat[x][0]/1000, sr=sr)
                 end = librosa.time_to_samples(an_dat[x][1]/1000, sr=sr)
-                #print(an_dat[x][1]/1000 - an_dat[x][0]/1000)
                 if not(re.search(exclude_regex, an_dat[x][2])):
                     data.append({'from_file' : path.name, 'tier': tier, 'segment' : x, 'transcript' : an_dat[x][2],
                         'audio' : {'array': audio[start:end], 'sampling_rate' : sr}})
-        print(f"{path.name} chunked successfully")
+                    speech += an_dat[x][1]/1000 - an_dat[x][0]/1000
+        print(f"{path.name} chunked successfully, {round(speech,2)} s of speech")
         return(data)
     else:
         print(f"Audio file not found at {path}, chunking not possible")
 
-def chunk_dir_into_dataset(directory, name_tar="", file_list=[], tar_tier_type="segnum"):
+def chunk_dir_into_dataset(directory, name_tar="", file_list=[], tar_tier_type="segnum", exclude_regex=hanzi_reg):
     """Function for automatically chunking all .wav and .mp3 files in a given directory by eaf annotation tier time stamps
     Args:
         directory (str | Path) : Path to directory containing audio files and transcript files
@@ -89,16 +92,16 @@ def chunk_dir_into_dataset(directory, name_tar="", file_list=[], tar_tier_type="
     dataset = []
     directory = Path(directory)
     for path in directory.iterdir():
-        if path.is_file() and path.suffix in [".wav", ".mp3"]:
+        if path.is_file() and path.suffix.lower() in [".wav", ".mp3"]:
             if name_tar in path.name or name_tar=="":
                 if path.stem in file_list or file_list==[]:
                   try:
-                      dataset += chunk_audio_by_transcript_into_data(path, tar_tier_type=tar_tier_type)
+                      dataset += chunk_audio_by_transcript_into_data(path, tar_tier_type=tar_tier_type, exclude_regex=exclude_regex)
                   except OSError as error:
                       print(f"{path.name} chunking failed: {error}") 
     return(dataset)
 
-def chunk_dir_into_audio(directory, out_dir="chunks", out_aud=".wav", name_tar="", file_list=[]):
+def chunk_dir_into_audio(directory, out_dir="chunks", out_aud=".wav", name_tar="", file_list=[], tar_tier_type="segnum"):
     """Function for automatically chunking all audio files in a given directory by eaf annotation tier time stamps into audio files
     Args:
         directory (str | Path) : Path to directory containing audio files and transcript files
@@ -110,11 +113,11 @@ def chunk_dir_into_audio(directory, out_dir="chunks", out_aud=".wav", name_tar="
     directory = Path(directory)
     if not(os.path.isdir(out_dir)): os.mkdir(out_dir)
     for path in directory.iterdir():
-        if path.is_file() and path.suffix in [".wav", ".mp3"]:
+        if path.is_file() and path.suffix.lower() in [".wav", ".mp3"]:
             if name_tar in path.name or name_tar=="":
                 if path.stem in file_list or file_list==[]:
                     try:
-                        data = chunk_audio_by_transcript_into_data(path, out_dir=out_dir, out_aud=out_aud)
+                        data = chunk_audio_by_transcript_into_data(path, tar_tier_type=tar_tier_type)
                         for ann in data:
                             soundfile.write(f"{out_dir}/{path.stem}_{ann['tier']}_#{ann['segment']}{out_aud}", 
                                             ann["audio"]["array"], ann["audio"]["sampling_rate"])
@@ -136,7 +139,8 @@ def save_dataset_to_dsk(dataset, path) -> Dataset:
     hgf_dataset.save_to_disk(path)
     return(hgf_dataset)
 
-def create_dataset_from_dir(directory, name : str, out_path, name_tar="", file_list=[], tar_tier_type="segnum") -> Dataset:
+def create_dataset_from_dir(directory, name : str, out_path, name_tar="", file_list=[], tar_tier_type="segnum", 
+                            exclude_regex=hanzi_reg) -> Dataset:
     """Function for automatically chunking all .wav and .mp3 files in a given directory by eaf annotation tier time stamps
     Args:
         directory (str | Path) : Path to directory containing audio files and transcript files
@@ -150,7 +154,7 @@ def create_dataset_from_dir(directory, name : str, out_path, name_tar="", file_l
         Dataset
     """
     directory, out_path = Path(directory), Path(out_path)
-    dataset = chunk_dir_into_dataset(directory, name_tar, file_list, tar_tier_type)
+    dataset = chunk_dir_into_dataset(directory, name_tar, file_list, tar_tier_type, exclude_regex=exclude_regex)
     dataset = save_dataset_to_dsk(dataset, out_path.joinpath(name))
     return(dataset)
 
@@ -166,6 +170,7 @@ if __name__ == "__main__":
     create_dataset_from_dir(Path(args['data_dir']).joinpath("testing/"), "testing", Path(args['output_dir']), tar_tier_type=args['tier'])
 
     
+
     """TESTING FUNCTIONS
     flname = "jl33_007"
     p_testing = "d:/Northern Prinmi Data/wav-eaf-meta/testing"

@@ -98,12 +98,15 @@ main_program(data_dir = run_dir.joinpath("data"), output_dir = run_dir,
     msk_tm_prob=args['msk_tm_prob'],
     ldrop=args['ldrop'],
     w2v2_model=args['model'])
-    
+
+whisper = ("openai" in args['model'])
+
 logging.debug("***Evaluating model***")
 eval_program(eval_dir = run_dir,
              data_dir = data_dir,
              cpu=args['cpu'], 
              ort_tokenizer=ort_tokenizer,
              eval_set_path=eval_set_path,
-             eval_out=run_dir.joinpath("eval"))
+             eval_out=run_dir.joinpath("eval"),
+             whisper=whisper)
 logging.debug("***Fine-tuning complete!***")

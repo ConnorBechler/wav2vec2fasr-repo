@@ -15,7 +15,7 @@ import os
 from jiwer import wer, cer
 from Levenshtein import editops
 
-from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, AutoModelForCTC#, Wav2Vec2ProcessorWithLM, Wav2Vec2ForCTC, TrainingArguments, Trainer
+#from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, AutoModelForCTC#, Wav2Vec2ProcessorWithLM, Wav2Vec2ForCTC, TrainingArguments, Trainer
 from pyctcdecode import build_ctcdecoder
 
 #Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
@@ -84,8 +84,9 @@ def main_program(eval_dir,
                 training_instead=False,
                 ort_tokenizer=None,
                 eval_set_path=None,
-                eval_out="./"):
-    """Function for evaluating the performance of a wav2vec2 model on a dataset
+                eval_out="./",
+                whisper=False):
+    """Function for evaluating the performance of a wav2vec2 or whisper model on a dataset
     Generates a multitude of outputs, printing most to the console but also creating
     error tables and replacement tables as csvs"""
 
@@ -111,7 +112,11 @@ def main_program(eval_dir,
     eval_out = pathlib.Path(eval_out)
     if not(os.path.exists(eval_out)):
         os.makedirs(eval_out)
-
+    if whisper:
+        from transformers import WhisperFeatureExtractor, WhisperTokenizer, WhisperProcessor, WhisperForConditionalGeneration, Seq2SeqTrainingArguments, Seq2SeqTrainer
+        language = "German"
+    else:
+        from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, AutoModelForCTC
     print("Evaluating", eval_name)
 
     logging.debug(f"Loading training data from {data_train}")
@@ -123,21 +128,25 @@ def main_program(eval_dir,
 
     try:
         logging.debug("Loading finetuned processor")
-        processor = Wav2Vec2Processor.from_pretrained(eval_dir)
+        if whisper: processor = WhisperProcessor.from_pretrained(eval_dir)
+        else: processor = Wav2Vec2Processor.from_pretrained(eval_dir)
     except:
         logging.debug("No finetuned processor found, generating from vocab")
         logging.debug("tokenizer setup")
-        tokenizer = Wav2Vec2CTCTokenizer(vocab_dir, unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
+        if whisper: WhisperTokenizer(vocab_dir, language=language, task="transcribe")
+        else: tokenizer = Wav2Vec2CTCTokenizer(vocab_dir, unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
     
         logging.debug("extractor setup")
-        feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, 
+        if whisper: feature_extractor = WhisperFeatureExtractor.from_pretrained(eval_dir)
+        else: feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, 
                                                     sampling_rate=16000, 
                                                     padding_value=0.0, 
                                                     do_normalize=True, 
                                                     return_attention_mask=True)
     
         logging.debug("processor setup")
-        processor = Wav2Vec2Processor(feature_extractor=feature_extractor, 
+        if whisper: processor = WhisperProcessor(feature_extractor=feature_extractor, tokenizer=tokenizer)
+        else : processor = Wav2Vec2Processor(feature_extractor=feature_extractor, 
                                     tokenizer=tokenizer)
         
     if lm !=None:
@@ -149,7 +158,8 @@ def main_program(eval_dir,
     
     #Load fine-tuned model
     logging.debug("Loading finetuned model")
-    model = AutoModelForCTC.from_pretrained(model_dir).to(device)
+    if whisper: model = WhisperForConditionalGeneration.from_pretrained(model_dir).to(device)
+    else: model = AutoModelForCTC.from_pretrained(model_dir).to(device)
     
     #Load in evaluation set and tokenization scheme
     if ort_tokenizer == None: ort_tokenizer = orthography.load_config()[0]
@@ -182,15 +192,24 @@ def main_program(eval_dir,
     print(vocab_set)
 
     def get_predictions(ind, return_comb=False):
-        input_values = processor(eval_dataset[ind]["audio"]['array'], return_tensors="pt", padding=True, sampling_rate=16000).input_values
-        logits = model(input_values.to(device)).logits
-        if lm == None: 
-            pred_ids = torch.argmax(logits, dim=-1)[0]
-            comb_pred = processor.decode(pred_ids)
+        if whisper:
+            input_features = processor(audio=eval_dataset[ind]["audio"]['array'], sampling_rate=16000, 
+                                       return_tensors="pt").input_features.to(device)
+            generated_ids = model.generate(inputs=input_features, return_timestamps=False, 
+                                   task="transcribe", language=language)
+            comb_pred = processor.batch_decode(generated_ids,skip_special_tokens=False)[0]
             pred = ort_tokenizer.revert(comb_pred)
-        else: 
-            comb_pred = decoder.decode(logits[0].detach().cpu().numpy())
-            pred = ort_tokenizer.revert(comb_pred)
+        else:
+            input_values = processor(eval_dataset[ind]["audio"]['array'], return_tensors="pt", padding=True, 
+                                     sampling_rate=16000).input_values
+            logits = model(input_values.to(device)).logits
+            if lm == None: 
+                pred_ids = torch.argmax(logits, dim=-1)[0]
+                comb_pred = processor.decode(pred_ids)
+                pred = ort_tokenizer.revert(comb_pred)
+            else: 
+                comb_pred = decoder.decode(logits[0].detach().cpu().numpy())
+                pred = ort_tokenizer.revert(comb_pred)
         comb_label = ort_tokenizer.apply(orthography.remove_special_chars(eval_dataset[ind]["transcript"]))
         label = ort_tokenizer.revert(comb_label)
         missing = set(comb_label) - vocab_set

@@ -22,6 +22,7 @@ warnings.simplefilter("ignore")
 
 rep_chrs = [chr(x) for x in list(range(9312, 9912))]
 chars_to_ignore_regex = '[\,\?\.\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，\？\[\]\#\@'+"\']"
+chars_to_ignore_regex = '[\,\!\;\:\"\“\%\‘\”\�\。\n\(\/\！\)\）\，\？\[\]\#\@'+"]"
 hanzi_reg = u'[\u4e00-\u9fff]'
 pinyin_tones_reg = [chr(i) for i in []]
 all_diac_reg = u'[\u0300-\u036f]'
@@ -87,7 +88,8 @@ def remove_special_chars_from_files(files = [],
 def load_directory(directory, 
                    ext=".txt", 
                    tier_target = None, 
-                   report=True) -> list:
+                   report=True,
+                   exclude_regex=None) -> list:
     """
     Function for loading all files with a particular extension within a specific directory
     
@@ -96,9 +98,12 @@ def load_directory(directory,
         ext (str) : file extension of the file types to be loaded
             Accepts txt, eaf, and TextGrid
         tier_target (str) : name of tiers from eaf and TextGrid files to be loaded
+        exclude_regex (str | None) : if set, excludes any annotations who match with regex
     Return:
         txts (list) : A list of tuples with each files' name and contents
     """
+    if exclude_regex == None: exclude_regex = "(?!)"
+    if tier_target == None: tier_target=""
     txts = []
     for path in pathlib.Path(directory).iterdir():
         if path.is_file() and path.suffix == ext:
@@ -111,12 +116,14 @@ def load_directory(directory,
                     eaf = Eaf(path)
                     tar_tiers = [tier for tier in eaf.get_tier_names() if tier_target in tier]
                     for tier_name in tar_tiers:
-                        txt += " ".join([annotation[2] for annotation in eaf.get_annotation_data_for_tier(tier_name)])
+                        txt += " ".join([annotation[2] for annotation in eaf.get_annotation_data_for_tier(tier_name) 
+                                         if not(re.search(exclude_regex, annotation[2]))])
                 if ext == '.TextGrid':
                     tg = TextGrid(path)
                     tar_tiers = [tier.name for tier in tg.get_tiers() if tier_target in tier.name]
                     for tier_name in tar_tiers:
-                        txt += " ".join([annotation[2] for annotation in tg.get_tier(tier_name).get_all_intervals()])
+                        txt += " ".join([annotation[2] for annotation in tg.get_tier(tier_name).get_all_intervals() 
+                                         if not(re.search(exclude_regex, annotation[2]))])
                 if txt != "":
                     txts.append((path.name,txt))
     if report: print("Loaded ", len(txts), " texts")
@@ -216,6 +223,7 @@ class Tokenization_Scheme:
         if self._strict:
             toks = list(set(output)-set(" "))
             exceptions = [self.revert(tok) for tok in toks if self.revert(tok) not in self._tokens]
+            print(exceptions)
             for exception in exceptions: output = re.sub(exception, "", output)
         return(output)
 
@@ -380,12 +388,12 @@ def set_tokenization_path(path):
 
     else: raise Exception(f"{path} not path to .tsv")
 
-def explore_corpus(path, ext, tier_target = None):
+def explore_corpus(path, ext, tier_target = None, exclude_regex=None, tok=None):
     """Function for opening set of texts to see characters and character combinations
     Args:
         path (pathlib.Path | str) : path to directory containing transcript files
     """
-    tss = load_directory(path, ext, tier_target)
+    tss = load_directory(path, ext, tier_target, exclude_regex=exclude_regex)
     out = []
     for t in range(len(tss)):
         out.append([tss[t][0], remove_special_chars(tss[t][1])])
@@ -393,6 +401,7 @@ def explore_corpus(path, ext, tier_target = None):
     vocab -= {" ", "\n"}
     vdct = {c : v for c, v in enumerate(vocab)}
     print(vdct)
+    print([p for p in vocab if p.lower() == p])
     inp = ""
     while inp != "QUIT":
         inp = input("Combine characters by index: ")
@@ -402,6 +411,11 @@ def explore_corpus(path, ext, tier_target = None):
             if len(command) > 1:
                 if type(int(command[0])) == type(int(command[1])) == type(5):
                     print(vdct[int(command[0])], vdct[int(command[1])])
+            else:
+                for ts in tss:
+                    out = re.findall(".{50}"+command[0]+".{50}", ts[1])
+                    if out != [] and tok==None: print(ts[0], out)
+                    elif out != [] and tok!=None: print(ts[0], [tok.apply(txt=o) for o in out])
                 
 
 if __name__ == "__main__":
@@ -412,3 +426,4 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
     if args["change_path"] != None:
         set_tokenization_path(args['change_path'])
+    """

@@ -106,7 +106,7 @@ main_program(data_dir = run_dir.joinpath("data"), output_dir = run_dir,
     save_steps=args['save_steps'],
     eval_steps=args['eval_steps'],
     logging_steps=args['log_steps'],
-    warmump_steps=args['warmup_steps'],
+    warmup_steps=args['warmup_steps'],
     max_steps=args['max_steps'])
 
 whisper = ("openai" in args['model'])

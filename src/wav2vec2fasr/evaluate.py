@@ -458,5 +458,5 @@ if __name__ == "__main__":
         cpu=args['cpu'],
         lm=args['lm'],
         ort_tokenizer=args['tokenization'],
-        eval_set_path=args['eval_set'],
+        eval_set_path=args['eval_settings'],
         whisper=args['whisper'])

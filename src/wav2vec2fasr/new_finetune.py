@@ -98,7 +98,7 @@ def main_program(
             with processor.as_target_processor():
                 batch["labels"] = processor(batch["transcript"]).input_ids
         elif model_type == "whisper":
-            batch["input_values"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
+            batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
             batch["labels"] = tokenizer(batch["transcript"]).input_ids
         return batch
 
@@ -178,7 +178,7 @@ def main_program(
             def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
                 # split inputs and labels since they have to be of different lengths and need different padding methods
                 # first treat the audio inputs by simply returning torch tensors
-                input_features = [{"input_values": feature["input_features"]} for feature in features]
+                input_features = [{"input_features": feature["input_features"]} for feature in features]
                 batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
 
                 # get the tokenized label sequences

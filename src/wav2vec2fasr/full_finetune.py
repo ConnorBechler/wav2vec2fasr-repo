@@ -32,6 +32,11 @@ parser.add_argument("-r", "--learning_rate", default = 3e-4, type=float, help="L
 parser.add_argument("-b", "--batch_size", default = 1, type=int, help="Number of batches per device")
 parser.add_argument("-g", "--grdacc_steps", default = 2, type=int, help="Number of gradient accumulation steps")
 parser.add_argument("-e","--epochs", default=30, type=int, help="Number of training epochs")
+parser.add_argument("-s", "--save_steps", default = 1000, type=int, help="Number of save steps")
+parser.add_argument("-v", "--eval_steps", default = 500, type=int, help="Number of eval steps")
+parser.add_argument("-l", "--log_steps", default = 25, type=int, help="Number of logging steps")
+parser.add_argument("-w", "--warmup_steps", default = 500, type=int, help="Number of save steps")
+parser.add_argument("-m", "--max_steps", type=int, help="Max number of steps")
 parser.add_argument("--atn_dout", default=0.1, type=float, help="Attention dropout")
 parser.add_argument("--hid_dout", default=0.1, type=float, help="Hidden dropout")
 parser.add_argument("--ft_proj_dout", default=0.0, type=float,  help="Feature projection dropout")
@@ -97,7 +102,12 @@ main_program(data_dir = run_dir.joinpath("data"), output_dir = run_dir,
     ft_proj_dout=args['ft_proj_dout'],
     msk_tm_prob=args['msk_tm_prob'],
     ldrop=args['ldrop'],
-    w2v2_model=args['model'])
+    w2v2_model=args['model'],
+    save_steps=args['save_steps'],
+    eval_steps=args['eval_steps'],
+    logging_steps=args['log_steps'],
+    warmump_steps=args['warmup_steps'],
+    max_steps=args['max_steps'])
 
 whisper = ("openai" in args['model'])
 

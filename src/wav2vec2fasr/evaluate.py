@@ -163,6 +163,7 @@ def main_program(eval_dir,
     
     #Load in evaluation set and tokenization scheme
     if ort_tokenizer == None: ort_tokenizer = orthography.load_config()[0]
+    elif type(ort_tokenizer) in [type("string"), type(pathlib.Path())] : ort_tokenizer= orthography.Tokenization_Scheme(ort_tokenizer)
     if eval_set_path == None: eval_set_path = orthography.load_config()[1]
     # Load evaluation set
     if not(training_instead):
@@ -443,6 +444,8 @@ if __name__ == "__main__":
     parser.add_argument("eval_dir", help="Directory of model to be evaluated")
     parser.add_argument("-d", "--data_dir", default=None, help="Directory of data to evaluate model with")
     parser.add_argument("-c", "--checkpoint", default=None, help="Checkpoint of model to evaluate")
+    parser.add_argument("-t", "--tokenization", default=None, help="Path to tokenization scheme .tsv or .json")
+    parser.add_argument("-e", "--eval_settings", default=None, help="Path to evaluation set .json file")
     parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
     parser.add_argument("--lm", default=None, help="Path to kenlm language model")
     args = vars(parser.parse_args())
@@ -452,4 +455,6 @@ if __name__ == "__main__":
         data_dir=args['data_dir'], 
         checkpoint=args['checkpoint'], 
         cpu=args['cpu'],
-        lm=args['lm'])
+        lm=args['lm'],
+        ort_tokenizer=args['tokenization'],
+        eval_set_path=args['eval_set'])

@@ -98,7 +98,7 @@ def main_program(
             with processor.as_target_processor():
                 batch["labels"] = processor(batch["transcript"]).input_ids
         elif model_type == "whisper":
-            batch["input_values"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_values[0]
+            batch["input_values"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
             batch["labels"] = tokenizer(batch["transcript"]).input_ids
         return batch
 

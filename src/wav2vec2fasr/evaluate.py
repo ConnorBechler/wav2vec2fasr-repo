@@ -128,16 +128,16 @@ def main_program(eval_dir,
 
     try:
         logging.debug("Loading finetuned processor")
-        if whisper: processor = WhisperProcessor.from_pretrained(eval_dir)
+        if whisper: processor = WhisperProcessor.from_pretrained(model_dir)
         else: processor = Wav2Vec2Processor.from_pretrained(eval_dir)
     except:
         logging.debug("No finetuned processor found, generating from vocab")
         logging.debug("tokenizer setup")
-        if whisper: WhisperTokenizer(vocab_dir, language=language, task="transcribe")
+        if whisper: tokenizer = WhisperTokenizer(vocab_dir, language=language, task="transcribe")
         else: tokenizer = Wav2Vec2CTCTokenizer(vocab_dir, unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
     
         logging.debug("extractor setup")
-        if whisper: feature_extractor = WhisperFeatureExtractor.from_pretrained(eval_dir)
+        if whisper: feature_extractor = WhisperFeatureExtractor.from_pretrained(model_dir)
         else: feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, 
                                                     sampling_rate=16000, 
                                                     padding_value=0.0, 
@@ -190,7 +190,7 @@ def main_program(eval_dir,
         sub_inds = None
     
     vocab_set = {char for char in processor.tokenizer.get_vocab()} | {" "}
-    print(vocab_set)
+    if not(whisper): print(vocab_set)
 
     def get_predictions(ind, return_comb=False):
         if whisper:
@@ -223,6 +223,8 @@ def main_program(eval_dir,
         for ind in ind_list:
             if in_preds == None: label, pred = get_predictions(ind)
             else: label, pred = in_preds[0][ind], in_preds[1][ind]
+            if label =="" : label = "†NOTHING†"
+            if pred == "": pred = "†NOTHING†"
             labels.append(label)
             preds.append(pred)
         return(wer(labels, preds))

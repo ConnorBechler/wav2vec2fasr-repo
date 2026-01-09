@@ -274,7 +274,7 @@ def main_program(
         model = WhisperForConditionalGeneration.from_pretrained(w2v2_model)
         model.generation_config.language = "german"
         model.generation_config.task = "transcribe"
-        model.generation_config.forced_decoder_ids = None
+        #model.generation_config.forced_decoder_ids = None
         
         logging.debug("collator prep")
         data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor,
@@ -300,7 +300,8 @@ def main_program(
             logging_steps=logging_steps,
             learning_rate=learn_rate,#3e-4,
             warmup_steps=warmup_steps,
-            #save_total_limit=10,
+            load_best_model_at_end=True,
+            save_total_limit=2,
             )
         if max_steps != None: training_args.max_steps = max_steps#5000
         else: training_args.num_train_epochs = epochs#30
@@ -315,6 +316,7 @@ def main_program(
             fp16=mixed_precision,#True,
             use_cpu= use_cpu,
             eval_strategy="steps",
+            save_total_limit=2,
             per_device_eval_batch_size=8,
             predict_with_generate=True,
             generation_max_length=225,

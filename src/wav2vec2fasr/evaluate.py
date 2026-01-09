@@ -234,6 +234,8 @@ def main_program(eval_dir,
         for ind in ind_list:
             if in_preds == None: label, pred = get_predictions(ind)
             else: label, pred = in_preds[0][ind], in_preds[1][ind]
+            if label =="" : label = "†"
+            if pred == "": pred = "†"
             labels.append(label)
             preds.append(pred)
         return(cer(labels, preds))

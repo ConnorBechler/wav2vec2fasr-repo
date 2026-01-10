@@ -113,7 +113,7 @@ def main_program(eval_dir,
     if not(os.path.exists(eval_out)):
         os.makedirs(eval_out)
     if whisper:
-        from transformers import WhisperFeatureExtractor, WhisperTokenizer, WhisperProcessor, WhisperForConditionalGeneration, Seq2SeqTrainingArguments, Seq2SeqTrainer
+        from transformers import WhisperFeatureExtractor, WhisperTokenizer, WhisperProcessor, WhisperForConditionalGeneration
         language = "German"
     else:
         from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, AutoModelForCTC
@@ -197,7 +197,7 @@ def main_program(eval_dir,
             input_features = processor(audio=eval_dataset[ind]["audio"]['array'], sampling_rate=16000, 
                                        return_tensors="pt").input_features.to(device)
             generated_ids = model.generate(inputs=input_features, return_timestamps=False, 
-                                   task="transcribe", language=language)
+                                   task="transcribe", language=language, forced_decoder_ids=None)
             comb_pred = processor.batch_decode(generated_ids,skip_special_tokens=False)[0]
             pred = ort_tokenizer.revert(comb_pred)
         else:

@@ -301,6 +301,8 @@ def main_program(
             learning_rate=learn_rate,#3e-4,
             warmup_steps=warmup_steps,
             load_best_model_at_end=True,
+            metric_for_best_model="eval_cer",
+            greater_is_better=False,
             save_total_limit=2,
             )
         if max_steps != None: training_args.max_steps = max_steps#5000
@@ -325,7 +327,7 @@ def main_program(
             logging_steps=logging_steps,#logging_steps,#25,
             #report_to=["tensorboard"],
             load_best_model_at_end=True,
-            metric_for_best_model="cer",
+            metric_for_best_model="eval_cer",
             greater_is_better=False,
             #push_to_hub=True,
         )

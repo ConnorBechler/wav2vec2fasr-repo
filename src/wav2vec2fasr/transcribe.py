@@ -175,7 +175,7 @@ def ctc_decode(predlst, processor=None, char_align = True, word_align = True):
     else: predlst_chars = None
     return(predlst_words, predlst_chars)#predlst_js)
 
-def load_whisper_pipeline(model, device="cpu", chunk_length_s=30, stride_length_s=5):
+def load_whisper_pipeline(model, device="cpu", chunk_length_s=30, stride_length_s=(2,4)):
     pipe = pipeline('automatic-speech-recognition', model, device=device, chunk_length_s=chunk_length_s, 
                     stride_length_s=stride_length_s, return_timestamps=True)
     return(pipe)
@@ -200,10 +200,23 @@ def whisper_transcribe_mp(audio_path, model, processor, language, device):
         input_features = processor(audio=chunk[3], sampling_rate=sr, return_tensors="pt").input_features.to(device)
         generated_ids = model.generate(inputs=input_features, return_timestamps=False, 
                                    task="transcribe", language=language)
-        pred = processor.batch_decode(generated_ids,skip_special_tokens=False)[0]
+        pred = processor.batch_decode(generated_ids,skip_special_tokens=True)[0]
         sents.append([pred_st, pred_end, pred])
     return({"utterances": sents})
     
+def eaf_from_whisper(utterances, audio_path, out_dir=None, out_suff=""):
+    audio_path = Path(audio_path)
+    if out_dir == None: out_dir=Path("./")
+    eaf = pympi.Eaf(author="transcribe.py")
+    eaf.add_linked_file(file_path=audio_path, mimetype=audio_path.suffix)
+    eaf.remove_tier('default'), eaf.add_tier("prediction")
+    for sent in utterances["utterances"]:
+        if sent[0] < sent[1]:
+            eaf.add_annotation("prediction", int(sent[0]), int(sent[1]), sent[2])
+        else: 
+            print(f"WARNING: start time ({sent[0]}) greater than end time ({sent[1]});\n\treversing order, but this may be the wrong call.")
+            eaf.add_annotation("prediction", int(sent[1]), int(sent[0]), sent[2])
+    eaf.to_file(out_dir.joinpath(audio_path.stem+f"{out_suff}.eaf"))
 
 def get_logits(processor, model, audio, strides=(0,0), device="cpu"):
     """

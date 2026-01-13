@@ -191,16 +191,25 @@ def load_whisper_model_and_processor(model, device="cpu"):
     model = WhisperForConditionalGeneration.from_pretrained(model).to(device)
     return(model, processor)
 
+def whisper_transcribe_chunk(audio, model, processor, language, device, 
+                             sr=16000, return_timestamps=False, skip_spec_tokens=True):
+    input_features = processor(audio=audio, sampling_rate=sr, return_tensors="pt").input_features.to(device)
+    generated_ids = model.generate(inputs=input_features, return_timestamps=return_timestamps, 
+                                task="transcribe", language=language)
+    return(processor.batch_decode(generated_ids,skip_special_tokens=skip_spec_tokens)[0])
+
 def whisper_transcribe_mp(audio_path, model, processor, language, device):
     audio, sr = librosa.load(audio_path, sr=16000)
     chunks = chunk_audio(audio, sr=sr, max_chunk=30000, min_chunk=500, method='rvad_chunk_faster')
     sents = []
     for chunk in chunks:
         pred_st, pred_end = chunk[0] + chunk[2][0], chunk[1] - chunk[2][1]
-        input_features = processor(audio=chunk[3], sampling_rate=sr, return_tensors="pt").input_features.to(device)
-        generated_ids = model.generate(inputs=input_features, return_timestamps=False, 
-                                   task="transcribe", language=language)
-        pred = processor.batch_decode(generated_ids,skip_special_tokens=True)[0]
+        #input_features = processor(audio=chunk[3], sampling_rate=sr, return_tensors="pt").input_features.to(device)
+        #generated_ids = model.generate(inputs=input_features, return_timestamps=False, 
+        #                           task="transcribe", language=language)
+        #pred = processor.batch_decode(generated_ids,skip_special_tokens=True)[0]
+        pred = whisper_transcribe_chunk(chunk[3], model, processor, language, device, 
+                                        return_timestamps=False, skip_spec_tokens=True)
         sents.append([pred_st, pred_end, pred])
     return({"utterances": sents})
     

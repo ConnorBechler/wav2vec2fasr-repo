@@ -191,9 +191,9 @@ def load_whisper_model_and_processor(model, device="cpu"):
     model = WhisperForConditionalGeneration.from_pretrained(model).to(device)
     return(model, processor)
 
-def whisper_transcribe_mp(audio_path, model, processor, language, device, method, src_ts=None, tiers=None):
+def whisper_transcribe_mp(audio_path, model, processor, language, device):
     audio, sr = librosa.load(audio_path, sr=16000)
-    chunks = chunk_audio(audio, sr=sr, max_chunk=30000, min_chunk=500, method=method, src_ts=src_ts, tiers=tiers)
+    chunks = chunk_audio(audio, sr=sr, max_chunk=30000, min_chunk=500, method='rvad_chunk_faster')
     sents = []
     for chunk in chunks:
         pred_st, pred_end = chunk[0] + chunk[2][0], chunk[1] - chunk[2][1]

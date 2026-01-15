@@ -20,6 +20,7 @@ from jiwer import wer, cer
 from transformers import Wav2Vec2Processor, AutoModelForCTC, Wav2Vec2CTCTokenizer#, Wav2Vec2FeatureExtractor,  Wav2Vec2ForCTC, TrainingArguments, Trainer
 #Testing pipeline stuff
 from transformers import pipeline, AutomaticSpeechRecognitionPipeline, WhisperForConditionalGeneration, WhisperProcessor
+# NOTE: See https://huggingface.co/datasets/John6666/forum1/blob/main/whisper_timestamp_warning.md for details on whisper transcription errors
 import time
 import torch
 from pyctcdecode import build_ctcdecoder
@@ -198,18 +199,15 @@ def whisper_transcribe_chunk(audio, model, processor, language, device,
                                 task="transcribe", language=language)
     return(processor.batch_decode(generated_ids,skip_special_tokens=skip_spec_tokens)[0])
 
-def whisper_transcribe_mp(audio_path, model, processor, language, device):
+def whisper_transcribe_mp(audio_path, model, processor, language, device, 
+                          return_timestamps=False, skip_spec_tokens=True):
     audio, sr = librosa.load(audio_path, sr=16000)
     chunks = chunk_audio(audio, sr=sr, max_chunk=30000, min_chunk=500, method='rvad_chunk_faster')
     sents = []
     for chunk in chunks:
         pred_st, pred_end = chunk[0] + chunk[2][0], chunk[1] - chunk[2][1]
-        #input_features = processor(audio=chunk[3], sampling_rate=sr, return_tensors="pt").input_features.to(device)
-        #generated_ids = model.generate(inputs=input_features, return_timestamps=False, 
-        #                           task="transcribe", language=language)
-        #pred = processor.batch_decode(generated_ids,skip_special_tokens=True)[0]
         pred = whisper_transcribe_chunk(chunk[3], model, processor, language, device, 
-                                        return_timestamps=False, skip_spec_tokens=True)
+                                        return_timestamps=return_timestamps, skip_spec_tokens=skip_spec_tokens)
         sents.append([pred_st, pred_end, pred])
     return({"utterances": sents})
     

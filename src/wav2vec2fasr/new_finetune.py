@@ -366,6 +366,17 @@ def main_program(
     #New test line 2.9.23
     processor.save_pretrained(output_dir)
 
+    if just_adapter:
+        from safetensors.torch import save_file as safe_save_file
+        from transformers.models.wav2vec2.modeling_wav2vec2 import WAV2VEC2_ADAPTER_SAFE_FILE
+        import os
+
+        adapter_file = WAV2VEC2_ADAPTER_SAFE_FILE.format("zzz")
+        adapter_file = os.path.join(training_args.output_dir, adapter_file)
+
+        safe_save_file(model._get_adapters(), adapter_file, metadata={"format": "pt"})
+
+
     # print("Trainer saved!")
 
 

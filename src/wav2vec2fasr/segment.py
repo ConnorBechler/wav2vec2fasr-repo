@@ -330,6 +330,7 @@ def chunk_audio(lib_aud=None,
     elif method == 'vad_chunk': nchunks = vad_chunk(lib_aud, max_chunk, sr, stride)
     elif method == 'rvad_chunk_faster': nchunks = rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride)
     elif method == 'rvad_chunk': nchunks = rvad_chunk(lib_aud, min_chunk, max_chunk, sr)
+    elif method == 'rvad_chunk_base' : nchunks = rvad_chunk_base(lib_aud, sr)
     elif method == 'pitch_chunk': nchunks = pitch_chunk(path, min_chunk, max_chunk, stride)
     elif method == 'src_chunk' : nchunks = from_src_chunk(src_ts, tiers, tier_key)
     else: 

@@ -4,7 +4,7 @@ MFA Tools Interface
 
 import pathlib
 import pympi
-from datasets import load_from_disk
+#from datasets import load_from_disk
 from wav2vec2fasr.audio_processor import return_tiers
 from wav2vec2fasr.orthography import load_config, remove_special_chars, hanzi_reg
 import os

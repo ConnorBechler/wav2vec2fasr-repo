@@ -15,7 +15,7 @@ import os
 from jiwer import wer, cer
 from Levenshtein import editops
 
-from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, AutoModelForCTC#, Wav2Vec2ProcessorWithLM, Wav2Vec2ForCTC, TrainingArguments, Trainer
+#from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, AutoModelForCTC#, Wav2Vec2ProcessorWithLM, Wav2Vec2ForCTC, TrainingArguments, Trainer
 from pyctcdecode import build_ctcdecoder
 
 #Arguments stuff added with help from https://machinelearningmastery.com/command-line-arguments-for-your-python-script/
@@ -25,7 +25,8 @@ warnings.simplefilter("ignore")
 
 #from wav2vec2fasr.prinmitext import phone_convert, tone_convert, phone_revert, tone_revert
 from wav2vec2fasr import orthography
-from wav2vec2fasr import resources
+#from wav2vec2fasr import resources
+from pympi import Eaf, TextGrid
 import json
 import time
 
@@ -71,30 +72,31 @@ def load_eval_settings(eval_set_path, test_set):
                 sub_inds[s] = []
                 for r in ev_set["subsets"][s]:
                     sub_inds[s] += rec_inds[r]
-        print(rec_inds)
-        print(sub_inds)
+        #print(rec_inds)
+        #print(sub_inds)
         return(full, rec_inds, sub_inds)
 
-def main_program(home=None, 
-                project_dir = "npp_asr",
-                eval_dir="output", 
+def main_program(eval_dir, 
                 data_dir=None, 
                 checkpoint=None, 
                 cpu=False, 
                 lm=None,
-                training_instead=False):
-    """Function for evaluating the performance of a wav2vec2 model on a dataset
+                training_instead=False,
+                ort_tokenizer=None,
+                eval_set_path=None,
+                eval_out="./",
+                whisper=False):
+    """Function for evaluating the performance of a wav2vec2 or whisper model on a dataset
     Generates a multitude of outputs, printing most to the console but also creating
     error tables and replacement tables as csvs"""
 
-    if home == None: home = os.environ["HOME"]
-    full_project = os.path.join(home, project_dir)
-    eval_dir = os.path.join(full_project, eval_dir)
+    eval_dir = pathlib.Path(eval_dir)
     if data_dir == None:
-        data_dir = os.path.join(eval_dir, "data/")
-    data_train = os.path.join(data_dir, "training/")
-    data_test = os.path.join(data_dir, "testing/")
-    vocab_dir = os.path.join(eval_dir, "vocab.json")
+        data_dir = eval_dir.joinpath("data/")
+    data_dir = pathlib.Path(data_dir)
+    data_train = data_dir.joinpath("training/")
+    data_test = data_dir.joinpath("testing/")
+    vocab_dir = eval_dir.joinpath("vocab.json")
     if checkpoint == None:
         if os.path.exists(os.path.join(eval_dir, "model/")):
             model_dir = os.path.join(eval_dir, "model/")
@@ -105,9 +107,16 @@ def main_program(home=None,
         device = 'cpu'
     else: 
         device = 'cuda'
-    if lm== None: eval_name = eval_dir.split('/')[-1]
-    else: eval_name = eval_dir.split('/')[-1]+"_w_"+lm.split("/")[-1].split(".")[0]
-
+    if lm== None: eval_name = eval_dir.stem
+    else: eval_name = eval_dir.stem+"_w_"+pathlib.Path(lm).stem
+    eval_out = pathlib.Path(eval_out)
+    if not(os.path.exists(eval_out)):
+        os.makedirs(eval_out)
+    if whisper:
+        from transformers import WhisperFeatureExtractor, WhisperTokenizer, WhisperProcessor, WhisperForConditionalGeneration
+        language = "German"
+    else:
+        from transformers import Wav2Vec2CTCTokenizer, Wav2Vec2FeatureExtractor, Wav2Vec2Processor, AutoModelForCTC
     print("Evaluating", eval_name)
 
     logging.debug(f"Loading training data from {data_train}")
@@ -119,21 +128,25 @@ def main_program(home=None,
 
     try:
         logging.debug("Loading finetuned processor")
-        processor = Wav2Vec2Processor.from_pretrained(eval_dir)
+        if whisper: processor = WhisperProcessor.from_pretrained(model_dir)
+        else: processor = Wav2Vec2Processor.from_pretrained(eval_dir)
     except:
         logging.debug("No finetuned processor found, generating from vocab")
         logging.debug("tokenizer setup")
-        tokenizer = Wav2Vec2CTCTokenizer(vocab_dir, unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
+        if whisper: tokenizer = WhisperTokenizer(vocab_dir, language=language, task="transcribe")
+        else: tokenizer = Wav2Vec2CTCTokenizer(vocab_dir, unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
     
         logging.debug("extractor setup")
-        feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, 
+        if whisper: feature_extractor = WhisperFeatureExtractor.from_pretrained(model_dir)
+        else: feature_extractor = Wav2Vec2FeatureExtractor(feature_size=1, 
                                                     sampling_rate=16000, 
                                                     padding_value=0.0, 
                                                     do_normalize=True, 
                                                     return_attention_mask=True)
     
         logging.debug("processor setup")
-        processor = Wav2Vec2Processor(feature_extractor=feature_extractor, 
+        if whisper: processor = WhisperProcessor(feature_extractor=feature_extractor, tokenizer=tokenizer)
+        else : processor = Wav2Vec2Processor(feature_extractor=feature_extractor, 
                                     tokenizer=tokenizer)
         
     if lm !=None:
@@ -145,53 +158,60 @@ def main_program(home=None,
     
     #Load fine-tuned model
     logging.debug("Loading finetuned model")
-    model = AutoModelForCTC.from_pretrained(model_dir).to(device)
+    if whisper: model = WhisperForConditionalGeneration.from_pretrained(model_dir).to(device)
+    else: model = AutoModelForCTC.from_pretrained(model_dir).to(device)
     
     #Load in evaluation set and tokenization scheme
-    ort_tokenizer, eval_set_path = orthography.load_config()
+    if ort_tokenizer == None: ort_tokenizer = orthography.load_config()[0]
+    elif type(ort_tokenizer) in [type("string"), type(pathlib.Path())] : ort_tokenizer= orthography.Tokenization_Scheme(ort_tokenizer)
+    if eval_set_path == None: eval_set_path = orthography.load_config()[1]
     # Load evaluation set
     if not(training_instead):
+        eval_dataset = np_test_ds
         try:
             full, rec_inds, sub_inds = load_eval_settings(eval_set_path, np_test_ds)
         except Exception as e:
             print("Loading eval settings failed with exception:",e)
             print("Evaluating full set and by file instead")
-            recs = []
-            start_inds = []
-            for r, rec in enumerate(np_test_ds):
-                if rec["from_file"] not in recs:
-                    recs.append(rec["from_file"])
-                    start_inds.append(r)
-            start_inds.append(len(np_test_ds))
-            full = list(range(len(np_test_ds)))
-            rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-1] for r in range(len(recs))}
-            sub_inds = None
+            full = None
     else:
+        eval_dataset = np_train_ds
+        full = None
+    if full == None:
         recs = []
         start_inds = []
-        for r, rec in enumerate(np_train_ds):
+        for r, rec in enumerate(eval_dataset):
             if rec["from_file"] not in recs:
                 recs.append(rec["from_file"])
                 start_inds.append(r)
-        start_inds.append(len(np_train_ds))
-        full = list(range(len(np_train_ds)))
+        start_inds.append(len(eval_dataset))
+        full = list(range(len(eval_dataset)))
         rec_inds = {recs[r] : [start_inds[r], start_inds[r+1]-1] for r in range(len(recs))}
         sub_inds = None
     
-    vocab_set = {ort_tokenizer.apply(char) for char in processor.tokenizer.get_vocab()} | {" "}
-    print(vocab_set)
+    vocab_set = {char for char in processor.tokenizer.get_vocab()} | {" "}
+    if not(whisper): print(vocab_set)
 
     def get_predictions(ind, return_comb=False):
-        input_values = processor(np_test_ds[ind]["audio"]['array'], return_tensors="pt", padding=True, sampling_rate=16000).input_values
-        logits = model(input_values.to(device)).logits
-        if lm == None: 
-            pred_ids = torch.argmax(logits, dim=-1)[0]
-            comb_pred = processor.decode(pred_ids)
+        if whisper:
+            input_features = processor(audio=eval_dataset[ind]["audio"]['array'], sampling_rate=16000, 
+                                       return_tensors="pt").input_features.to(device)
+            generated_ids = model.generate(inputs=input_features, return_timestamps=False, 
+                                   task="transcribe", language=language, forced_decoder_ids=None)
+            comb_pred = processor.batch_decode(generated_ids,skip_special_tokens=False)[0]
             pred = ort_tokenizer.revert(comb_pred)
-        else: 
-            comb_pred = decoder.decode(logits[0].detach().cpu().numpy())
-            pred = ort_tokenizer.revert(comb_pred)
-        comb_label = ort_tokenizer.apply(orthography.remove_special_chars(np_test_ds[ind]["transcript"]))
+        else:
+            input_values = processor(eval_dataset[ind]["audio"]['array'], return_tensors="pt", padding=True, 
+                                     sampling_rate=16000).input_values
+            logits = model(input_values.to(device)).logits
+            if lm == None: 
+                pred_ids = torch.argmax(logits, dim=-1)[0]
+                comb_pred = processor.decode(pred_ids)
+                pred = ort_tokenizer.revert(comb_pred)
+            else: 
+                comb_pred = decoder.decode(logits[0].detach().cpu().numpy())
+                pred = ort_tokenizer.revert(comb_pred)
+        comb_label = ort_tokenizer.apply(orthography.remove_special_chars(eval_dataset[ind]["transcript"]))
         label = ort_tokenizer.revert(comb_label)
         missing = set(comb_label) - vocab_set
         if missing != set(): print(missing)
@@ -203,6 +223,8 @@ def main_program(home=None,
         for ind in ind_list:
             if in_preds == None: label, pred = get_predictions(ind)
             else: label, pred = in_preds[0][ind], in_preds[1][ind]
+            if label =="" : label = "†NOTHING†"
+            if pred == "": pred = "†NOTHING†"
             labels.append(label)
             preds.append(pred)
         return(wer(labels, preds))
@@ -212,6 +234,8 @@ def main_program(home=None,
         for ind in ind_list:
             if in_preds == None: label, pred = get_predictions(ind)
             else: label, pred = in_preds[0][ind], in_preds[1][ind]
+            if label =="" : label = "†"
+            if pred == "": pred = "†"
             labels.append(label)
             preds.append(pred)
         return(cer(labels, preds))
@@ -236,7 +260,7 @@ def main_program(home=None,
         for x in replacements: table[targets.index(x[0])][errors.index(x[1])] += 1
         csv = "\t"+"\t".join(errors)
         for r in range(len(table)): csv += f"\n{targets[r]}\t"+"\t".join([str(i) for i in table[r]])
-        with open(name+'.tsv', 'w', encoding='utf-8') as f:
+        with open(eval_out.joinpath(name+'.tsv'), 'w', encoding='utf-8') as f:
             f.write(csv)
         comb_targets, comb_errors = set(), set()
         for x in comb_replacements:
@@ -248,7 +272,7 @@ def main_program(home=None,
         for x in comb_replacements: table[comb_targets.index(x[0])][comb_errors.index(x[1])] += 1
         comb_csv = "\t"+"\t".join(comb_errors)
         for r in range(len(table)): comb_csv += f"\n{comb_targets[r]}\t"+"\t".join([str(i) for i in table[r]])
-        with open(name+'_comb.tsv', 'w', encoding='utf-8') as f:
+        with open(eval_out.joinpath(name+'_comb.tsv'), 'w', encoding='utf-8') as f:
             f.write(comb_csv)
         return csv, comb_csv
 
@@ -281,13 +305,13 @@ def main_program(home=None,
         body = "\n".join([f"{err[:3]}:\t" + "\t".join([str(err_counts[k][err]) for k in err_counts.keys()]) for err in errs])
         sum = "\nsum:\t" + "\t".join([str(err_counts[k][errs[0]] + err_counts[k][errs[1]] + err_counts[k][errs[2]]) for k in err_counts.keys()])
         csv = header + body + sum
-        with open(name+'.tsv', 'w', encoding='utf-8') as f:
+        with open(eval_out.joinpath(name+'.tsv'), 'w', encoding='utf-8') as f:
             f.write(csv)
         header = "\t"+ "\t".join(list(comb_err_counts.keys())) + "\n"
         body = "\n".join([f"{err[:3]}:\t" + "\t".join([str(comb_err_counts[k][err]) for k in comb_err_counts.keys()]) for err in errs])
         sum = "\nsum:\t" + "\t".join([str(comb_err_counts[k][errs[0]] + comb_err_counts[k][errs[1]] + comb_err_counts[k][errs[2]]) for k in comb_err_counts.keys()])
         comb_csv = header + body + sum
-        with open(name+'_comb.tsv', 'w', encoding='utf-8') as f:
+        with open(eval_out.joinpath(name+'_comb.tsv'), 'w', encoding='utf-8') as f:
             f.write(comb_csv)
         return csv, comb_csv
     
@@ -344,13 +368,13 @@ def main_program(home=None,
     print("Decoded testing vocab: ", d_vocab_count)
     
     #Output original transcript for comparison
-    text = [ort_tokenizer.revert(np_test_ds[ind]["transcript"]) for ind in full]
-    with open(eval_name+'_transcript.txt', 'w', encoding='utf-8') as f:
+    text = [ort_tokenizer.revert(eval_dataset[ind]["transcript"]) for ind in full]
+    with open(eval_out.joinpath(eval_name+'_transcript.txt'), 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
     
     #Output predicted transcript for comparison
     text = [ort_tokenizer.revert(comb_preds[ind]) for ind in full]
-    with open(eval_name+'_prediction.txt', 'w', encoding='utf-8') as f:
+    with open(eval_out.joinpath(eval_name+'_prediction.txt'), 'w', encoding='utf-8') as f:
         f.write("\n".join(text))
 
     #Set in_preds tuples of already generated transcriptions/predictions to avoid recomputing them
@@ -395,14 +419,40 @@ def main_program(home=None,
         print("Prediction:")
         print(pred)
     
+def compute_metrics_for_files(ref_path, hyp_path, tar_tier=None, ort_apply=False, ort_revert=False, tok_scheme=None) -> dict:
+    """Function for getting CER and WER from files
+    Args:
+        ref_path (pathlib.Path or str) : path to reference text file, .TextGrid, or .eaf
+        hyp_path (pathlib.Path or str) : path to hypothesis text file, .TextGrid, or .eaf
+        tar_tier (str or None) : only necessary if .TextGrid or .eaf to specify which tiers are being compared
+        ort_tokenized (bool) : if True, apply orthographic tokenization to both txts before comparison
+        tok_scheme (pathlib.Path, str, or None) : if None, default, otherwise try to load argument as path to Tokenization_Scheme file
+    """
+    ref_txt = orthography.load_text_from_ts(ref_path, tar_tier)
+    hyp_txt = orthography.load_text_from_ts(hyp_path, tar_tier)
+    ref_lines, hyp_lines = ref_txt.split("\n"), hyp_txt.split("\n")
+    if ort_apply or ort_revert:
+        if tok_scheme == None: tok_scheme = orthography.load_config()[0]
+        else: tok_scheme = orthography.Tokenization_Scheme(tok_scheme)
+        for l in range(len(ref_lines)):
+            ref_txt, hyp_txt = orthography.remove_special_chars(ref_lines[l]), orthography.remove_special_chars(hyp_lines[l])
+            if ort_apply: ref_txt, hyp_txt = tok_scheme.apply(ref_txt), tok_scheme.apply(hyp_txt)
+            if ort_revert: ref_txt, hyp_txt = tok_scheme.revert(ref_txt), tok_scheme.revert(hyp_txt)
+            ref_txt, hyp_txt = orthography.remove_extra_spaces(ref_txt), orthography.remove_extra_spaces(hyp_txt)
+            ref_lines[l], hyp_lines[l] = ref_txt, hyp_txt
+    metrics = {"CER" : cer(ref_lines, hyp_lines), "WER" : wer(ref_lines, hyp_lines)}
+    return(metrics)
 
 if __name__ == "__main__":
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("eval_dir", help="Directory of model to be evaluated")
     parser.add_argument("-d", "--data_dir", default=None, help="Directory of data to evaluate model with")
     parser.add_argument("-c", "--checkpoint", default=None, help="Checkpoint of model to evaluate")
+    parser.add_argument("-t", "--tokenization", default=None, help="Path to tokenization scheme .tsv or .json")
+    parser.add_argument("-e", "--eval_settings", default=None, help="Path to evaluation set .json file")
     parser.add_argument("--cpu", action="store_true", help="Run without mixed precision")
     parser.add_argument("--lm", default=None, help="Path to kenlm language model")
+    parser.add_argument("--whisper", action="store_true", help="Is the model a whisper model?")
     args = vars(parser.parse_args())
     
     logging.debug("***Evaluating model***")
@@ -410,4 +460,7 @@ if __name__ == "__main__":
         data_dir=args['data_dir'], 
         checkpoint=args['checkpoint'], 
         cpu=args['cpu'],
-        lm=args['lm'])
+        lm=args['lm'],
+        ort_tokenizer=args['tokenization'],
+        eval_set_path=args['eval_settings'],
+        whisper=args['whisper'])

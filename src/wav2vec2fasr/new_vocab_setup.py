@@ -1,32 +1,27 @@
 from datasets import load_from_disk
 import logging
 import os
+from pathlib import Path
 import json
 
 def setup_vocab(
-        home = None,
-        project_dir = "npp_asr",
-        output_dir = "",
-        data_dir=None):
+        data_dir,
+        output_dir
+        ):
     """
     Function for setting up vocab for wav2vec 2.0 training
 
     Args:
-        home (str) : root system directory
-        project_dir (str) : name of project directory
-        output_dir (str) : output directory for vocab file
         data_dir (str) : directory with named training and testing directories
+        run_dir (str) : output directory for vocab file
     
     Output:
         vocab.json file with full wav2vec 2.0 vocabulary
     """
     
-    if home == None: home = os.environ["HOME"]
-    full_project = os.path.join(home, project_dir)
-    if output_dir == "": output_dir = os.path.join(full_project, output_dir)
-    if data_dir == None: data_dir = os.path.join(output_dir, "data/")
-    data_train = os.path.join(data_dir, "training/")
-    data_test = os.path.join(data_dir, "testing/")
+    data_dir, output_dir = Path(data_dir), Path(output_dir)
+    data_train = data_dir.joinpath("training/")
+    data_test = data_dir.joinpath("testing/")
     
     if os.path.exists(data_train):
         logging.debug("Training directory exists")
@@ -67,7 +62,9 @@ def setup_vocab(
     vocab_dict["[UNK]"] = len(vocab_dict)
     vocab_dict["[PAD]"] = len(vocab_dict)
     
-    out_json = os.path.join(output_dir, "vocab.json")
+    if not(os.path.exists(output_dir)):
+        os.mkdir(output_dir)
+    out_json = output_dir.joinpath("vocab.json")
     
     with open(out_json, 'w') as vocab_file:
         json.dump(vocab_dict, vocab_file)

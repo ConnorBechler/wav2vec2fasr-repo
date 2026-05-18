@@ -1,0 +1,73 @@
+CLEAN	repl	⁵⁵⁵	⁵⁵
+CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵][ ]	 
+CLEAN	repl	(?<!¹|²|³|⁵)[¹²³⁵](?!¹|²|³|⁵)	
+CLEAN	repl	-	
+CLEAN	repl	õ	õ
+CLEAN	repl	ĩ	ĩ
+CLEAN	repl	ǽ	ǽ
+CLEAN	repl	ú	ú
+CLEAN	repl	ù	ù
+CLEAN	repl	ǔ	ǔ
+CLEAN	repl	û	û
+CLEAN	repl	ǐ	ǐ
+CLEAN	repl	î	î
+CLEAN	repl	í	í
+CLEAN	repl	ì	ì
+CLEAN	repl	ó	ó
+CLEAN	repl	ǒ	ǒ
+CLEAN	repl	ò	ò
+CLEAN	repl	è	è
+CLEAN	repl	ɔ	o
+CLEAN	repl	ʁ	ɦ
+CLEAN	repl	ʔ	
+CLEAN	repl	ʸ	w
+CLEAN	repl	ŋ	̃
+CLEAN	repl	ɨ	ə
+CLEAN	repl	ʌ	ɐ
+CLEAN	repl	ej	ei
+CLEAN	repl	ɛj	ɛi
+CLEAN	repl	əw	əu
+CLEAN	repl	ɑw	ɑu
+CLEAN	repl	tɕɯ	tɕwə
+CLEAN	repl	dzɯ	dzwə
+CLEAN	repl	ɯ	ʉ
+CLEAN	repl	r	ɻ
+tone	repl	̀	L
+tone	repl	́	H
+tone	repl	̂	F
+tone	repl	̌	R
+tone	repl	̀	L
+tone	repl	́	H
+tone	repl	²²	L
+tone	repl	²¹	L
+tone	repl	³²	L
+tone	repl	³⁵	R
+tone	repl	⁵⁵	H
+tone	repl	⁵²	F
+tone	repl	⁵¹	F
+aff_asp	comb	tsʰ
+aff_asp	comb	ʈʂʰ
+aff_asp	comb	tɕʰ
+hig_nas	comb	ĩ
+mid_nas	comb	ə̃
+mid_nas	comb	õ
+low_nas	comb	æ̃
+low_nas	comb	ɑ̃
+dip	comb	ei
+dip	comb	ɛi
+dip	comb	əu
+dip	comb	ɑu
+liq_vls	comb	ɻ̥
+liq_nas	comb	m̥
+liq_nas	comb	n̥
+stp_asp	comb	pʰ
+stp_asp	comb	tʰ
+stp_asp	comb	ʈʰ
+stp_asp	comb	kʰ
+stp_asp	comb	qʰ
+aff	comb	ts
+aff	comb	dz
+aff	comb	ʈʂ
+aff	comb	ɖʐ
+aff	comb	tɕ
+aff	comb	dʑ

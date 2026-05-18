@@ -20,12 +20,55 @@ Clone the repo to get started. To actually make it usable, I recommend using [po
 
 ### Finetuning
 
-1. Separate your audio corpus/dataset into a training directory and a testing directory, with audio files and transcripts (eafs or TextGrids)
-2. Use `audio_processor.py` to chunk each directory into training and testing huggingface datasets, respectively
-3. Create a tokenization scheme .tsv file, following the instructions [here](https://github.com/ConnorBechler/wav2vec2fasr-repo/wiki/Tokenization-Schemes#creating-a-tokenization-scheme-file), and put its name or path in src/wav2vec2fasr/resources/config.json. If you just add its name, be sure the tsv is also in the resources folder.
+1. Separate your audio corpus/dataset into a training directory and a testing directory, with paired audio files and transcripts (eafs or TextGrids)
+2. Run `audio_processor.py` from the command line to chunk each directory into training and testing huggingface datasets, specifying which transcription tier you want to train on
+   * For example, `python -m wav2vec2fasr.audio_processor -d "raw_corpus_directory" -o "huggingface_data_directory" -t "sentence"`
+   * `-d`/`--data_dir` is the path to the directory containing the testing and training directories with audio/transcript pairs
+   * `-o`/`--out_dir` is the path to the directory new testing and training directories will be produced; each will contain one huggingface arrow dataset
+   * `-t`/`--tier` is the whole name or part of the name of the tier present in each transcription you want to train the model on
+3. Create a tokenization scheme .json/.tsv file, following the instructions [here](https://github.com/ConnorBechler/wav2vec2fasr-repo/wiki/Tokenization-Schemes#creating-a-tokenization-scheme-file), and put its name or path in src/wav2vec2fasr/resources/config.json. If you just add its name, be sure the .json/.tsv is also in the resources folder.
 4. Create an evaluation settings .json file, following the instructions [here](), and put its name or path in src/wav2vec2fasr/resources/config.json. If you just add its name, be sure the json is also in the resources folder.
 5. Run `full_finetune.py` from the command line with the hyper-parameters of your choice.
+   * For example, `python -m wav2vec2fasr.full_finetune -n "model_name" -d "huggingface_data_directory" -o "output"`
+   * `-n` is the name (optional) name you want to give the finetuned model
+   * `-d`/`--data_dir` is the path to the directory containing the testing and training directories with huggingface arrow datasets
+   * `-o`/`--out_dir` is the path to the directory in which the finetuned model's directory will be created
 6. There will probably be a bug somewhere, but if not, you will have models! The evaluation logs should give you some idea of how well they actually trained.
+
+#### Finetuning File Structure
+```
+raw_corpus_directory    (path to this directory is argument -d/--data_dir of audio_processor.py)
+|----training                
+|    |----recording1.wav
+|    |----recording1.TextGrid
+`----testing
+     |----recording2.wav
+     `----recording2.TextGrid
+
+huggingface_data_directory    (-o/--output_dir of audio_processor.py, -d/--data_dir of full_finetune.py)
+|----training                  
+|    |----data-00000-of-00001.arrow
+|    |----dataset_info.json
+|    `----state.json
+`----testing
+     |----data-00000-of-00001.arrow
+     |----dataset_info.json
+     `----state.json
+
+output    (path to this directory is argument -o/--output_dir of full_finetune.py)
+`----model_name    (output of full_finetune.py, name determined by argument -n/--run_name)
+     |----tokenization.json
+     |----vocab.json
+     |----model.safetensors
+     |----training
+     |    |----data-00000-of-00001.arrow
+     |    |----dataset_info.json
+     |    `----state.json
+     `----testing
+          |----data-00000-of-00001.arrow
+          |----dataset_info.json
+          `----state.json
+```
 
 ### Automatic Speech Recognition
 

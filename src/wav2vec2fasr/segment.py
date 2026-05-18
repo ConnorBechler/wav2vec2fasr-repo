@@ -171,10 +171,15 @@ def rvad_chunk(audio, min_chunk, max_chunk, sr, vad=rVADfast()):
 
 def rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride):
     """Uses rvad_faster to chunk audio, with fall-back stride chunking for segments that are too long"""
+    #TODO: Improve fallback measure for minimum length/distance
+    #7/29: Just added method for keeping chunk below minimum length in memory to attach to the next segment,
+    #  if it doesn't exceed the max chunk length. What I should do is add ANOTHER parameter for deciding when
+    #  a chunk is long enough to stand alone, but would be better combined (distance + length probably)
     segs = rvad_faster.rVAD_fast(lib_aud, sr, ftThres = 0.4)
     win_st = None
     win_end = None
     nchunks = []
+    backup = None
     for x in range(len(segs)):
         if segs[x] == 1:
             if win_st == None: win_st = x*10
@@ -192,9 +197,25 @@ def rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride):
                         newest_chunks[-1] = [win_end-step-stride, win_end, (stride, 0)]
                     nchunks += newest_chunks
                 elif diff > min_chunk:
-                    nchunks.append([win_st, win_end, (0, 0)])
+                    if backup != None and (win_end - backup[0]) < max_chunk:
+                        nchunks.append([backup[0], win_end, (0, 0)])
+                    else:
+                        nchunks.append([win_st, win_end, (0, 0)])
+                    backup = None
+                elif diff < min_chunk:
+                    if backup == None: backup = [win_st, win_end]
+                    else: backup[1] = win_end
                 win_st, win_end = None, None
-    return(nchunks)
+    nnchunks = []
+    for s in range(0, len(nchunks)-1, 2):
+        if nchunks[s+1][1] - nchunks[s][0] < 30000 and nchunks[s+1][0]-nchunks[s][1] < 1000:
+            nnchunks.append([nchunks[s][0], nchunks[s+1][1], 
+                            (nchunks[s][2][0], nchunks[s+1][2][1])])
+        else:
+            nnchunks.append(nchunks[s])
+            nnchunks.append(nchunks[s+1])
+    nnchunks.append(nchunks[-1])
+    return(nnchunks)
 
 def pitch_chunk(fullpath, min_chunk, max_chunk, stride):
     """Chunking method that uses praat pitch contours to chunk audio, with fall-back stride chunking"""
@@ -309,6 +330,7 @@ def chunk_audio(lib_aud=None,
     elif method == 'vad_chunk': nchunks = vad_chunk(lib_aud, max_chunk, sr, stride)
     elif method == 'rvad_chunk_faster': nchunks = rvad_chunk_faster(lib_aud, min_chunk, max_chunk, sr, stride)
     elif method == 'rvad_chunk': nchunks = rvad_chunk(lib_aud, min_chunk, max_chunk, sr)
+    elif method == 'rvad_chunk_base' : nchunks = rvad_chunk_base(lib_aud, sr)
     elif method == 'pitch_chunk': nchunks = pitch_chunk(path, min_chunk, max_chunk, stride)
     elif method == 'src_chunk' : nchunks = from_src_chunk(src_ts, tiers, tier_key)
     else: 

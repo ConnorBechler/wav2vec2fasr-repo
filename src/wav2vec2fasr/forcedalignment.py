@@ -19,14 +19,14 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 import time
 ort_tokenizer = load_config()[0]
 
-def get_trellis(emission, tokens, blank_id=0):
+def get_trellis(emission, tokens, blank_id=0, device="cpu"):
     num_frame = emission.size(0)
     num_tokens = len(tokens)
 
     # Trellis has extra diemsions for both time axis and tokens.
     # The extra dim for tokens represents <SoS> (start-of-sentence)
     # The extra dim for time axis is for simplification of the code.
-    trellis = torch.empty((num_frame + 1, num_tokens + 1))
+    trellis = torch.empty((num_frame + 1, num_tokens + 1)).to(device)
     trellis[0, 0] = 0
     trellis[1:, 0] = torch.cumsum(emission[:, 0], 0)
     trellis[0, -num_tokens:] = -float("inf")
@@ -178,7 +178,8 @@ def align_audio(processor: Wav2Vec2Processor,
                 model : AutoModelForCTC = None, 
                 audio = None, 
                 strides = (0,0),
-                decoder = None) -> tuple:
+                decoder = None,
+                device = "cpu") -> tuple:
     """
     Returns millisecond character and word alignments relative to start of audio, as well as transcript if requested
     Structure largely adapted from https://github.com/m-bain/whisperX/blob/main/whisperx/alignment.py
@@ -191,16 +192,17 @@ def align_audio(processor: Wav2Vec2Processor,
         audio (str or Path or ndarray) : Either the path to an audio file or the audio as an ndarray
         strides (tuple) : Strides on either side of each segment to provide context for prediction
         decoder (ctc decoder) : kenlm language model decoder
+        device (str) : either cpu or cuda
     Returns:
         tuple[list, list, str] : character, word, and phrase alignments, respectively
     """
     #If logits are not provided, generate them using the model
-    if logits == None: logits = get_logits(processor, model, audio, strides)
+    if logits == None: logits = get_logits(processor, model, audio, strides, device)
     #If transcript is not provided, also generate transcript
     if transcript == None: transcript = transcribe_segment(processor, logits, decoder=decoder)
     align_dictionary = {char: code for char,code in processor.tokenizer.get_vocab().items()}
     #print(logits)
-    emission = logits[0].cpu().detach()
+    emission = logits[0].to(device).detach()
     #Replace spaces with vertical pipes symbolizing word boundaries/gaps
     clean_transcript = transcript.replace(' ', '|')
     #Combine multiple adjacent pipes into single pipe
@@ -210,7 +212,7 @@ def align_audio(processor: Wav2Vec2Processor,
     for char, code in align_dictionary.items():
         if char.lower() == '[pad]' or char.lower() == '<pad>':
             blank_id = code
-    trellis = get_trellis(emission, tokens, blank_id)
+    trellis = get_trellis(emission, tokens, blank_id, device)
     path = backtrack(trellis, emission, tokens, blank_id)
     try:
         chars, words, char_alignments, word_alignments = return_alignments(trellis, path, clean_transcript)
@@ -218,9 +220,13 @@ def align_audio(processor: Wav2Vec2Processor,
     except Exception: 
         return(None, None, transcript)
     
+def load_model_and_processor(model_dir, device='cpu'):
+    model = AutoModelForCTC.from_pretrained(model_dir).to(device)
+    processor = Wav2Vec2Processor.from_pretrained(model_dir)
+    return(model, processor)
 
 def transcribe_audio(audio_path : any, 
-                    model_dir,
+                    model_dir = None,
                     model = None,
                     processor = None,
                     lm_decoder = None,
@@ -233,6 +239,7 @@ def transcribe_audio(audio_path : any,
                     char_tier_name="phones", 
                     output_name=None,
                     output=".TextGrid",
+                    device="cpu",
                     eval=False) -> dict:
     """
     Function for (1) chunking a specified audio file by a specified method and
@@ -251,13 +258,15 @@ def transcribe_audio(audio_path : any,
         word_tier_name (str) : name of word tier for word alignments
         char_tier_name (Str) : name of character tier for character alignments
         output_name (str) : name for the resulting file, defaults to f"{src_path.stem}{ts_format}" if None
+        output (str) : format of resulting file, .TextGrid, .eaf, or None
+        device (str) : cpu or cuda
     Returns:
         dict of annotations, with the lists of tuples for keys 'prediction' (referencing phrases), 'words', and 'chars'
             each tuple contains a prediction entry with start time and end time in milliseconds and the prediction as a string
     Output:
         if output is not None, then returns either a TextGrid or eaf file
     """
-    if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to('cpu')
+    if model == None : model = AutoModelForCTC.from_pretrained(model_dir).to(device)
     if processor == None: processor = Wav2Vec2Processor.from_pretrained(model_dir)
     #If language model directory provided, build lm decoder
     if lm_decoder != None and type(lm_decoder) == type(Path()) : decoder, processor = build_lm_decoder(model_dir, lm_decoder, processor)
@@ -281,7 +290,7 @@ def transcribe_audio(audio_path : any,
         pred_st, pred_end = chunk[0] + chunk[2][0], chunk[1] - chunk[2][1]
         #DEBUG: Print start of phrase, end of phrase
         #print(pred_st, pred_end, pred_end-pred_st)
-        calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], strides=chunk[2], decoder=decoder)
+        calign, walign, pred = align_audio(processor, model=model, audio=chunk[3], strides=chunk[2], decoder=decoder, device=device)
         ts.add_annotation(utt_tier_name, pred_st, pred_end, ort_tokenizer.revert(pred))
         annotations[utt_tier_name].append((pred_st, pred_end, ort_tokenizer.revert(pred)))
         if calign != None and walign != None:
